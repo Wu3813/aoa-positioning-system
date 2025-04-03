@@ -1,0 +1,9 @@
+spring:
+  config:
+    name: AOA_monitor
+  profiles:
+    active: dev
+
+map:
+  upload:
+    path: ${user.dir}/uploads/maps

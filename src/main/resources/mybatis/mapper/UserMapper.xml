@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.monitor.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="com.wu.monitor.model.User">
+        <id column="id" property="id" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="role" property="role" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, username, password, role, create_time
+    </sql>
+    
+    <select id="selectAllUsers" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM user
+    </select>
+    
+    <select id="selectUserById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM user
+        WHERE id = #{id}
+    </select>
+    
+    <select id="selectUserByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM user
+        WHERE username = #{username}
+    </select>
+    
+    <insert id="insertUser" parameterType="com.wu.monitor.model.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (username, password, role, create_time)
+        VALUES (#{username}, #{password}, #{role}, #{createTime})
+    </insert>
+    
+    <update id="updateUser" parameterType="com.wu.monitor.model.User">
+        UPDATE user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="role != null">role = #{role},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteUserById">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+</mapper>

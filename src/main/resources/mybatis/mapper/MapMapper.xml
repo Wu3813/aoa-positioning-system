@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.monitor.mapper.MapMapper">
+    <resultMap id="BaseResultMap" type="com.wu.monitor.model.Map">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="image_path" property="imagePath" />
+        <result column="x_min" property="xMin" />
+        <result column="x_max" property="xMax" />
+        <result column="y_min" property="yMin" />
+        <result column="y_max" property="yMax" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, name, image_path, x_min, x_max, y_min, y_max, create_time
+    </sql>
+    
+    <select id="selectAllMaps" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM map
+    </select>
+    
+    <select id="selectMapById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM map
+        WHERE id = #{id}
+    </select>
+    
+    <insert id="insertMap" parameterType="com.wu.monitor.model.Map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO map (name, image_path, x_min, x_max, y_min, y_max, create_time)
+        VALUES (#{name}, #{imagePath}, #{xMin}, #{xMax}, #{yMin}, #{yMax}, #{createTime})
+    </insert>
+    
+    <update id="updateMap" parameterType="com.wu.monitor.model.Map">
+        UPDATE map
+        SET name = #{name},
+            x_min = #{xMin},
+            x_max = #{xMax},
+            y_min = #{yMin},
+            y_max = #{yMax}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteMapById">
+        DELETE FROM map WHERE id = #{id}
+    </delete>
+    
+    <select id="selectCurrentMap" resultMap="BaseResultMap">
+        SELECT m.* FROM map m
+        JOIN current_map cm ON m.id = cm.map_id
+        LIMIT 1
+    </select>
+    
+    <update id="updateCurrentMap">
+        INSERT INTO current_map (map_id) VALUES (#{id})
+        ON DUPLICATE KEY UPDATE map_id = #{id}
+    </update>
+    
+    <delete id="clearCurrentMap">
+        DELETE FROM current_map
+    </delete>
+</mapper>
