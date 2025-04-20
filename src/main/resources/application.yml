@@ -2,7 +2,7 @@ spring:
   config:
     name: AOA_monitor
   profiles:
-    active: dev
+    active: prod
 
 map:
   upload:

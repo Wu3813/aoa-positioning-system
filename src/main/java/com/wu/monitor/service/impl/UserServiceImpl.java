@@ -61,4 +61,18 @@ public class UserServiceImpl implements UserService {
         }
         return null;
     }
+    
+    @Override
+    public void batchDeleteUsers(List<Long> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            for (Long id : ids) {
+                userMapper.deleteUserById(id);
+            }
+        }
+    }
+    
+    @Override
+    public List<User> getUsersByUsername(String username) {
+        return userMapper.selectUsersByUsername(username);
+    }
 }

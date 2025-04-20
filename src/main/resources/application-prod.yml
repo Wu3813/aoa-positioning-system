@@ -1,41 +1,70 @@
 server:
-  port: 8091
+  port: 8080
+  tomcat:
+    max-connections: 10000 # 最大连接数
+    accept-count: 1000  # 接受队列大小
+    max-threads: 800    # Tomcat处理的最大线程数
+    min-spare-threads: 100  # 最小空闲线程数
 
 # 线程池配置
 thread:
   pool:
     executor:
       config:
-        core-pool-size: 20
-        max-pool-size: 50
+        core-pool-size: 50
+        max-pool-size: 200
         keep-alive-time: 5000
-        block-queue-size: 5000
+        block-queue-size: 10000
         policy: CallerRunsPolicy
 
 # 数据库配置
-#spring:
-#  datasource:
-#    username: root
-#    password: 123456
-#    url: jdbc:mysql://127.0.0.1:3306/xfg_frame_archetype?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#  hikari:
-#    pool-name: Retail_HikariCP
-#    minimum-idle: 15 #最小空闲连接数量
-#    idle-timeout: 180000 #空闲连接存活最大时间，默认600000（10分钟）
-#    maximum-pool-size: 25 #连接池最大连接数，默认是10
-#    auto-commit: true  #此属性控制从池返回的连接的默认自动提交行为,默认值：true
-#    max-lifetime: 1800000 #此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
-#    connection-timeout: 30000 #数据库连接超时时间,默认30秒，即30000
-#    connection-test-query: SELECT 1
-#  type: com.zaxxer.hikari.HikariDataSource
+spring:
+  datasource:
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # Redis配置
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: 6379
+    database: 0
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 100
+        max-wait: 3000ms
+        max-idle: 50
+        min-idle: 10
+    client-type: lettuce
+  
+  # Hikari配置
+  hikari:
+    pool-name: Retail_HikariCP
+    minimum-idle: 20
+    idle-timeout: 180000
+    maximum-pool-size: 50
+    auto-commit: true
+    max-lifetime: 1800000
+    connection-timeout: 30000
+    connection-test-query: SELECT 1
+  type: com.zaxxer.hikari.HikariDataSource
 
-#mybatis:
-#  mapper-locations: classpath:/mybatis/mapper/*.xml
-#  config-location:  classpath:/mybatis/config/mybatis-config.xml
+mybatis:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  config-location: classpath:/mybatis/config/mybatis-config.xml
 
-# 日志
+# 日志配置
 logging:
   level:
     root: info
+    com.wu.monitor: info
+    org.springframework.web: info
+    org.springframework.data.redis: info
   config: classpath:logback-spring.xml
+
+# 上传路径配置
+map:
+  upload:
+    path: /app/uploads/maps

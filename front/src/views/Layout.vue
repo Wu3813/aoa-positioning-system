@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
-        <h2>{{ isCollapse ? 'AOA' : 'AOA监控系统' }}</h2>
+        <h2>{{ isCollapse ? 'AoA' : 'AoA实时轨迹系统' }}</h2>
       </div>
       <el-menu
         :default-active="route.path"
@@ -13,19 +13,21 @@
         text-color="var(--text-primary)"
         active-text-color="var(--primary-color)"
       >
-        <el-menu-item index="/home">
-          <el-icon><Monitor /></el-icon>
-          <span>轨迹监控</span>
-        </el-menu-item>
-        <!-- 只有管理员可以看到用户管理 -->
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/users">
-          <el-icon><User /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
         <!-- 只有管理员可以看到地图管理 -->
         <el-menu-item v-if="userInfo.role === 'admin'" index="/home/maps">
           <el-icon><Location /></el-icon>
           <span>地图管理</span>
+        </el-menu-item>
+        
+        <el-menu-item index="/home">
+          <el-icon><Monitor /></el-icon>
+          <span>实时轨迹</span>
+        </el-menu-item>
+        
+        <!-- 只有管理员可以看到用户管理 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/users">
+          <el-icon><User /></el-icon>
+          <span>用户管理</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -128,8 +130,8 @@ const handleLogout = () => {
   white-space: nowrap;
   overflow: hidden;
   background-color: #fff;
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--box-shadow);
+  /* border-bottom: 1px solid var(--border-color); */ /* 移除底部边框 */
+  /* box-shadow: var(--box-shadow); */ /* 移除阴影 */
 }
 
 .aside {
@@ -140,7 +142,7 @@ const handleLogout = () => {
   position: fixed;
   left: 0;
   top: 0;
-  border-right: 1px solid rgba(0, 0, 0, 0.05);  /* 更柔和的分割线 */
+  /* border-right: 1px solid rgba(0, 0, 0, 0.05); */ /* 移除右侧边框 */
 }
 
 .header {
@@ -150,13 +152,13 @@ const handleLogout = () => {
   left: 220px;
   z-index: 100;
   background: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);  /* 更柔和的分割线 */
+  /* border-bottom: 1px solid rgba(0, 0, 0, 0.05); */ /* 移除底部边框 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
   height: 60px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);  /* 更柔和的阴影 */
+  /* box-shadow: var(--box-shadow); */ /* 移除阴影 */
   transition: left 0.3s;
 }
 
@@ -214,25 +216,24 @@ const handleLogout = () => {
 }
 
 .header {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 220px;
-  z-index: 100;
-  background: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  height: 60px;
-  transition: left 0.3s;
+  position: fixed; /* 固定在页面顶部 */
+  top: 0;          /* 距离顶部 0px */
+  right: 0;        /* 距离右侧 0px */
+  left: 220px;     /* 初始状态下距离左侧 220px */
+  z-index: 100;    /* 确保在其他内容之上 */
+  background: #fff; /* 设置背景色为白色 */
+  display: flex;   /* 使用 flex 布局排列内部元素 */
+  justify-content: space-between; /* 让左右两部分分开 */
+  align-items: center; /* 垂直居中对齐内部元素 */
+  padding: 0 20px; /* 左右内边距 */
+  height: 61px;    /* 控制框体的高度 */
+  transition: left 0.3s; /* 使左边距变化时有动画效果 */
 }
 
 .main {
-  padding: 20px;
+  padding: 5px; 
   background: var(--background-color);
-  margin-top: 60px;  /* 为顶部导航栏留出空间 */
+  margin-top: 60px;  
   min-height: calc(100vh - 60px);
   overflow-y: auto;
 }
@@ -244,7 +245,7 @@ const handleLogout = () => {
   }
   
   .header {
-    left: 64px;
+    left: 64px; /* 侧边栏折叠时，距离左侧变为 64px */
   }
 }
 </style>

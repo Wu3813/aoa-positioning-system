@@ -30,6 +30,13 @@
         WHERE username = #{username}
     </select>
     
+    <!-- 添加按用户名模糊查询的SQL -->
+    <select id="selectUsersByUsername" resultType="com.wu.monitor.model.User">
+        SELECT * FROM user
+        WHERE username LIKE CONCAT('%', #{username}, '%')
+        ORDER BY create_time DESC
+    </select>
+    
     <insert id="insertUser" parameterType="com.wu.monitor.model.User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user (username, password, role, create_time)
         VALUES (#{username}, #{password}, #{role}, #{createTime})

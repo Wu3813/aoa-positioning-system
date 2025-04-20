@@ -22,8 +22,15 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String username) {
+        List<User> users;
+        if (username != null && !username.trim().isEmpty()) {
+            // 如果提供了用户名参数，则按用户名搜索
+            users = userService.getUsersByUsername(username);
+        } else {
+            // 否则获取所有用户
+            users = userService.getAllUsers();
+        }
         return ResponseEntity.ok(users != null ? users : new ArrayList<>());
     }
 
@@ -47,6 +54,12 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+    
+    @DeleteMapping("/batch")
+    public ResponseEntity<Void> batchDeleteUsers(@RequestBody List<Long> ids) {
+        userService.batchDeleteUsers(ids);
         return ResponseEntity.ok().build();
     }
 

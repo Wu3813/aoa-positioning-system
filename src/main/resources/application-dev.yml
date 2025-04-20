@@ -1,41 +1,83 @@
 server:
   port: 8080
+  tomcat:
+    max-connections: 10000 # 最大连接数
+    accept-count: 1000  # 接受队列大小
+    max-threads: 800    # Tomcat处理的最大线程数
+    min-spare-threads: 100  # 最小空闲线程数
 
 # 线程池配置
 thread:
   pool:
     executor:
       config:
-        core-pool-size: 20
-        max-pool-size: 50
+        core-pool-size: 50   # 增加核心线程数
+        max-pool-size: 200   # 增加最大线程数
         keep-alive-time: 5000
-        block-queue-size: 5000
+        block-queue-size: 10000  # 增加队列大小
         policy: CallerRunsPolicy
 
-
 spring:
+  # 现有数据源配置
   datasource:
     username: root
     password: 123456
     url: jdbc:mysql://127.0.0.1:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=true
     driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # 增强Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 100    # 增加最大连接数
+        max-wait: 3000ms   # 设置最大等待时间
+        max-idle: 50       # 增加最大空闲连接
+        min-idle: 10       # 增加最小空闲连接
+    # 启用连接池并使用lettuce更好的性能
+    client-type: lettuce
+  
+  # 现有Hikari配置
   hikari:
     pool-name: Retail_HikariCP
-    minimum-idle: 15 #最小空闲连接数量
-    idle-timeout: 180000 #空闲连接存活最大时间，默认600000（10分钟）
-    maximum-pool-size: 25 #连接池最大连接数，默认是10
-    auto-commit: true  #此属性控制从池返回的连接的默认自动提交行为,默认值：true
-    max-lifetime: 1800000 #此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
-    connection-timeout: 30000 #数据库连接超时时间,默认30秒，即30000
+    minimum-idle: 20        # 增加最小空闲连接
+    idle-timeout: 180000
+    maximum-pool-size: 50   # 增加连接池大小
+    auto-commit: true
+    max-lifetime: 1800000
+    connection-timeout: 30000
     connection-test-query: SELECT 1
   type: com.zaxxer.hikari.HikariDataSource
+  
+  # 配置任务执行器
+  task:
+    execution:
+      pool:
+        core-size: 50
+        max-size: 200
+        queue-capacity: 10000
+        keep-alive: 60s
+    scheduling:
+      pool:
+        size: 20
+  
+  # Web客户端配置
+  mvc:
+    async:
+      request-timeout: 60000  # 异步请求超时时间
 
+# 其他现有配置保持不变
 mybatis:
   mapper-locations: classpath:/mybatis/mapper/*.xml
   config-location:  classpath:/mybatis/config/mybatis-config.xml
 
-# 日志
 logging:
   level:
     root: info
+    com.wu.monitor: info
+    org.springframework.web: info
+    org.springframework.data.redis: info
   config: classpath:logback-spring.xml

@@ -22,8 +22,8 @@ public class MapController {
     private MapService mapService;
 
     @GetMapping
-    public List<Map> getAllMaps() {
-        return mapService.getAllMaps();
+    public List<Map> getAllMaps(@RequestParam(required = false) String name) {
+        return mapService.getAllMaps(name);
     }
 
     @GetMapping("/{id}")
@@ -34,6 +34,7 @@ public class MapController {
 
     @PostMapping
     public Map createMap(
+            @RequestParam(value = "mapId", required = false) String mapId,
             @RequestParam("name") String name,
             @RequestParam("xMin") Double xMin,
             @RequestParam("xMax") Double xMax,
@@ -42,6 +43,7 @@ public class MapController {
             @RequestParam("file") MultipartFile file
     ) {
         Map map = new Map();
+        map.setMapId(mapId);
         map.setName(name);
         map.setXMin(xMin);
         map.setXMax(xMax);
@@ -51,8 +53,24 @@ public class MapController {
     }
 
     @PutMapping("/{id}")
-    public Map updateMap(@PathVariable Long id, @RequestBody Map map) {
-        return mapService.updateMap(id, map);
+    public Map updateMap(
+            @PathVariable Long id,
+            @RequestParam(required = false) String mapId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double xMin,
+            @RequestParam(required = false) Double xMax,
+            @RequestParam(required = false) Double yMin,
+            @RequestParam(required = false) Double yMax,
+            @RequestParam(required = false) MultipartFile file
+    ) {
+        Map map = new Map();
+        map.setMapId(mapId);
+        map.setName(name);
+        map.setXMin(xMin);
+        map.setXMax(xMax);
+        map.setYMin(yMin);
+        map.setYMax(yMax);
+        return mapService.updateMap(id, map, file);
     }
 
     @DeleteMapping("/{id}")
@@ -89,5 +107,10 @@ public class MapController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @DeleteMapping("/batch")
+    public void batchDeleteMaps(@RequestBody List<Long> ids) {
+        mapService.batchDeleteMaps(ids);
     }
 }

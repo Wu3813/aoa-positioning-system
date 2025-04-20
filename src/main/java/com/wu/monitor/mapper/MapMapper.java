@@ -7,7 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface MapMapper {
-    List<Map> selectAllMaps();
+    List<Map> selectAllMaps(@Param("name") String name);
     
     Map selectMapById(@Param("id") Long id);
     
@@ -22,4 +22,8 @@ public interface MapMapper {
     int updateCurrentMap(@Param("id") Long id);
     
     void clearCurrentMap();
+    
+    void batchDeleteMaps(@Param("ids") List<Long> ids);
+    
+    Map selectMapByMapId(String mapId);
 }

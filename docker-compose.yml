@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # MySQL服务
+  mysql:
+    image: mysql:8.0
+    container_name: aoa-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: aoa
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - aoa-network
+
+  # Redis服务
+  redis:
+    image: redis:latest
+    container_name: aoa-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - aoa-network
+  
+  # 后端服务
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: aoa-backend
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_REDIS_HOST=redis
+    networks:
+      - aoa-network
+  
+  # 前端服务
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: aoa-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - aoa-network
+
+networks:
+  aoa-network:
+    driver: bridge
+
+volumes:
+  mysql-data: 

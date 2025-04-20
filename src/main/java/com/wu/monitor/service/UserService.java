@@ -11,4 +11,10 @@ public interface UserService {
     void deleteUser(Long id);
     
     User login(String username, String password);
+    
+    // 添加批量删除方法
+    void batchDeleteUsers(List<Long> ids);
+    
+    // 添加按用户名搜索方法
+    List<User> getUsersByUsername(String username);
 }

@@ -14,6 +14,9 @@ public interface UserMapper {
     
     User selectUserByUsername(@Param("username") String username);
     
+    // 添加按用户名模糊查询方法
+    List<User> selectUsersByUsername(@Param("username") String username);
+    
     int insertUser(User user);
     
     int updateUser(User user);

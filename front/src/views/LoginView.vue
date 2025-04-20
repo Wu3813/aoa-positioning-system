@@ -7,7 +7,7 @@
       <div class="login-right">
         <el-card class="login-box">
           <div class="login-header">
-            <h2>AOA 监控系统</h2>
+            <h2>AoA 实时轨迹系统</h2>
             <p>欢迎登录</p>
           </div>
           

@@ -3,6 +3,7 @@
 <mapper namespace="com.wu.monitor.mapper.MapMapper">
     <resultMap id="BaseResultMap" type="com.wu.monitor.model.Map">
         <id column="id" property="id" />
+        <result column="map_id" property="mapId" />
         <result column="name" property="name" />
         <result column="image_path" property="imagePath" />
         <result column="x_min" property="xMin" />
@@ -13,12 +14,18 @@
     </resultMap>
     
     <sql id="Base_Column_List">
-        id, name, image_path, x_min, x_max, y_min, y_max, create_time
+        id, map_id, name, image_path, x_min, x_max, y_min, y_max, create_time
     </sql>
     
     <select id="selectAllMaps" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM map
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+        </where>
+        ORDER BY create_time ASC
     </select>
     
     <select id="selectMapById" resultMap="BaseResultMap">
@@ -27,23 +34,40 @@
         WHERE id = #{id}
     </select>
     
+    <select id="selectMapByMapId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM map
+        WHERE map_id = #{mapId}
+    </select>
+    
     <insert id="insertMap" parameterType="com.wu.monitor.model.Map" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO map (name, image_path, x_min, x_max, y_min, y_max, create_time)
-        VALUES (#{name}, #{imagePath}, #{xMin}, #{xMax}, #{yMin}, #{yMax}, #{createTime})
+        INSERT INTO map (map_id, name, image_path, x_min, x_max, y_min, y_max, create_time)
+        VALUES (#{mapId}, #{name}, #{imagePath}, #{xMin}, #{xMax}, #{yMin}, #{yMax}, #{createTime})
     </insert>
     
     <update id="updateMap" parameterType="com.wu.monitor.model.Map">
         UPDATE map
-        SET name = #{name},
-            x_min = #{xMin},
-            x_max = #{xMax},
-            y_min = #{yMin},
-            y_max = #{yMax}
+        <set>
+            <if test="mapId != null">map_id = #{mapId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="imagePath != null">image_path = #{imagePath},</if>
+            <if test="xMin != null">x_min = #{xMin},</if>
+            <if test="xMax != null">x_max = #{xMax},</if>
+            <if test="yMin != null">y_min = #{yMin},</if>
+            <if test="yMax != null">y_max = #{yMax}</if>
+        </set>
         WHERE id = #{id}
     </update>
     
     <delete id="deleteMapById">
         DELETE FROM map WHERE id = #{id}
+    </delete>
+    
+    <delete id="batchDeleteMaps">
+        DELETE FROM map WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </delete>
     
     <select id="selectCurrentMap" resultMap="BaseResultMap">

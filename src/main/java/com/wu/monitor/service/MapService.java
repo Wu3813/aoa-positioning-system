@@ -5,11 +5,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface MapService {
-    List<Map> getAllMaps();
+    List<Map> getAllMaps(String name);
     Map getMapById(Long id);
     Map createMap(Map map, MultipartFile file);
-    Map updateMap(Long id, Map map);
+    Map updateMap(Long id, Map map, MultipartFile file);
     void deleteMap(Long id);
+    void batchDeleteMaps(List<Long> ids);
     Map getCurrentMap();
     void setCurrentMap(Long id);
 }

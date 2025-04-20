@@ -10,7 +10,8 @@ import axios from 'axios'
 import { createPinia } from 'pinia'
 
 // 设置基础URL
-axios.defaults.baseURL = 'http://localhost:8080'
+// 在生产环境中使用相对路径，让Nginx处理代理
+axios.defaults.baseURL = ''
 
 const app = createApp(App)
 app.use(createPinia())

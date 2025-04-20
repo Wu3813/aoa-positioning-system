@@ -43,19 +43,19 @@ public class MonitorServiceImpl implements MonitorService {
                     .map(PathProcessor::convertToDto)
                     .forEach(dataQueue::add);
 
-            // 打印加载的数据详情
-            System.out.println("\n=== 完整轨迹数据 ===");
-            System.out.println(String.format("共加载 %d 条记录", path.size()));
-
-            path.forEach(p -> {
-                System.out.println("\n设备: " + p.getDeviceId());
-                System.out.println("坐标: (" + p.getX() + ", " + p.getY() + ", " + p.getZ() + ")");
-                System.out.println("标准差: x=" + p.getXStdev()
-                        + ", y=" + p.getYStdev()
-                        + ", z=" + p.getZStdev());
-                System.out.println("时间: " + changeTime(p.getRawTimestamp()));
-            });
-            System.out.println("===================\n");
+//            // 打印加载的数据详情
+//            System.out.println("\n=== 完整轨迹数据 ===");
+//            System.out.println(String.format("共加载 %d 条记录", path.size()));
+//
+//            path.forEach(p -> {
+//                System.out.println("\n设备: " + p.getDeviceId());
+//                System.out.println("坐标: (" + p.getX() + ", " + p.getY() + ", " + p.getZ() + ")");
+//                System.out.println("标准差: x=" + p.getXStdev()
+//                        + ", y=" + p.getYStdev()
+//                        + ", z=" + p.getZStdev());
+//                System.out.println("时间: " + changeTime(p.getRawTimestamp()));
+//            });
+//            System.out.println("===================\n");
 
         } catch (Exception e) {
             System.err.println("数据加载失败: " + e.getMessage());
@@ -92,22 +92,25 @@ public class MonitorServiceImpl implements MonitorService {
         }
         return result;
     }
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 300)
     public void pushData() {
         try {
             if (!dataQueue.isEmpty()) {
                 PathDataDto data = dataQueue.pollFirst();
-                System.out.println("[推送日志] 准备发送数据: " + data); // 添加日志
-
-                // 关键验证：检查 messagingTemplate 是否非空
                 if (messagingTemplate != null) {
                     messagingTemplate.convertAndSend("/topic/pathData", data);
-                    System.out.println("[推送日志] 数据已发送到 /topic/pathData");
-                } else {
-                    System.err.println("[错误] messagingTemplate 未注入");
                 }
             } else {
-                System.out.println("[推送日志] 数据队列为空");
+                // 队列为空时，先发送清除信号
+                Thread.sleep(30000); // 等待前端清理完成，减少等待时间
+                messagingTemplate.convertAndSend("/topic/clearTraces", true);
+                
+                Thread.sleep(1000); // 等待前端清理完成，减少等待时间
+                
+                // 重新填充队列数据，按时间戳排序
+                path.stream()
+                    .map(PathProcessor::convertToDto)
+                    .forEach(dataQueue::add);
             }
         } catch (Exception e) {
             System.err.println("[推送异常] 消息发送失败: " + e.getMessage());
