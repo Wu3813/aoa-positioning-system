@@ -7,8 +7,8 @@
       <div class="login-right">
         <el-card class="login-box">
           <div class="login-header">
-            <h2>AoA 实时轨迹系统</h2>
-            <p>欢迎登录</p>
+            <h2>AoA 定位MVP系统</h2>
+            <p>欢迎</p>
           </div>
           
           <el-form

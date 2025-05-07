@@ -22,7 +22,7 @@ spring:
   datasource:
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:123456}
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8mb4&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false}
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   # Redis配置
@@ -50,6 +50,13 @@ spring:
     connection-timeout: 30000
     connection-test-query: SELECT 1
   type: com.zaxxer.hikari.HikariDataSource
+
+  # 静态资源配置
+  mvc:
+    static-path-pattern: /uploads/**
+  web:
+    resources:
+      static-locations: file:/app/uploads/
 
 mybatis:
   mapper-locations: classpath:/mybatis/mapper/*.xml

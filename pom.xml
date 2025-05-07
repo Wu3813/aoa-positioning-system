@@ -94,7 +94,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.wu.monitor</mainClass>
+                    <mainClass>com.wu.monitor.Application</mainClass>
                 </configuration>
             </plugin>
 

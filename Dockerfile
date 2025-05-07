@@ -19,5 +19,5 @@ RUN mkdir -p /app/uploads/maps
 # 暴露端口
 EXPOSE 8080
 
-# 启动命令
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar", "--spring.profiles.active=prod"] 
+# 启动命令（修正了主类路径）
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar", "--spring.profiles.active=prod", "--spring.main.allow-bean-definition-overriding=true", "--spring.main.allow-circular-references=true"] 

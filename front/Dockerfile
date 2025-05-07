@@ -7,9 +7,14 @@ COPY package*.json ./
 
 # 安装依赖
 RUN npm install
+# 确保axios和其他必要依赖已安装
+RUN npm install axios@1.8.4 mitt@3.0.1 --save
 
 # 复制源代码
 COPY . .
+
+# 确保vite有执行权限
+RUN chmod +x ./node_modules/.bin/vite
 
 # 构建前端
 RUN npm run build

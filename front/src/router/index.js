@@ -31,6 +31,21 @@ const router = createRouter({
           path: 'maps',
           name: 'maps',
           component: () => import('@/views/MapView.vue')
+        },
+        {
+          path: 'stations',
+          name: 'stations',
+          component: () => import('@/views/StationView.vue')
+        },
+        {
+          path: 'engines',
+          name: 'engines',
+          component: () => import('@/views/EngineView.vue')
+        },
+        {
+          path: 'tags',
+          name: 'tags',
+          component: () => import('@/views/TagView.vue')
         }
       ]
     }

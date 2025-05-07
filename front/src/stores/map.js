@@ -6,8 +6,7 @@ export const useMapStore = defineStore('map', () => {
   const currentMapId = ref(null)
   const currentMap = ref(null)
   const mapUrl = computed(() => {
-    const baseUrl = 'http://localhost:8080'
-    return currentMap.value ? `${baseUrl}/api/maps/${currentMap.value.id}/image` : ''
+    return currentMap.value ? `/api/maps/${currentMap.value.id}/image` : ''
   })
   const coordinateRange = computed(() => ({
     x: {

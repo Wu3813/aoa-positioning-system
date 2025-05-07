@@ -142,6 +142,3 @@ sudo nano /etc/security/limits.conf
 4. **问题**: 数据库连接失败
    **解决方案**: 检查环境变量和数据库配置，确保用户名密码正确，等待MySQL服务完全启动
 
-## 联系支持
-
-如有任何问题，请联系系统管理员或发送邮件至：support@aoa-monitor.com 

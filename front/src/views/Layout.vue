@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
-        <h2>{{ isCollapse ? 'AoA' : 'AoA实时轨迹系统' }}</h2>
+        <h3>{{ isCollapse ? 'AoA' : 'AoA定位MVP系统' }}</h3>
       </div>
       <el-menu
         :default-active="route.path"
@@ -13,15 +13,33 @@
         text-color="var(--text-primary)"
         active-text-color="var(--primary-color)"
       >
+        <el-menu-item index="/home">
+          <el-icon><Monitor /></el-icon>
+          <span>实时轨迹</span>
+        </el-menu-item>
+        
         <!-- 只有管理员可以看到地图管理 -->
         <el-menu-item v-if="userInfo.role === 'admin'" index="/home/maps">
           <el-icon><Location /></el-icon>
           <span>地图管理</span>
         </el-menu-item>
         
-        <el-menu-item index="/home">
-          <el-icon><Monitor /></el-icon>
-          <span>实时轨迹</span>
+        <!-- 添加基站管理菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/stations">
+          <el-icon><Odometer /></el-icon>
+          <span>基站管理</span>
+        </el-menu-item>
+        
+        <!-- 添加引擎管理菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/engines">
+          <el-icon><Connection /></el-icon>
+          <span>引擎管理</span>
+        </el-menu-item>
+        
+        <!-- 添加标签管理菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/tags">
+          <el-icon><PriceTag /></el-icon>
+          <span>标签管理</span>
         </el-menu-item>
         
         <!-- 只有管理员可以看到用户管理 -->
@@ -67,7 +85,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Location, Fold, Expand, CaretBottom } from '@element-plus/icons-vue'
+import { Monitor, User, Location, Fold, Expand, CaretBottom, Odometer, Connection, PriceTag } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const route = useRoute()

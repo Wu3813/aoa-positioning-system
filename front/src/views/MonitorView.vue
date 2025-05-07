@@ -2,7 +2,7 @@
   <div class="monitor-container">
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>轨迹管理</h2>
+        <h2>实时轨迹</h2>
         <div class="control-buttons">
           <span style="margin-right: 8px;">当前地图：</span>
           <el-select 
@@ -38,12 +38,12 @@
         </div>
         <!-- 添加当前活跃传感器数量显示 -->
         <div class="stats-bar">
-          <el-tag type="success">活跃传感器: {{ sensorList.length }}</el-tag>
-          <el-tag type="info">可见传感器: {{ visibleSensors.size }}</el-tag>
-          <el-tag type="warning">接收数据: {{ receivedDataCount }}</el-tag>
-          <el-tooltip content="WebSocket连接状态" placement="top">
-            <el-tag :type="wsConnected ? 'success' : 'danger'">{{ wsConnected ? "已连接" : "未连接" }}</el-tag>
+          <el-tooltip content="WebSocket数据流状态状态" placement="top">
+            <el-tag :type="wsConnected ? 'success' : 'danger'">{{ wsConnected ? "数据流正常" : "数据流异常" }}</el-tag>
           </el-tooltip>
+          <el-tag type="success">在线标签: {{ sensorList.length }}</el-tag>
+          <el-tag type="success">可见标签: {{ visibleSensors.size }}</el-tag>
+          
         </div>
       </div>
     </div>
@@ -51,14 +51,14 @@
     <div class="main-content">
       <!-- 左侧传感器列表 -->
       <div class="sensor-list">
-        <h3>传感器列表</h3>
+        <h3>标签列表</h3>
         <div class="sensor-list-actions">
           <el-button size="small" @click="toggleAllVisible(true)">全部显示</el-button>
           <el-button size="small" @click="toggleAllVisible(false)">全部隐藏</el-button>
         </div>
         <el-input
           v-model="sensorFilter"
-          placeholder="搜索传感器"
+          placeholder="搜索标签"
           prefix-icon="Search"
           clearable
           size="small"
@@ -71,7 +71,7 @@
             size="small"
             :max-height="'100%'"
           >
-            <el-table-column prop="mac" label="MAC地址" width="110" show-overflow-tooltip />
+            <el-table-column prop="mac" label="标签名称" width="110" show-overflow-tooltip />
             <el-table-column label="颜色" width="50">
               <template #default="scope">
                 <div class="color-block" :style="{ backgroundColor: scope.row.color }"></div>
@@ -216,16 +216,109 @@ const updateImageSize = () => {
 }
 
 // 传感器数据
-const COLORS = [
-  '#FF4444', '#44FF44', '#4444FF', '#FFFF44', 
-  '#FF44FF', '#44FFFF', '#FF8844', '#44FF88',
-  '#884444', '#448844', '#444488', '#888844',
-  '#884488', '#448888', '#FF0088', '#88FF00'
-]
+// 生成500种不同颜色
+const generateColors = (count) => {
+  const colors = []
+  // 使用黄金比例分割法生成均匀分布的色相值
+  const goldenRatioConjugate = 0.618033988749895
+  let h = Math.random() // 随机起始色相
+  
+  // 生成色相均匀分布的颜色
+  for (let i = 0; i < count; i++) {
+    h = (h + goldenRatioConjugate) % 1
+    
+    // 计算饱和度和亮度变化
+    // 使用三组不同的饱和度和亮度值使颜色更加多样化
+    const s = 0.6 + Math.random() * 0.2
+    const l = i % 3 === 0 ? 0.65 : (i % 3 === 1 ? 0.45 : 0.55)
+    
+    // 转换HSL为十六进制颜色代码
+    const rgb = hslToRgb(h, s, l)
+    const hex = '#' + 
+      rgb.map(x => {
+        const hex = Math.round(x * 255).toString(16)
+        return hex.length === 1 ? '0' + hex : hex
+      }).join('')
+    
+    colors.push(hex)
+  }
+  return colors
+}
 
-// 获取下一个可用颜色
-const getNextColor = (index) => {
-  return COLORS[index % COLORS.length]
+// HSL颜色转RGB辅助函数
+const hslToRgb = (h, s, l) => {
+  let r, g, b
+  
+  if (s === 0) {
+    r = g = b = l // 灰度
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1/6) return p + (q - p) * 6 * t
+      if (t < 1/2) return q
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+      return p
+    }
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hue2rgb(p, q, h + 1/3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1/3)
+  }
+  
+  return [r, g, b]
+}
+
+// 生成500种颜色
+const COLORS = generateColors(550) // 生成550种颜色以确保有足够的备用
+
+// 修改颜色生成和分配方式
+const sensorColors = ref({}) // 存储MAC地址和颜色的映射关系
+
+// 获取传感器颜色，确保同一MAC地址始终使用相同颜色
+const getSensorColor = (mac) => {
+  // 如果已经有分配的颜色，直接返回
+  if (sensorColors.value[mac]) {
+    return sensorColors.value[mac]
+  }
+  
+  // 使用MAC地址作为种子计算固定的颜色索引
+  let hashCode = 0
+  for (let i = 0; i < mac.length; i++) {
+    hashCode = ((hashCode << 5) - hashCode) + mac.charCodeAt(i)
+    hashCode = hashCode & hashCode // 转换为32位整数
+  }
+  
+  // 确保为正数
+  hashCode = Math.abs(hashCode)
+  const colorIndex = hashCode % COLORS.length
+  
+  // 存储映射关系
+  sensorColors.value[mac] = COLORS[colorIndex]
+  
+  // 将映射关系存储到localStorage以便刷新页面后保持
+  try {
+    const storedColors = JSON.parse(localStorage.getItem('sensorColors') || '{}')
+    storedColors[mac] = COLORS[colorIndex]
+    localStorage.setItem('sensorColors', JSON.stringify(storedColors))
+  } catch (e) {
+    console.error('无法存储传感器颜色到localStorage:', e)
+  }
+  
+  return COLORS[colorIndex]
+}
+
+// 初始化从localStorage加载传感器颜色映射
+const initSensorColors = () => {
+  try {
+    const storedColors = JSON.parse(localStorage.getItem('sensorColors') || '{}')
+    sensorColors.value = storedColors
+  } catch (e) {
+    console.error('无法从localStorage加载传感器颜色:', e)
+    sensorColors.value = {}
+  }
 }
 
 // 传感器数据结构
@@ -383,7 +476,7 @@ const connect = () => {
                   mac: data.mac,
                   visible: true, // 默认显示
                   showTrace: true,
-                  color: getNextColor(sensorList.value.length),
+                  color: getSensorColor(data.mac), // 使用固定颜色分配函数
                   points: []
                 }
                 sensorList.value.push(sensor)
@@ -495,6 +588,9 @@ const stopAutoConnect = () => {
 
 // 组件挂载
 onMounted(async () => {
+  // 初始化传感器颜色映射
+  initSensorColors()
+  
   await mapStore.fetchCurrentMap()
   await fetchMapList()
   updateImageSize()
