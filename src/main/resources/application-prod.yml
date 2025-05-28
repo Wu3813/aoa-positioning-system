@@ -19,6 +19,12 @@ thread:
 
 # 数据库配置
 spring:
+  # 配置文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB       # 单个文件最大大小
+      max-request-size: 15MB    # 单次请求最大大小
+      
   datasource:
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:123456}

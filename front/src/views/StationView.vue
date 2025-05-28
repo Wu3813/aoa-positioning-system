@@ -45,7 +45,7 @@
     <div class="main-content">
       <div class="station-table-wrapper">
         <el-table 
-          :data="stationList" 
+          :data="filteredStationList" 
           @selection-change="handleSelectionChange"
           v-loading="loading"
           height="calc(100vh - 320px)"
@@ -53,6 +53,7 @@
           stripe
           class="station-table"
           style="width: 100%;"
+          @sort-change="handleSortChange"
         >
           <el-table-column type="selection" width="55" fixed="left" />
           <el-table-column label="序号" width="60" align="center" fixed="left">
@@ -60,13 +61,13 @@
               {{ scope.$index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="基站编号" width="120" fixed="left" show-overflow-tooltip />
-          <el-table-column prop="name" label="基站名称" width="150" show-overflow-tooltip />
-          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip />
-          <el-table-column prop="ipAddress" label="IP地址" width="130" show-overflow-tooltip />
-          <el-table-column prop="model" label="基站型号" width="120" show-overflow-tooltip />
-          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip />
-          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip />
+          <el-table-column prop="code" label="基站编号" width="120" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="name" label="基站名称" width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="ipAddress" label="IP地址" width="130" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="model" label="基站型号" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column label="坐标位置" width="180">
             <template #default="scope">
               <div>X: {{ formatCoordinate(scope.row.positionX) }} m</div>
@@ -74,24 +75,24 @@
               <div>Z: {{ formatCoordinate(scope.row.positionZ) }} m</div>
             </template>
           </el-table-column>
-          <el-table-column prop="orientation" label="方位角" width="100">
+          <el-table-column prop="orientation" label="方位角" width="100" sortable="custom">
             <template #default="scope">
               {{ formatCoordinate(scope.row.orientation) }}°
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="100">
+          <el-table-column label="状态" width="100" sortable="custom" prop="status">
             <template #default="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
                 {{ scope.row.status === 1 ? '在线' : '离线' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip>
+          <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip sortable="custom" prop="lastCommunication">
             <template #default="scope">
               {{ formatDateTime(scope.row.lastCommunication) }}
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" width="180" show-overflow-tooltip>
+          <el-table-column label="创建时间" width="180" show-overflow-tooltip sortable="custom" prop="createTime">
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
@@ -597,6 +598,82 @@ const resetForm = () => {
   }
 }
 
+// 添加排序相关的变量
+const sortOrder = ref({
+  prop: '',
+  order: ''
+})
+
+// 计算属性：根据排序条件处理基站列表
+const filteredStationList = computed(() => {
+  let list = [...stationList.value];
+  
+  // 如果有排序条件，则进行排序
+  if (sortOrder.value.prop && sortOrder.value.order) {
+    const { prop, order } = sortOrder.value;
+    const isAsc = order === 'ascending';
+    
+    list.sort((a, b) => {
+      let valueA = a[prop];
+      let valueB = b[prop];
+      
+      // 特殊处理日期时间字段
+      if (prop === 'lastCommunication' || prop === 'createTime') {
+        valueA = valueA ? new Date(valueA).getTime() : 0;
+        valueB = valueB ? new Date(valueB).getTime() : 0;
+      }
+      
+      // 特殊处理IP地址
+      if (prop === 'ipAddress') {
+        return compareIPAddresses(valueA, valueB, isAsc);
+      }
+      
+      // 处理可能为空的值
+      if (valueA === null || valueA === undefined) valueA = isAsc ? -Infinity : Infinity;
+      if (valueB === null || valueB === undefined) valueB = isAsc ? -Infinity : Infinity;
+      
+      // 字符串使用本地化比较
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return isAsc ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      }
+      
+      // 数值比较
+      return isAsc ? valueA - valueB : valueB - valueA;
+    });
+  }
+  
+  return list;
+});
+
+// IP地址排序辅助函数
+const compareIPAddresses = (ipA, ipB, isAsc) => {
+  // 处理空值
+  if (!ipA && !ipB) return 0;
+  if (!ipA) return isAsc ? -1 : 1;
+  if (!ipB) return isAsc ? 1 : -1;
+
+  // 将IP地址转换为数值进行比较
+  const ipToNumber = (ip) => {
+    if (!ip) return 0;
+    const parts = ip.split('.');
+    if (parts.length !== 4) return 0;
+    
+    return parts.reduce((acc, part, i) => {
+      return acc + (parseInt(part, 10) * Math.pow(256, 3 - i));
+    }, 0);
+  };
+
+  const numA = ipToNumber(ipA);
+  const numB = ipToNumber(ipB);
+  
+  return isAsc ? numA - numB : numB - numA;
+};
+
+// 处理排序变化
+const handleSortChange = ({ prop, order }) => {
+  sortOrder.value = { prop, order };
+}
+
 // 组件挂载
 onMounted(() => {
   fetchStations();
@@ -621,12 +698,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .control-panel {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
+  flex-shrink: 0;
 }
 
 .control-wrapper {
@@ -651,22 +730,27 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .station-table {
   width: 100%;
+  height: 100%;
 }
 
 .search-bar {
   margin-top: 15px;
+  flex-shrink: 0;
 }
 
 .action-bar {
   margin-top: 15px;
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .operation-buttons {

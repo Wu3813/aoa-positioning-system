@@ -4,10 +4,10 @@
       <div class="control-wrapper">
         <h2>实时轨迹</h2>
         <div class="control-buttons">
-          <span style="margin-right: 8px;">当前地图：</span>
+          <span style="margin-right: 8px;">选择地图：</span>
           <el-select 
             v-model="selectedMapId" 
-            placeholder="暂无地图" 
+            placeholder="请选择地图" 
             style="width: 200px;"
             @change="handleMapChange"
           >
@@ -38,90 +38,95 @@
         </div>
         <!-- 添加当前活跃传感器数量显示 -->
         <div class="stats-bar">
-          <el-tooltip content="WebSocket数据流状态状态" placement="top">
+          <el-tooltip content="WebSocket数据流状态" placement="top">
             <el-tag :type="wsConnected ? 'success' : 'danger'">{{ wsConnected ? "数据流正常" : "数据流异常" }}</el-tag>
           </el-tooltip>
           <el-tag type="success">在线标签: {{ sensorList.length }}</el-tag>
           <el-tag type="success">可见标签: {{ visibleSensors.size }}</el-tag>
-          
         </div>
       </div>
     </div>
 
     <div class="main-content">
       <!-- 左侧传感器列表 -->
-      <div class="sensor-list">
-        <h3>标签列表</h3>
-        <div class="sensor-list-actions">
-          <el-button size="small" @click="toggleAllVisible(true)">全部显示</el-button>
-          <el-button size="small" @click="toggleAllVisible(false)">全部隐藏</el-button>
-        </div>
-        <el-input
-          v-model="sensorFilter"
-          placeholder="搜索标签"
-          prefix-icon="Search"
-          clearable
-          size="small"
-          style="margin-bottom: 10px;"
-        />
-        <el-scrollbar height="calc(100vh - 380px)">
-          <el-table 
-            :data="filteredSensorList" 
-            style="width: 100%" 
+      <div class="sensor-list-container">
+        <div class="sensor-list-wrapper">
+          <h3>标签列表</h3>
+          <div class="sensor-list-actions">
+            <el-button size="small" @click="toggleAllVisible(true)">全部显示</el-button>
+            <el-button size="small" @click="toggleAllVisible(false)">全部隐藏</el-button>
+          </div>
+          <el-input
+            v-model="sensorFilter"
+            placeholder="搜索标签"
+            prefix-icon="Search"
+            clearable
             size="small"
-            :max-height="'100%'"
-          >
-            <el-table-column prop="mac" label="标签名称" width="110" show-overflow-tooltip />
-            <el-table-column label="颜色" width="50">
-              <template #default="scope">
-                <div class="color-block" :style="{ backgroundColor: scope.row.color }"></div>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="90">
-              <template #default="scope">
-                <el-button
-                  size="small"
-                  :type="scope.row.visible ? 'primary' : 'info'"
-                  @click="toggleVisibility(scope.row)"
-                >
-                  {{ scope.row.visible ? '隐藏' : '显示' }}
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-scrollbar>
+            style="margin-bottom: 10px;"
+          />
+          <el-scrollbar height="calc(100vh - 380px)">
+            <el-table 
+              :data="filteredSensorList" 
+              style="width: 100%" 
+              size="small"
+              :max-height="'100%'"
+            >
+              <el-table-column prop="mac" label="标签名称" width="110" show-overflow-tooltip />
+              <el-table-column label="颜色" width="50">
+                <template #default="scope">
+                  <div class="color-block" :style="{ backgroundColor: scope.row.color }"></div>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="90">
+                <template #default="scope">
+                  <el-button
+                    size="small"
+                    :type="scope.row.visible ? 'primary' : 'info'"
+                    @click="toggleVisibility(scope.row)"
+                  >
+                    {{ scope.row.visible ? '隐藏' : '显示' }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-scrollbar>
+        </div>
       </div>
 
       <!-- 右侧地图区域 -->
       <div class="map-container">
-        <div class="coordinate-system">
+        <div v-if="!mapStore.selectedMap" class="no-map-selected">
+          <el-empty description="请选择一张地图">
+            <el-button type="primary" @click="goToMapManagement">前往地图管理</el-button>
+          </el-empty>
+        </div>
+        <div v-else class="map-display">
           <div class="image-wrapper">
             <img 
               :src="mapStore.mapUrl" 
               alt="监控地图" 
               class="map-image" 
               ref="mapImage"
-              @load="updateImageSize"
+              @load="handleImageLoad"
             />
             <svg 
+              v-if="imageInfo.loaded"
               class="coordinate-overlay" 
-              :style="{
-                width: `${imageWidth}px`, 
-                height: `${imageHeight}px`,
-                top: `${imageOffsetTop}px`,
-                left: `${imageOffsetLeft}px`
-              }"
+              :width="imageInfo.width * imageInfo.scaleX"
+              :height="imageInfo.height * imageInfo.scaleY"
+              :viewBox="`0 0 ${imageInfo.width} ${imageInfo.height}`"
             >
               <template v-for="sensor in visibleSensorsList" :key="sensor.mac">
                 <!-- 当前位置点 -->
                 <circle
                   v-if="sensor.lastPoint"
-                  :cx="meterToPixelX(sensor.lastPoint.x)"
-                  :cy="meterToPixelY(sensor.lastPoint.y)"
+                  :cx="mapStore.meterToPixelX(sensor.lastPoint.x)"
+                  :cy="mapStore.meterToPixelY(sensor.lastPoint.y)"
                   r="5"
                   :fill="sensor.color"
                   stroke="#fff"
                   stroke-width="2"
+                  style="filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));"
                 />
                 <!-- 轨迹线 -->
                 <polyline
@@ -143,75 +148,59 @@
 
 <script setup>
 import { useMapStore } from '@/stores/map'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, reactive } from 'vue'
 import { Client } from '@stomp/stompjs'
 import { Search, Refresh, Plus, Delete, Edit, Setting, Picture } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-// 坐标系范围配置
-const COORDINATE_RANGE = {
-  x: {
-    min: -6,
-    max: 6
-  },
-  y: {
-    min: -2,
-    max: 10
-  }
-}
-
+const router = useRouter()
 const stompClient = ref(null)
-const lastMessage = ref('')
 const mapImage = ref(null)
-const imageWidth = ref(0)
-const imageHeight = ref(0)
-const imageOffsetTop = ref(0)
-const imageOffsetLeft = ref(0)
+const imageInfo = reactive({
+  width: 0,
+  height: 0,
+  loaded: false,
+  scaleX: 1,
+  scaleY: 1
+})
 const wsConnected = ref(false)
 const receivedDataCount = ref(0)
-
-// 坐标转换函数
 const mapStore = useMapStore()
 
-// 使用 store 中的值
-const meterToPixelX = (x) => {
-  if (typeof x !== 'number') {
-    console.warn('非数值类型的X坐标:', x)
-    return 0
-  }
-  const xRange = mapStore.coordinateRange.x.max - mapStore.coordinateRange.x.min
-  const xScale = imageWidth.value / xRange
-  return (x - mapStore.coordinateRange.x.min) * xScale
+// 地图选择相关
+const mapList = ref([])
+const selectedMapId = ref(null)
+
+// 前往地图管理页面
+const goToMapManagement = () => {
+  router.push('/home/maps')
 }
 
-const meterToPixelY = (y) => {
-  if (typeof y !== 'number') {
-    console.warn('非数值类型的Y坐标:', y)
-    return 0
-  }
-  const yRange = mapStore.coordinateRange.y.max - mapStore.coordinateRange.y.min
-  const yScale = imageHeight.value / yRange
-  return imageHeight.value - (y - mapStore.coordinateRange.y.min) * yScale
-}
-
-const updateImageSize = () => {
-  const img = mapImage.value
-  if (img) {
-    // 等待图片加载完成后再获取尺寸
-    if (img.complete) {
-      imageWidth.value = img.offsetWidth
-      imageHeight.value = img.offsetHeight
-      imageOffsetTop.value = img.offsetTop
-      imageOffsetLeft.value = img.offsetLeft
-    } else {
-      img.onload = () => {
-        imageWidth.value = img.offsetWidth
-        imageHeight.value = img.offsetHeight
-        imageOffsetTop.value = img.offsetTop
-        imageOffsetLeft.value = img.offsetLeft
-      }
+// 获取地图列表
+const fetchMapList = async () => {
+  try {
+    mapList.value = await mapStore.fetchMapList()
+    if (mapList.value.length > 0 && !selectedMapId.value) {
+      selectedMapId.value = mapList.value[0].id
+      await handleMapChange(selectedMapId.value)
     }
+  } catch (error) {
+    console.error('获取地图列表失败:', error)
+    ElMessage.error('获取地图列表失败')
+  }
+}
+
+// 处理地图切换
+const handleMapChange = async (mapId) => {
+  try {
+    await mapStore.selectMap(mapId)
+    // 清除所有轨迹，因为坐标系统可能已经改变
+    clearAllTraces()
+  } catch (error) {
+    console.error('切换地图失败:', error)
+    ElMessage.error('切换地图失败')
   }
 }
 
@@ -346,17 +335,47 @@ const traceLimit = ref(100)
 
 // 获取轨迹点函数
 const getTracePoints = (points) => {
+  if (!points || points.length === 0) return ''
+  
   let displayPoints = points
   if (limitTraceEnabled.value) {
     displayPoints = points.slice(-traceLimit.value)
   }
+  
+  // 调试输出第一个和最后一个点的坐标
+  if (displayPoints.length > 0) {
+    const firstPoint = displayPoints[0]
+    const lastPoint = displayPoints[displayPoints.length - 1]
+    const firstPixel = {
+      x: mapStore.meterToPixelX(firstPoint.x),
+      y: mapStore.meterToPixelY(firstPoint.y)
+    }
+    const lastPixel = {
+      x: mapStore.meterToPixelX(lastPoint.x),
+      y: mapStore.meterToPixelY(lastPoint.y)
+    }
+    
+    // 只在轨迹点变化时输出日志，避免频繁打印
+    console.debug('轨迹点转换:', {
+      first: { meter: firstPoint, pixel: firstPixel },
+      last: { meter: lastPoint, pixel: lastPixel },
+      imageSize: { width: imageInfo.width, height: imageInfo.height },
+      mapOrigin: { x: mapStore.selectedMap?.originX, y: mapStore.selectedMap?.originY },
+      scale: mapStore.pixelsPerMeter,
+      domInfo: imageInfo.domInfo
+    })
+  }
+  
   return displayPoints
     .map(p => {
-      const x = meterToPixelX(p.x)
-      const y = meterToPixelY(p.y)
+      // 使用store的转换方法获取图片上的像素坐标
+      const pixelX = mapStore.meterToPixelX(p.x)
+      const pixelY = mapStore.meterToPixelY(p.y)
+      
       // 防止NaN或无效值
-      if (isNaN(x) || isNaN(y)) return null
-      return `${x},${y}`
+      if (isNaN(pixelX) || isNaN(pixelY)) return null
+      
+      return `${pixelX},${pixelY}`
     })
     .filter(p => p !== null) // 过滤掉无效点
     .join(' ')
@@ -519,40 +538,6 @@ const connect = () => {
   stompClient.value.activate()
 }
 
-// 添加地图列表和选择相关的数据
-const mapList = ref([])
-const selectedMapId = ref(null)
-
-// 获取地图列表
-const fetchMapList = async () => {
-  try {
-    // 先获取当前地图
-    await mapStore.fetchCurrentMap()
-    // 再获取地图列表
-    const response = await axios.get('/api/maps')
-    mapList.value = response.data
-    // 设置当前选中的地图
-    selectedMapId.value = mapStore.currentMap.id
-  } catch (error) {
-    console.error('获取地图列表失败:', error)
-    ElMessage.error('获取地图列表失败')
-  }
-}
-
-// 处理地图切换
-const handleMapChange = async (mapId) => {
-  try {
-    await axios.put(`/api/maps/current/${mapId}`)
-    await mapStore.fetchCurrentMap()
-    ElMessage.success('切换地图成功')
-  } catch (error) {
-    console.error('切换地图失败:', error)
-    ElMessage.error('切换地图失败')
-    // 恢复之前的选择
-    selectedMapId.value = mapStore.currentMapId
-  }
-}
-
 // 自动连接相关的变量和函数
 const autoConnect = ref(false)
 const reconnectInterval = ref(null)
@@ -586,15 +571,88 @@ const stopAutoConnect = () => {
   wsConnected.value = false
 }
 
+// 图片加载事件处理函数
+const handleImageLoad = (e) => {
+  const img = e.target
+  if (img) {
+    // 获取图片的真实尺寸（而不是显示尺寸）
+    imageInfo.width = img.naturalWidth
+    imageInfo.height = img.naturalHeight
+    
+    // 如果地图数据有尺寸信息，使用地图数据中的尺寸
+    if (mapStore.selectedMap?.width && mapStore.selectedMap?.height) {
+      imageInfo.width = mapStore.selectedMap.width
+      imageInfo.height = mapStore.selectedMap.height
+    }
+    
+    // 计算图片的显示尺寸与实际尺寸的比例
+    const displayWidth = img.clientWidth
+    const displayHeight = img.clientHeight
+    imageInfo.scaleX = displayWidth / imageInfo.width
+    imageInfo.scaleY = displayHeight / imageInfo.height
+    
+    console.log("地图图片加载完成，尺寸：", imageInfo.width, "x", imageInfo.height, "缩放比例:", imageInfo.scaleX, imageInfo.scaleY)
+    imageInfo.loaded = true
+    
+    // 确保地图和坐标系计算正确初始化
+    if (mapStore.selectedMap) {
+      console.log("地图设置：", {
+        原点: { x: mapStore.selectedMap.originX, y: mapStore.selectedMap.originY },
+        比例尺: mapStore.pixelsPerMeter,
+        尺寸: { width: imageInfo.width, height: imageInfo.height }
+      })
+    }
+    
+    // 添加DOM位置信息，用于精确坐标计算
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = img.parentElement.getBoundingClientRect();
+    imageInfo.domInfo = {
+      offsetX: imgRect.left - containerRect.left,
+      offsetY: imgRect.top - containerRect.top,
+      displayWidth: imgRect.width,
+      displayHeight: imgRect.height
+    };
+    
+    console.log("图片DOM位置信息:", imageInfo.domInfo);
+  }
+}
+
+// 添加更新缩放比例的函数
+const updateScaleFactor = () => {
+  if (mapImage.value && imageInfo.width && imageInfo.height) {
+    const img = mapImage.value;
+    
+    // 更新显示比例
+    imageInfo.scaleX = img.clientWidth / imageInfo.width;
+    imageInfo.scaleY = img.clientHeight / imageInfo.height;
+    
+    // 更新DOM位置信息
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = img.parentElement.getBoundingClientRect();
+    imageInfo.domInfo = {
+      offsetX: imgRect.left - containerRect.left,
+      offsetY: imgRect.top - containerRect.top,
+      displayWidth: imgRect.width,
+      displayHeight: imgRect.height
+    };
+    
+    console.log("更新缩放因子:", imageInfo.scaleX, imageInfo.scaleY);
+    console.log("更新DOM位置信息:", imageInfo.domInfo);
+  }
+}
+
 // 组件挂载
 onMounted(async () => {
   // 初始化传感器颜色映射
   initSensorColors()
   
-  await mapStore.fetchCurrentMap()
   await fetchMapList()
-  updateImageSize()
-  window.addEventListener('resize', updateImageSize)
+  window.addEventListener('resize', () => {
+    // 窗口大小变化时更新缩放比例
+    if (mapStore.selectedMap && imageInfo.loaded) {
+      updateScaleFactor();
+    }
+  })
   // 自动连接
   startAutoConnect()
 })
@@ -602,12 +660,21 @@ onMounted(async () => {
 // 组件卸载
 onUnmounted(() => {
   stopAutoConnect()
-  window.removeEventListener('resize', updateImageSize)
   // 清理所有传感器超时定时器
   Object.values(sensorTimeouts.value).forEach(timeout => {
     clearTimeout(timeout)
   })
 })
+
+// 监听地图变化
+watch(() => mapStore.selectedMap, () => {
+  // 当地图变化时，重置图片信息状态
+  imageInfo.loaded = false;
+  imageInfo.width = 0;
+  imageInfo.height = 0;
+  imageInfo.scaleX = 1;
+  imageInfo.scaleY = 1;
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -622,7 +689,7 @@ onUnmounted(() => {
 
 .control-panel {
   padding: 0 20px;
-  margin: 20px 0;
+  margin: 15px 0;
   display: flex;
 }
 
@@ -631,6 +698,7 @@ onUnmounted(() => {
   padding: 16px;
   background-color: #fff;
   flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .main-content {
@@ -639,45 +707,53 @@ onUnmounted(() => {
   gap: 20px;
   padding: 0 20px;
   overflow: hidden;
+  margin-bottom: 30px;
 }
 
-.sensor-list {
+.sensor-list-container {
   width: 320px;
-  padding: 20px;
-  background: #fff;
   display: flex;
   flex-direction: column;
 }
 
+.sensor-list-wrapper {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
 .map-container {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background: #ffffff;
   overflow: hidden;
   position: relative;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.coordinate-system {
+.map-display {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
+  overflow: hidden;
 }
 
-.map-image {
-  max-width: 95%;
-  max-height: 95%;
-  object-fit: contain;
-  display: block;
-}
-
-.coordinate-overlay {
-  position: absolute;
-  pointer-events: none;
+.no-map-selected {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .image-wrapper {
@@ -687,6 +763,23 @@ onUnmounted(() => {
   align-items: center;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+
+.map-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.coordinate-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .color-block {

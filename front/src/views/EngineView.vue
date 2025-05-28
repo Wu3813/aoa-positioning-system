@@ -45,7 +45,7 @@
     <div class="main-content">
       <div class="engine-table-wrapper">
         <el-table 
-          :data="engineList" 
+          :data="filteredEngineList" 
           @selection-change="handleSelectionChange"
           v-loading="loading"
           height="calc(100vh - 320px)"
@@ -53,6 +53,7 @@
           stripe
           class="engine-table"
           style="width: 100%;"
+          @sort-change="handleSortChange"
         >
           <el-table-column type="selection" width="55" fixed="left" />
           <el-table-column label="序号" width="60" align="center" fixed="left">
@@ -60,25 +61,25 @@
               {{ scope.$index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="引擎编号" width="120" fixed="left" show-overflow-tooltip />
-          <el-table-column prop="name" label="引擎名称" width="150" show-overflow-tooltip />
+          <el-table-column prop="code" label="引擎编号" width="120" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="name" label="引擎名称" width="150" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="managementUrl" label="管理URL" min-width="200" show-overflow-tooltip />
           <el-table-column prop="dataUrl" label="数据URL" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip />
-          <el-table-column prop="version" label="引擎版本" width="120" show-overflow-tooltip />
-          <el-table-column label="状态" width="100">
+          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="version" label="引擎版本" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column label="状态" width="100" prop="status" sortable="custom">
             <template #default="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
                 {{ scope.row.status === 1 ? '在线' : '离线' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip>
+          <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip prop="lastCommunication" sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.lastCommunication) }}
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" width="180" show-overflow-tooltip>
+          <el-table-column label="创建时间" width="180" show-overflow-tooltip prop="createTime" sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
@@ -192,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Delete, Edit } from '@element-plus/icons-vue'
 import axios from 'axios'
@@ -494,6 +495,83 @@ const resetForm = () => {
   }
 }
 
+// 添加排序相关的变量
+const sortOrder = ref({
+  prop: '',
+  order: ''
+})
+
+// 计算属性：根据排序条件处理引擎列表
+const filteredEngineList = computed(() => {
+  let list = [...engineList.value];
+  
+  // 如果有排序条件，则进行排序
+  if (sortOrder.value.prop && sortOrder.value.order) {
+    const { prop, order } = sortOrder.value;
+    const isAsc = order === 'ascending';
+    
+    list.sort((a, b) => {
+      let valueA = a[prop];
+      let valueB = b[prop];
+      
+      // 特殊处理日期时间字段
+      if (prop === 'lastCommunication' || prop === 'createTime') {
+        valueA = valueA ? new Date(valueA).getTime() : 0;
+        valueB = valueB ? new Date(valueB).getTime() : 0;
+      }
+      
+      // 处理可能为空的值
+      if (valueA === null || valueA === undefined) valueA = isAsc ? -Infinity : Infinity;
+      if (valueB === null || valueB === undefined) valueB = isAsc ? -Infinity : Infinity;
+      
+      // 版本号特殊处理
+      if (prop === 'version') {
+        return compareVersions(valueA, valueB, isAsc);
+      }
+      
+      // 字符串使用本地化比较
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return isAsc ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      }
+      
+      // 数值比较
+      return isAsc ? valueA - valueB : valueB - valueA;
+    });
+  }
+  
+  return list;
+});
+
+// 处理排序变化
+const handleSortChange = ({ prop, order }) => {
+  sortOrder.value = { prop, order };
+}
+
+// 版本号比较函数
+const compareVersions = (v1, v2, isAsc) => {
+  if (!v1 && !v2) return 0;
+  if (!v1) return isAsc ? -1 : 1;
+  if (!v2) return isAsc ? 1 : -1;
+  
+  const parts1 = v1.split('.').map(part => parseInt(part, 10) || 0);
+  const parts2 = v2.split('.').map(part => parseInt(part, 10) || 0);
+  
+  // 确保两个数组长度相同
+  while (parts1.length < parts2.length) parts1.push(0);
+  while (parts2.length < parts1.length) parts2.push(0);
+  
+  // 逐段比较
+  for (let i = 0; i < parts1.length; i++) {
+    if (parts1[i] !== parts2[i]) {
+      return isAsc 
+        ? parts1[i] - parts2[i] 
+        : parts2[i] - parts1[i];
+    }
+  }
+  
+  return 0;
+}
+
 // 组件挂载
 onMounted(() => {
   fetchEngines()
@@ -518,12 +596,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .control-panel {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
+  flex-shrink: 0;
 }
 
 .control-wrapper {
@@ -548,22 +628,27 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .engine-table {
   width: 100%;
+  height: 100%;
 }
 
 .search-bar {
   margin-top: 15px;
+  flex-shrink: 0;
 }
 
 .action-bar {
   margin-top: 15px;
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .operation-buttons {

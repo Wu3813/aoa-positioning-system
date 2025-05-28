@@ -6,7 +6,7 @@
         <h2>标签管理</h2>
         <!-- 搜索/过滤栏 - 调整布局以保持一行 -->
         <div class="search-bar">
-          <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch" class="search-form-inline">
+         <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
             <el-form-item label="标签编号" class="search-item">
               <el-input v-model="searchForm.code" placeholder="请输入标签编号" clearable style="width: 150px;"/>
             </el-form-item>
@@ -48,7 +48,7 @@
     <div class="main-content">
       <div class="tag-table-wrapper">
         <el-table 
-          :data="tagList" 
+          :data="filteredTagList" 
           @selection-change="handleSelectionChange"
           v-loading="loading"
           height="calc(100vh - 320px)"
@@ -56,7 +56,8 @@
           stripe
           class="tag-table"
           style="width: 100%;"
-          row-key="id" 
+          row-key="id"
+          @sort-change="handleSortChange" 
         >
           <el-table-column type="selection" width="55" fixed="left" />
           <el-table-column label="序号" width="60" align="center" fixed="left">
@@ -64,13 +65,13 @@
               {{ scope.$index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="标签编号" width="120" fixed="left" show-overflow-tooltip />
-          <el-table-column prop="name" label="标签名称" width="150" show-overflow-tooltip />
-          <el-table-column prop="groupName" label="分组" width="120" show-overflow-tooltip />
-          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip />
-          <el-table-column prop="model" label="标签型号" width="120" show-overflow-tooltip />
-          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip />
-          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip />
+          <el-table-column prop="code" label="标签编号" width="120" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="name" label="标签名称" width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="groupName" label="分组" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="model" label="标签型号" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column label="坐标位置" width="180">
             <template #default="scope">
               <div>X: {{ formatCoordinate(scope.row.positionX) }} m</div>
@@ -78,12 +79,12 @@
               <div>Z: {{ formatCoordinate(scope.row.positionZ) }} m</div>
             </template>
           </el-table-column>
-          <el-table-column label="RSSI" width="100">
+          <el-table-column label="RSSI" width="100" prop="rssi" sortable="custom">
             <template #default="scope">
               {{ scope.row.rssi || '-' }} dBm
             </template>
           </el-table-column>
-          <el-table-column label="电量" width="100">
+          <el-table-column label="电量" width="100" prop="batteryLevel" sortable="custom">
             <template #default="scope">
               <el-progress 
                 :percentage="scope.row.batteryLevel || 0" 
@@ -92,19 +93,19 @@
               />
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="100">
+          <el-table-column label="状态" width="100" prop="status" sortable="custom">
             <template #default="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
                 {{ scope.row.status === 1 ? '在线' : '离线' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="最后可见时间" width="180" show-overflow-tooltip>
+          <el-table-column label="最后可见时间" width="180" show-overflow-tooltip prop="lastSeen" sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.lastSeen) }}
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" width="180" show-overflow-tooltip>
+          <el-table-column label="创建时间" width="180" show-overflow-tooltip prop="createTime" sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
@@ -293,7 +294,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch } from 'vue' /* 添加 watch */
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue' /* 添加 watch */
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Delete, Edit } from '@element-plus/icons-vue'
 import axios from 'axios'
@@ -656,6 +657,60 @@ const updateTagStatus = async (id, tagStatus) => {
   }
 }
 
+// 添加排序相关的变量
+const sortOrder = ref({
+  prop: '',
+  order: ''
+})
+
+// 计算属性：根据排序条件处理标签列表
+const filteredTagList = computed(() => {
+  let list = [...tagList.value];
+  
+  // 如果有排序条件，则进行排序
+  if (sortOrder.value.prop && sortOrder.value.order) {
+    const { prop, order } = sortOrder.value;
+    const isAsc = order === 'ascending';
+    
+    list.sort((a, b) => {
+      let valueA = a[prop];
+      let valueB = b[prop];
+      
+      // 特殊处理日期时间字段
+      if (prop === 'lastSeen' || prop === 'createTime') {
+        valueA = valueA ? new Date(valueA).getTime() : 0;
+        valueB = valueB ? new Date(valueB).getTime() : 0;
+      }
+      
+      // 特殊处理MAC地址
+      if (prop === 'macAddress') {
+        // 移除冒号或连字符，统一比较
+        valueA = valueA ? valueA.replace(/[:-]/g, '') : '';
+        valueB = valueB ? valueB.replace(/[:-]/g, '') : '';
+      }
+      
+      // 处理可能为空的值
+      if (valueA === null || valueA === undefined) valueA = isAsc ? -Infinity : Infinity;
+      if (valueB === null || valueB === undefined) valueB = isAsc ? -Infinity : Infinity;
+      
+      // 字符串使用本地化比较
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return isAsc ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      }
+      
+      // 数值比较
+      return isAsc ? valueA - valueB : valueB - valueA;
+    });
+  }
+  
+  return list;
+});
+
+// 处理排序变化
+const handleSortChange = ({ prop, order }) => {
+  sortOrder.value = { prop, order };
+}
+
 // 组件挂载
 onMounted(() => {
   fetchTags();
@@ -680,12 +735,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .control-panel {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
+  flex-shrink: 0;
 }
 
 .control-wrapper {
@@ -710,16 +767,20 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .tag-table {
   width: 100%;
+  height: 100%;
 }
 
 .search-bar {
   margin-top: 15px;
+  flex-shrink: 0;
 }
 
 /* 调整搜索栏内联表单样式 */
@@ -735,6 +796,7 @@ onBeforeUnmount(() => {
   margin-top: 15px;
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .operation-buttons {

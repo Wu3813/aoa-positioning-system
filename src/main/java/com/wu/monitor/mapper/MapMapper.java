@@ -17,12 +17,6 @@ public interface MapMapper {
     
     int deleteMapById(@Param("id") Long id);
     
-    Map selectCurrentMap();
-    
-    int updateCurrentMap(@Param("id") Long id);
-    
-    void clearCurrentMap();
-    
     void batchDeleteMaps(@Param("ids") List<Long> ids);
     
     Map selectMapByMapId(String mapId);

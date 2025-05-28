@@ -9,9 +9,15 @@ public class Map {
     private String mapId;  // 已经存在，不需要修改
     private String name;
     private String imagePath;
-    private Double xMin;
-    private Double xMax;
-    private Double yMin;
-    private Double yMax;
+    private Integer width;
+    private Integer height;
+    private Integer originX;
+    private Integer originY;
+    private Double scale;
+    private Integer point1X;
+    private Integer point1Y;
+    private Integer point2X;
+    private Integer point2Y;
+    private Double realDistance;
     private LocalDateTime createTime;
 }

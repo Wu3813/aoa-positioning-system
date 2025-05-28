@@ -13,10 +13,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.Random;
-
-// 导入部分
-import java.util.Random;
 
 @Service
 public class MapServiceImpl implements MapService {
@@ -124,12 +120,6 @@ public class MapServiceImpl implements MapService {
     
     @Override
     public void batchDeleteMaps(List<Long> ids) {
-        // 检查是否包含当前使用的地图
-        Map currentMap = getCurrentMap();
-        if (currentMap != null && ids.contains(currentMap.getId())) {
-            throw new RuntimeException("不能删除当前正在使用的地图");
-        }
-        
         // 删除文件
         for (Long id : ids) {
             Map map = mapMapper.selectMapById(id);
@@ -140,19 +130,6 @@ public class MapServiceImpl implements MapService {
         
         // 批量删除数据库记录
         mapMapper.batchDeleteMaps(ids);
-    }
-    
-    @Override
-    public Map getCurrentMap() {
-        return mapMapper.selectCurrentMap();
-    }
-    
-    @Override
-    public void setCurrentMap(Long id) {
-        // 先清空表
-        mapMapper.clearCurrentMap();
-        // 再插入新记录
-        mapMapper.updateCurrentMap(id);
     }
     
     private String getFileExtension(String filename) {

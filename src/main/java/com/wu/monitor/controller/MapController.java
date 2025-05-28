@@ -36,19 +36,31 @@ public class MapController {
     public Map createMap(
             @RequestParam(value = "mapId", required = false) String mapId,
             @RequestParam("name") String name,
-            @RequestParam("xMin") Double xMin,
-            @RequestParam("xMax") Double xMax,
-            @RequestParam("yMin") Double yMin,
-            @RequestParam("yMax") Double yMax,
+            @RequestParam(value = "width", required = false) Integer width,
+            @RequestParam(value = "height", required = false) Integer height,
+            @RequestParam(value = "originX", required = false) Integer originX,
+            @RequestParam(value = "originY", required = false) Integer originY,
+            @RequestParam(value = "scale", required = false) Double scale,
+            @RequestParam(value = "point1X", required = false) Integer point1X,
+            @RequestParam(value = "point1Y", required = false) Integer point1Y,
+            @RequestParam(value = "point2X", required = false) Integer point2X,
+            @RequestParam(value = "point2Y", required = false) Integer point2Y,
+            @RequestParam(value = "realDistance", required = false) Double realDistance,
             @RequestParam("file") MultipartFile file
     ) {
         Map map = new Map();
         map.setMapId(mapId);
         map.setName(name);
-        map.setXMin(xMin);
-        map.setXMax(xMax);
-        map.setYMin(yMin);
-        map.setYMax(yMax);
+        map.setWidth(width);
+        map.setHeight(height);
+        map.setOriginX(originX);
+        map.setOriginY(originY);
+        map.setScale(scale);
+        map.setPoint1X(point1X);
+        map.setPoint1Y(point1Y);
+        map.setPoint2X(point2X);
+        map.setPoint2Y(point2Y);
+        map.setRealDistance(realDistance);
         return mapService.createMap(map, file);
     }
 
@@ -57,36 +69,37 @@ public class MapController {
             @PathVariable Long id,
             @RequestParam(required = false) String mapId,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Double xMin,
-            @RequestParam(required = false) Double xMax,
-            @RequestParam(required = false) Double yMin,
-            @RequestParam(required = false) Double yMax,
+            @RequestParam(required = false) Integer width,
+            @RequestParam(required = false) Integer height,
+            @RequestParam(required = false) Integer originX,
+            @RequestParam(required = false) Integer originY,
+            @RequestParam(required = false) Double scale,
+            @RequestParam(required = false) Integer point1X,
+            @RequestParam(required = false) Integer point1Y,
+            @RequestParam(required = false) Integer point2X,
+            @RequestParam(required = false) Integer point2Y,
+            @RequestParam(required = false) Double realDistance,
             @RequestParam(required = false) MultipartFile file
     ) {
         Map map = new Map();
         map.setMapId(mapId);
         map.setName(name);
-        map.setXMin(xMin);
-        map.setXMax(xMax);
-        map.setYMin(yMin);
-        map.setYMax(yMax);
+        map.setWidth(width);
+        map.setHeight(height);
+        map.setOriginX(originX);
+        map.setOriginY(originY);
+        map.setScale(scale);
+        map.setPoint1X(point1X);
+        map.setPoint1Y(point1Y);
+        map.setPoint2X(point2X);
+        map.setPoint2Y(point2Y);
+        map.setRealDistance(realDistance);
         return mapService.updateMap(id, map, file);
     }
 
     @DeleteMapping("/{id}")
     public void deleteMap(@PathVariable Long id) {
         mapService.deleteMap(id);
-    }
-
-    @GetMapping("/current")
-    public ResponseEntity<Map> getCurrentMap() {
-        Map map = mapService.getCurrentMap();
-        return map != null ? ResponseEntity.ok(map) : ResponseEntity.notFound().build();
-    }
-
-    @PutMapping("/current/{id}")
-    public void setCurrentMap(@PathVariable Long id) {
-        mapService.setCurrentMap(id);
     }
 
     @GetMapping("/{id}/image")

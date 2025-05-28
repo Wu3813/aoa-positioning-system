@@ -11,6 +11,4 @@ public interface MapService {
     Map updateMap(Long id, Map map, MultipartFile file);
     void deleteMap(Long id);
     void batchDeleteMaps(List<Long> ids);
-    Map getCurrentMap();
-    void setCurrentMap(Long id);
 }

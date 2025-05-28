@@ -6,15 +6,22 @@
         <result column="map_id" property="mapId" />
         <result column="name" property="name" />
         <result column="image_path" property="imagePath" />
-        <result column="x_min" property="xMin" />
-        <result column="x_max" property="xMax" />
-        <result column="y_min" property="yMin" />
-        <result column="y_max" property="yMax" />
+        <result column="width" property="width" />
+        <result column="height" property="height" />
+        <result column="origin_x" property="originX" />
+        <result column="origin_y" property="originY" />
+        <result column="scale" property="scale" />
+        <result column="point1_x" property="point1X" />
+        <result column="point1_y" property="point1Y" />
+        <result column="point2_x" property="point2X" />
+        <result column="point2_y" property="point2Y" />
+        <result column="real_distance" property="realDistance" />
         <result column="create_time" property="createTime" />
     </resultMap>
     
     <sql id="Base_Column_List">
-        id, map_id, name, image_path, x_min, x_max, y_min, y_max, create_time
+        id, map_id, name, image_path, width, height, origin_x, origin_y, scale, 
+        point1_x, point1_y, point2_x, point2_y, real_distance, create_time
     </sql>
     
     <select id="selectAllMaps" resultMap="BaseResultMap">
@@ -41,8 +48,14 @@
     </select>
     
     <insert id="insertMap" parameterType="com.wu.monitor.model.Map" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO map (map_id, name, image_path, x_min, x_max, y_min, y_max, create_time)
-        VALUES (#{mapId}, #{name}, #{imagePath}, #{xMin}, #{xMax}, #{yMin}, #{yMax}, #{createTime})
+        INSERT INTO map (
+            map_id, name, image_path, width, height, origin_x, origin_y, scale, 
+            point1_x, point1_y, point2_x, point2_y, real_distance, create_time
+        )
+        VALUES (
+            #{mapId}, #{name}, #{imagePath}, #{width}, #{height}, #{originX}, #{originY}, #{scale},
+            #{point1X}, #{point1Y}, #{point2X}, #{point2Y}, #{realDistance}, #{createTime}
+        )
     </insert>
     
     <update id="updateMap" parameterType="com.wu.monitor.model.Map">
@@ -51,10 +64,16 @@
             <if test="mapId != null">map_id = #{mapId},</if>
             <if test="name != null">name = #{name},</if>
             <if test="imagePath != null">image_path = #{imagePath},</if>
-            <if test="xMin != null">x_min = #{xMin},</if>
-            <if test="xMax != null">x_max = #{xMax},</if>
-            <if test="yMin != null">y_min = #{yMin},</if>
-            <if test="yMax != null">y_max = #{yMax}</if>
+            <if test="width != null">width = #{width},</if>
+            <if test="height != null">height = #{height},</if>
+            <if test="originX != null">origin_x = #{originX},</if>
+            <if test="originY != null">origin_y = #{originY},</if>
+            <if test="scale != null">scale = #{scale},</if>
+            <if test="point1X != null">point1_x = #{point1X},</if>
+            <if test="point1Y != null">point1_y = #{point1Y},</if>
+            <if test="point2X != null">point2_x = #{point2X},</if>
+            <if test="point2Y != null">point2_y = #{point2Y},</if>
+            <if test="realDistance != null">real_distance = #{realDistance}</if>
         </set>
         WHERE id = #{id}
     </update>
@@ -68,20 +87,5 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
-    </delete>
-    
-    <select id="selectCurrentMap" resultMap="BaseResultMap">
-        SELECT m.* FROM map m
-        JOIN current_map cm ON m.id = cm.map_id
-        LIMIT 1
-    </select>
-    
-    <update id="updateCurrentMap">
-        INSERT INTO current_map (map_id) VALUES (#{id})
-        ON DUPLICATE KEY UPDATE map_id = #{id}
-    </update>
-    
-    <delete id="clearCurrentMap">
-        DELETE FROM current_map
     </delete>
 </mapper>
