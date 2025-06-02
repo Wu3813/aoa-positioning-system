@@ -66,6 +66,19 @@ public interface StationMapper {
                            @Param("lastCommunication") LocalDateTime lastCommunication);
     
     /**
+     * 更新基站状态、扫描状态和通信时间
+     * @param id 基站ID
+     * @param status 状态
+     * @param scanEnabled 扫描状态
+     * @param lastCommunication 最后通信时间
+     * @return 影响行数
+     */
+    int updateStationStatusAndScan(@Param("id") Long id, 
+                                  @Param("status") Integer status,
+                                  @Param("scanEnabled") Boolean scanEnabled,
+                                  @Param("lastCommunication") LocalDateTime lastCommunication);
+    
+    /**
      * 删除基站
      * @param id 基站ID
      * @return 影响行数

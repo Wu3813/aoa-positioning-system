@@ -15,6 +15,7 @@
         <result column="position_z" property="positionZ" />
         <result column="orientation" property="orientation" />
         <result column="status" property="status" />
+        <result column="scan_enabled" property="scanEnabled" />
         <result column="last_communication" property="lastCommunication" />
         <result column="create_time" property="createTime" />
         <result column="remark" property="remark" />
@@ -24,7 +25,7 @@
     <sql id="Base_Column_List">
         s.id, s.code, s.name, s.mac_address, s.ip_address, s.model, s.firmware_version, 
         s.map_id, s.position_x, s.position_y, s.position_z, s.orientation, s.status, 
-        s.last_communication, s.create_time, s.remark
+        s.scan_enabled, s.last_communication, s.create_time, s.remark
     </sql>
     
     <select id="selectAllStations" resultMap="BaseResultMap">
@@ -77,12 +78,12 @@
         INSERT INTO station (
             code, name, mac_address, ip_address, model, firmware_version,
             map_id, position_x, position_y, position_z, orientation,
-            status, last_communication, create_time, remark
+            status, scan_enabled, last_communication, create_time, remark
         )
         VALUES (
             #{code}, #{name}, #{macAddress}, #{ipAddress}, #{model}, #{firmwareVersion},
             #{mapId}, #{positionX}, #{positionY}, #{positionZ}, #{orientation},
-            #{status}, #{lastCommunication}, #{createTime}, #{remark}
+            #{status}, #{scanEnabled}, #{lastCommunication}, #{createTime}, #{remark}
         )
     </insert>
     
@@ -101,6 +102,7 @@
             <if test="positionZ != null">position_z = #{positionZ},</if>
             <if test="orientation != null">orientation = #{orientation},</if>
             <if test="status != null">status = #{status},</if>
+            scan_enabled = #{scanEnabled},
             <if test="lastCommunication != null">last_communication = #{lastCommunication},</if>
             <if test="remark != null">remark = #{remark}</if>
         </set>
@@ -110,6 +112,14 @@
     <update id="updateStationStatus">
         UPDATE station
         SET status = #{status}, 
+            last_communication = #{lastCommunication}
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStationStatusAndScan">
+        UPDATE station
+        SET status = #{status}, 
+            scan_enabled = #{scanEnabled},
             last_communication = #{lastCommunication}
         WHERE id = #{id}
     </update>

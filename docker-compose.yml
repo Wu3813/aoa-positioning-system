@@ -73,7 +73,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "8081:80"
     networks:
       - aoa-network
 

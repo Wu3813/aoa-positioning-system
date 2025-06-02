@@ -5,6 +5,9 @@ WORKDIR /app
 # 复制配置文件
 COPY package*.json ./
 
+# 设置npm镜像源为淘宝镜像，解决网络超时问题
+RUN npm config set registry https://registry.npmmirror.com/
+
 # 安装依赖
 RUN npm install
 # 确保axios和其他必要依赖已安装

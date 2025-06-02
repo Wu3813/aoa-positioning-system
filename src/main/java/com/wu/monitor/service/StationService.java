@@ -2,6 +2,7 @@ package com.wu.monitor.service;
 
 import com.wu.monitor.model.Station;
 import java.util.List;
+import java.util.Map;
 
 public interface StationService {
     /**
@@ -61,4 +62,92 @@ public interface StationService {
      * @return 更新后的基站信息
      */
     Station updateStationStatus(Long id, Integer status);
+    
+    /**
+     * 通过UDP刷新基站信息（型号、MAC地址、固件版本、扫描状态）
+     * @param id 基站ID
+     * @return 更新后的基站信息
+     */
+    Station refreshStationInfoFromUdp(Long id);
+    
+    /**
+     * 批量刷新基站信息
+     * @param ids 基站ID列表
+     * @return 刷新结果统计
+     */
+    RefreshResult batchRefreshStationInfo(List<Long> ids);
+    
+    /**
+     * 检查所有基站的在线状态
+     * @return 检查结果统计
+     */
+    RefreshResult checkAllStationsStatus();
+    
+    /**
+     * 根据IP地址列表批量检查基站状态（用于定时任务）
+     * @return 检查结果统计
+     */
+    RefreshResult checkStationsStatusByIp();
+    
+    /**
+     * 测试UDP连接并获取基站信息
+     * @param ipAddress IP地址
+     * @return 包含基站信息和加速度数据的Map
+     */
+    Map<String, Object> testUdpConnection(String ipAddress);
+    
+    /**
+     * 开启标签广播数据上报
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean enableBroadcast(String ipAddress);
+    
+    /**
+     * 开启扫描
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean enableScanning(String ipAddress);
+    
+    /**
+     * 恢复出厂设置
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean factoryReset(String ipAddress);
+    
+    /**
+     * 重启基站
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean restartStation(String ipAddress);
+    
+    /**
+     * 基站定位（让基站灯闪烁）
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean locateStation(String ipAddress);
+    
+    /**
+     * 刷新结果统计类
+     */
+    class RefreshResult {
+        private int total;
+        private int success;
+        private int failed;
+        
+        public RefreshResult(int total, int success, int failed) {
+            this.total = total;
+            this.success = success;
+            this.failed = failed;
+        }
+        
+        // Getters
+        public int getTotal() { return total; }
+        public int getSuccess() { return success; }
+        public int getFailed() { return failed; }
+    }
 } 

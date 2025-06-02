@@ -13,11 +13,12 @@ public class Station {
     private String model;
     private String firmwareVersion;
     private Long mapId;
-    private Double positionX;
-    private Double positionY;
-    private Double positionZ;
+    private String positionX; // X轴加速度(十六进制)
+    private String positionY; // Y轴加速度(十六进制)
+    private String positionZ; // Z轴加速度(十六进制)
     private Double orientation;
     private Integer status;
+    private Boolean scanEnabled;  // 扫描功能是否开启
     private LocalDateTime lastCommunication;
     private LocalDateTime createTime;
     private String remark;

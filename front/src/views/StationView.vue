@@ -34,6 +34,12 @@
           <el-button type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon> 新增
           </el-button>
+          <el-button type="success" @click="handleCheckAllStatus" :loading="checkAllLoading">
+            <el-icon><Refresh /></el-icon> 检查所有状态
+          </el-button>
+          <el-button type="warning" @click="handleBatchRefresh" :disabled="!multipleSelection.length" :loading="batchRefreshLoading">
+            <el-icon><Refresh /></el-icon> 批量刷新
+          </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
             <el-icon><Delete /></el-icon> 批量删除
           </el-button>
@@ -55,36 +61,38 @@
           style="width: 100%;"
           @sort-change="handleSortChange"
         >
-          <el-table-column type="selection" width="55" fixed="left" />
-          <el-table-column label="序号" width="60" align="center" fixed="left">
+          <el-table-column type="selection" width="35" fixed="left" />
+          <el-table-column prop="code" label="基站编号" width="105" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column label="状态" width="80" fixed="left" sortable="custom" prop="status" align="center">
             <template #default="scope">
-              {{ scope.$index + 1 }}
+              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+                {{ scope.row.status === 1 ? '在线' : '离线' }}
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="基站编号" width="120" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column label="扫描状态" width="85" fixed="left" align="center">
+            <template #default="scope">
+              <el-tag v-if="scope.row.scanEnabled === null" type="info" size="small">未知</el-tag>
+              <el-tag v-else-if="scope.row.scanEnabled" type="success" size="small">开启</el-tag>
+              <el-tag v-else type="warning" size="small">关闭</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column prop="name" label="基站名称" width="150" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="ipAddress" label="IP地址" width="130" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="model" label="基站型号" width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip sortable="custom" />
-          <el-table-column label="坐标位置" width="180">
+          <el-table-column label="三轴加速度" width="200">
             <template #default="scope">
-              <div>X: {{ formatCoordinate(scope.row.positionX) }} m</div>
-              <div>Y: {{ formatCoordinate(scope.row.positionY) }} m</div>
-              <div>Z: {{ formatCoordinate(scope.row.positionZ) }} m</div>
+              <div>X: {{ scope.row.positionX || '-' }}</div>
+              <div>Y: {{ scope.row.positionY || '-' }}</div>
+              <div>Z: {{ scope.row.positionZ || '-' }}</div>
             </template>
           </el-table-column>
           <el-table-column prop="orientation" label="方位角" width="100" sortable="custom">
             <template #default="scope">
               {{ formatCoordinate(scope.row.orientation) }}°
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" width="100" sortable="custom" prop="status">
-            <template #default="scope">
-              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                {{ scope.row.status === 1 ? '在线' : '离线' }}
-              </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip sortable="custom" prop="lastCommunication">
@@ -98,15 +106,38 @@
             </template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="280" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
-                  <el-icon><Edit /></el-icon> 修改
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleRefreshStation(scope.row)" :loading="refreshingStations.includes(scope.row.id)">
+                    刷新
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleEdit(scope.row)">
+                    修改
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleConfig(scope.row)">
+                    配置
+                  </el-button>
+                  
+                  <el-button type="default" size="small" @click="handleRestart(scope.row)">
+                    重启
+                  </el-button>
+                </el-button-group>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleLocate(scope.row)">
+                    查找基站
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleUpdate(scope.row)">
+                    固件升级
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleFactoryReset(scope.row)">
+                    恢复出厂
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
+                    删除
+                  </el-button>
+                </el-button-group>
               </div>
             </template>
           </el-table-column>
@@ -129,6 +160,7 @@
         label-width="100px"
         status-icon
       >
+        <!-- 基本可编辑信息 -->
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="基站编号" prop="code">
@@ -142,31 +174,9 @@
           </el-col>
         </el-row>
         
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="MAC地址" prop="macAddress">
-              <el-input v-model="stationForm.macAddress" placeholder="请输入MAC地址" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="IP地址" prop="ipAddress">
-              <el-input v-model="stationForm.ipAddress" placeholder="请输入IP地址" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="基站型号" prop="model">
-              <el-input v-model="stationForm.model" placeholder="请输入基站型号" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="固件版本" prop="firmwareVersion">
-              <el-input v-model="stationForm.firmwareVersion" placeholder="请输入固件版本" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <el-form-item label="IP地址" prop="ipAddress">
+          <el-input v-model="stationForm.ipAddress" placeholder="请输入IP地址" style="width: 100%" />
+        </el-form-item>
         
         <el-row :gutter="20">
           <el-col :span="12">
@@ -195,60 +205,6 @@
           </el-col>
         </el-row>
         
-        <el-row :gutter="20">
-          <el-col :span="24">
-            <el-form-item label="基站坐标">
-              <el-col :span="7">
-                <el-form-item prop="positionX">
-                  <el-input-number
-                    v-model="stationForm.positionX"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="X坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">X</el-col>
-              <el-col :span="7">
-                <el-form-item prop="positionY">
-                  <el-input-number
-                    v-model="stationForm.positionY"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="Y坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">Y</el-col>
-              <el-col :span="7">
-                <el-form-item prop="positionZ">
-                  <el-input-number
-                    v-model="stationForm.positionZ"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="Z坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">Z</el-col>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="基站状态" prop="status">
-              <el-select v-model="stationForm.status" placeholder="请选择状态" style="width: 100%">
-                <el-option label="在线" :value="1" />
-                <el-option label="离线" :value="0" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
         <el-form-item label="备注" prop="remark">
           <el-input 
             v-model="stationForm.remark" 
@@ -257,9 +213,98 @@
             placeholder="请输入备注信息"
           />
         </el-form-item>
+        
+        <!-- 基站基本信息 -->
+        <el-divider>基站基本信息</el-divider>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="MAC地址">
+              <el-input v-model="stationForm.macAddress" placeholder="自动获取" readonly disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="基站型号">
+              <el-input v-model="stationForm.model" placeholder="自动获取" readonly disabled />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="固件版本">
+              <el-input v-model="stationForm.firmwareVersion" placeholder="自动获取" readonly disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="扫描功能">
+              <el-input 
+                :value="stationForm.scanEnabled === null ? '未知' : (stationForm.scanEnabled ? '开启' : '关闭')" 
+                placeholder="自动获取" 
+                readonly 
+                disabled
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-form-item label="三轴加速度">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-input
+                v-model="stationForm.positionX"
+                placeholder="自动获取"
+                readonly
+                disabled
+              >
+                <template #prepend>X轴</template>
+              </el-input>
+            </el-col>
+            <el-col :span="8">
+              <el-input
+                v-model="stationForm.positionY"
+                placeholder="自动获取"
+                readonly
+                disabled
+              >
+                <template #prepend>Y轴</template>
+              </el-input>
+            </el-col>
+            <el-col :span="8">
+              <el-input
+                v-model="stationForm.positionZ"
+                placeholder="自动获取"
+                readonly
+                disabled
+              >
+                <template #prepend>Z轴</template>
+              </el-input>
+            </el-col>
+          </el-row>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
+          <el-button type="success" @click="handleTestConnection" :loading="testingConnection">
+            测试UDP连接
+          </el-button>
+          <el-button 
+            type="primary" 
+            @click="handleEnableBroadcast" 
+            :disabled="!udpConnected"
+            :loading="enablingBroadcast"
+          >
+            开启标签广播数据上报
+          </el-button>
+          <el-button 
+            type="warning" 
+            @click="handleEnableScanning" 
+            :disabled="!udpConnected"
+            :loading="enablingScanning"
+          >
+            开启扫描
+          </el-button>
+          <div style="flex: 1"></div>
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
         </div>
@@ -271,18 +316,26 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Delete, Edit } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Edit, Connection } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const stationList = ref([])
 const mapList = ref([])
 const loading = ref(false)
 const submitLoading = ref(false)
+const checkAllLoading = ref(false)
+const batchRefreshLoading = ref(false)
+const refreshingStations = ref([]) // 正在刷新的基站ID列表
 const dialogVisible = ref(false)
 const dialogType = ref('add')
 const stationFormRef = ref(null)
 const tableMaxHeight = ref('calc(100vh - 320px)')
 const resizeObserver = ref(null)
+const autoRefreshTimer = ref(null) // 添加自动刷新定时器引用
+const testingConnection = ref(false) // 测试连接状态
+const udpConnected = ref(false) // UDP连接成功状态
+const enablingBroadcast = ref(false) // 开启标签广播状态
+const enablingScanning = ref(false) // 开启扫描状态
 
 // 搜索表单
 const searchForm = reactive({
@@ -304,15 +357,16 @@ const stationForm = reactive({
   model: '',
   firmwareVersion: '',
   mapId: null,
-  positionX: 0,
-  positionY: 0,
-  positionZ: 0,
+  positionX: '',
+  positionY: '',
+  positionZ: '',
   orientation: 0,
   status: 1,
+  scanEnabled: null,
   remark: ''
 })
 
-// 表单校验规则
+// 表单校验规则 - 只校验可编辑字段
 const rules = {
   code: [
     { required: true, message: '请输入基站编号', trigger: 'blur' },
@@ -321,24 +375,12 @@ const rules = {
   name: [
     { required: true, message: '请输入基站名称', trigger: 'blur' }
   ],
-  macAddress: [
-    { required: true, message: '请输入MAC地址', trigger: 'blur' },
-    { pattern: /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/, message: 'MAC地址格式不正确', trigger: 'blur' }
-  ],
   ipAddress: [
+    { required: true, message: '请输入IP地址', trigger: 'blur' },
     { pattern: /^(\d{1,3}\.){3}\d{1,3}$/, message: 'IP地址格式不正确', trigger: 'blur' }
   ],
   mapId: [
     { required: true, message: '请选择所属地图', trigger: 'change' }
-  ],
-  positionX: [
-    { required: true, message: '请输入X坐标', trigger: 'blur' }
-  ],
-  positionY: [
-    { required: true, message: '请输入Y坐标', trigger: 'blur' }
-  ],
-  positionZ: [
-    { required: true, message: '请输入Z坐标', trigger: 'blur' }
   ]
 }
 
@@ -403,6 +445,9 @@ const fetchStations = async () => {
       params.status = searchForm.status;
     }
     
+    // 添加时间戳避免缓存
+    params._t = new Date().getTime();
+    
     const response = await axios.get('/api/stations', { params });
     
     // 处理数据
@@ -458,6 +503,87 @@ const handleSelectionChange = (selection) => {
   multipleSelection.value = selection;
 }
 
+// 刷新单个基站状态
+const handleRefreshStation = async (row) => {
+  refreshingStations.value.push(row.id);
+  try {
+    const response = await axios.post(`/api/stations/${row.id}/refresh`);
+    if (response.data.success && response.data.data) {
+      // 无论成功还是失败，都更新基站数据
+      const index = stationList.value.findIndex(station => station.id === row.id);
+      if (index !== -1) {
+        Object.assign(stationList.value[index], response.data.data);
+      }
+      
+      // 根据基站状态显示不同的消息
+      if (response.data.data.status === 1) {
+        ElMessage.success('基站信息刷新成功');
+      } else {
+        ElMessage.warning('基站离线，状态已更新');
+      }
+    } else {
+      ElMessage.warning(response.data.message || '刷新失败');
+    }
+  } catch (error) {
+    console.error('刷新基站状态错误:', error);
+    ElMessage.error('刷新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    const index = refreshingStations.value.indexOf(row.id);
+    if (index > -1) {
+      refreshingStations.value.splice(index, 1);
+    }
+  }
+}
+
+// 检查所有基站状态
+const handleCheckAllStatus = async () => {
+  checkAllLoading.value = true;
+  try {
+    const response = await axios.post('/api/stations/check-all-status');
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      // 稍等片刻确保后端更新完成，然后重新加载基站列表
+      setTimeout(async () => {
+        await fetchStations();
+      }, 500); // 延迟500ms确保数据库更新完成
+    } else {
+      ElMessage.warning(response.data.message || '检查失败');
+    }
+  } catch (error) {
+    console.error('检查所有基站状态错误:', error);
+    ElMessage.error('检查失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    checkAllLoading.value = false;
+  }
+}
+
+// 批量刷新选中的基站
+const handleBatchRefresh = async () => {
+  if (multipleSelection.value.length === 0) {
+    ElMessage.warning('请至少选择一个基站');
+    return;
+  }
+  
+  batchRefreshLoading.value = true;
+  try {
+    const ids = multipleSelection.value.map(station => station.id);
+    const response = await axios.post('/api/stations/batch/refresh', { ids });
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      // 重新加载基站列表以显示最新状态
+      await fetchStations();
+    } else {
+      ElMessage.warning(response.data.message || '批量刷新失败');
+    }
+  } catch (error) {
+    console.error('批量刷新基站错误:', error);
+    ElMessage.error('批量刷新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    batchRefreshLoading.value = false;
+  }
+}
+
 // 批量删除
 const handleBatchDelete = () => {
   if (multipleSelection.value.length === 0) {
@@ -491,6 +617,7 @@ const handleBatchDelete = () => {
 // 添加基站
 const handleAdd = () => {
   dialogType.value = 'add';
+  udpConnected.value = false; // 重置UDP连接状态
   Object.assign(stationForm, {
     id: null,
     code: '',
@@ -500,11 +627,12 @@ const handleAdd = () => {
     model: '',
     firmwareVersion: '',
     mapId: null,
-    positionX: 0,
-    positionY: 0,
-    positionZ: 0,
+    positionX: '',
+    positionY: '',
+    positionZ: '',
     orientation: 0,
     status: 1,
+    scanEnabled: null,
     remark: ''
   });
   dialogVisible.value = true;
@@ -520,6 +648,7 @@ const handleAdd = () => {
 // 编辑基站
 const handleEdit = (row) => {
   dialogType.value = 'edit';
+  udpConnected.value = false; // 重置UDP连接状态
   // 深拷贝以避免直接修改表格数据
   const rowData = JSON.parse(JSON.stringify(row));
   Object.assign(stationForm, rowData);
@@ -555,6 +684,51 @@ const handleDelete = (row) => {
   }).catch(() => {
     // 取消删除，不做处理
   });
+}
+
+// 测试连接
+const handleTestConnection = async () => {
+  if (!stationForm.ipAddress || !stationForm.ipAddress.trim()) {
+    ElMessage.warning('请先输入IP地址');
+    return;
+  }
+  
+  testingConnection.value = true;
+  try {
+    const response = await axios.post('/api/stations/test-connection', { 
+      ipAddress: stationForm.ipAddress.trim() 
+    });
+    
+    if (response.data.success) {
+      ElMessage.success('UDP连接测试成功，自动获取基站信息');
+      udpConnected.value = true; // 设置UDP连接成功状态
+      
+      // 自动填充获取到的信息
+      const data = response.data.data;
+      if (data) {
+        if (data.macAddress) stationForm.macAddress = data.macAddress;
+        if (data.model) stationForm.model = data.model;
+        if (data.firmwareVersion) stationForm.firmwareVersion = data.firmwareVersion;
+        if (data.scanEnabled !== undefined) stationForm.scanEnabled = data.scanEnabled;
+        
+        // 填充加速度数据
+        if (data.accelerationInfo) {
+          if (data.accelerationInfo.accelerationX) stationForm.positionX = data.accelerationInfo.accelerationX;
+          if (data.accelerationInfo.accelerationY) stationForm.positionY = data.accelerationInfo.accelerationY;
+          if (data.accelerationInfo.accelerationZ) stationForm.positionZ = data.accelerationInfo.accelerationZ;
+        }
+      }
+    } else {
+      ElMessage.warning(response.data.message || 'UDP连接测试失败，请检查IP地址或网络连接');
+      udpConnected.value = false; // 连接失败时重置状态
+    }
+  } catch (error) {
+    console.error('测试连接错误:', error);
+    ElMessage.error('UDP连接测试失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+    udpConnected.value = false; // 连接失败时重置状态
+  } finally {
+    testingConnection.value = false;
+  }
 }
 
 // 提交表单
@@ -680,6 +854,7 @@ onMounted(() => {
   fetchMaps();
   updateTableHeight();
   setupResizeObserver();
+  startAutoRefresh();
 })
 
 // 组件卸载前清理
@@ -689,7 +864,177 @@ onBeforeUnmount(() => {
   } else {
     window.removeEventListener('resize', updateTableHeight);
   }
+  stopAutoRefresh();
 })
+
+// 添加自动刷新机制
+const startAutoRefresh = () => {
+  autoRefreshTimer.value = setInterval(async () => {
+    await fetchStations();
+  }, 30000); // 每30秒刷新一次
+}
+
+// 停止自动刷新机制
+const stopAutoRefresh = () => {
+  if (autoRefreshTimer.value) {
+    clearInterval(autoRefreshTimer.value);
+    autoRefreshTimer.value = null;
+  }
+}
+
+// 开启标签广播数据上报
+const handleEnableBroadcast = async () => {
+  if (!stationForm.ipAddress || !stationForm.ipAddress.trim()) {
+    ElMessage.warning('请先输入IP地址');
+    return;
+  }
+  
+  enablingBroadcast.value = true;
+  try {
+    const response = await axios.post('/api/stations/enable-broadcast', {
+      ipAddress: stationForm.ipAddress.trim()
+    });
+    
+    if (response.data.success) {
+      ElMessage.success('标签广播数据上报开启成功');
+    } else {
+      ElMessage.warning(response.data.message || '开启标签广播数据上报失败');
+    }
+  } catch (error) {
+    console.error('开启标签广播数据上报错误:', error);
+    ElMessage.error('开启标签广播数据上报失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    enablingBroadcast.value = false;
+  }
+}
+
+// 开启扫描
+const handleEnableScanning = async () => {
+  if (!stationForm.ipAddress || !stationForm.ipAddress.trim()) {
+    ElMessage.warning('请先输入IP地址');
+    return;
+  }
+  
+  enablingScanning.value = true;
+  try {
+    const response = await axios.post('/api/stations/enable-scanning', {
+      ipAddress: stationForm.ipAddress.trim()
+    });
+    
+    if (response.data.success) {
+      ElMessage.success('扫描开启成功');
+    } else {
+      ElMessage.warning(response.data.message || '开启扫描失败');
+    }
+  } catch (error) {
+    console.error('开启扫描错误:', error);
+    ElMessage.error('开启扫描失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    enablingScanning.value = false;
+  }
+}
+
+// 恢复出厂设置
+const handleFactoryReset = (row) => {
+  ElMessageBox.confirm(
+    `确定要恢复基站 "${row.name}" 的出厂设置吗？此操作不可逆！`,
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      const response = await axios.post('/api/stations/factory-reset', {
+        ipAddress: row.ipAddress
+      });
+      
+      if (response.data.success) {
+        ElMessage.success(response.data.message);
+      } else {
+        ElMessage.warning(response.data.message || '恢复出厂设置失败');
+      }
+    } catch (error) {
+      console.error('恢复出厂设置错误:', error);
+      ElMessage.error('恢复出厂设置失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+    }
+  }).catch(() => {
+    // 取消操作，不做处理
+  });
+}
+
+// 重启基站
+const handleRestart = (row) => {
+  ElMessageBox.confirm(
+    `确定要重启基站 "${row.name}" 吗？`,
+    '确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      const response = await axios.post('/api/stations/restart', {
+        ipAddress: row.ipAddress
+      });
+      
+      if (response.data.success) {
+        ElMessage.success(response.data.message);
+      } else {
+        ElMessage.warning(response.data.message || '基站重启失败');
+      }
+    } catch (error) {
+      console.error('基站重启错误:', error);
+      ElMessage.error('基站重启失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+    }
+  }).catch(() => {
+    // 取消操作，不做处理
+  });
+}
+
+// 定位基站
+const handleLocate = (row) => {
+  ElMessageBox.confirm(
+    `确定要定位基站 "${row.name}" 吗？基站灯将闪烁100次。`,
+    '确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info',
+    }
+  ).then(async () => {
+    try {
+      const response = await axios.post('/api/stations/locate', {
+        ipAddress: row.ipAddress
+      });
+      
+      if (response.data.success) {
+        ElMessage.success(response.data.message);
+      } else {
+        ElMessage.warning(response.data.message || '基站定位失败');
+      }
+    } catch (error) {
+      console.error('基站定位错误:', error);
+      ElMessage.error('基站定位失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+    }
+  }).catch(() => {
+    // 取消操作，不做处理
+  });
+}
+
+// 更新基站
+const handleUpdate = (row) => {
+  ElMessage.info(`更新基站功能暂未实现 - 基站: ${row.name}`);
+  // TODO: 实现更新基站功能
+}
+
+// 配置基站
+const handleConfig = (row) => {
+  ElMessage.info(`配置基站功能暂未实现 - 基站: ${row.name}`);
+  // TODO: 实现配置基站功能
+}
 </script>
 
 <style scoped>
@@ -755,7 +1100,22 @@ onBeforeUnmount(() => {
 
 .operation-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 270px;
+}
+
+.operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.operation-buttons .el-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 1px;
+  height: 22px;
+  min-width: 0;
 }
 
 .text-center {
@@ -766,28 +1126,8 @@ onBeforeUnmount(() => {
 
 .dialog-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 10px;
-}
-
-/* 响应式布局适配 */
-@media screen and (max-width: 768px) {
-  .control-panel {
-    padding: 0 10px;
-    margin: 10px 0;
-  }
-  
-  .main-content {
-    padding: 0 10px;
-  }
-  
-  .station-table-wrapper {
-    padding: 10px;
-  }
-  
-  .el-form-item {
-    margin-bottom: 12px;
-  }
 }
 </style>
 
@@ -821,4 +1161,4 @@ onBeforeUnmount(() => {
 .el-select {
   width: 100%;
 }
-</style> 
+</style>
