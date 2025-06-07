@@ -79,6 +79,23 @@ public interface StationMapper {
                                   @Param("lastCommunication") LocalDateTime lastCommunication);
     
     /**
+     * 更新基站RSSI配置值
+     * @param id 基站ID
+     * @param rssi RSSI值
+     * @return 影响行数
+     */
+    int updateStationRssi(@Param("id") Long id, @Param("rssi") Integer rssi);
+    
+    /**
+     * 更新基站目标IP和端口
+     * @param id 基站ID
+     * @param targetIp 目标IP地址
+     * @param targetPort 目标端口
+     * @return 影响行数
+     */
+    int updateStationTarget(@Param("id") Long id, @Param("targetIp") String targetIp, @Param("targetPort") Integer targetPort);
+    
+    /**
      * 删除基站
      * @param id 基站ID
      * @return 影响行数

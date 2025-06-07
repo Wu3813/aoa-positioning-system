@@ -336,33 +336,186 @@ public class StationController {
     
     /**
      * 基站定位
-     * @param request 包含IP地址的请求
-     * @return 操作结果
      */
     @PostMapping("/locate")
     public ResponseEntity<Map<String, Object>> locateStation(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         try {
             String ipAddress = request.get("ipAddress");
+            boolean result = stationService.locateStation(ipAddress);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "基站定位成功，基站灯将闪烁100次");
+            } else {
+                response.put("success", false);
+                response.put("message", "基站定位失败，请检查基站连接状态");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
+     * 基站配置1
+     */
+    @PostMapping("/config1")
+    public ResponseEntity<Map<String, Object>> config1(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String ipAddress = request.get("ipAddress");
+            boolean result = stationService.config1(ipAddress);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "基站配置1成功");
+            } else {
+                response.put("success", false);
+                response.put("message", "基站配置1失败，请检查基站连接状态");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
+     * 基站配置2
+     */
+    @PostMapping("/config2")
+    public ResponseEntity<Map<String, Object>> config2(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String ipAddress = request.get("ipAddress");
+            boolean result = stationService.config2(ipAddress);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "基站配置2成功");
+            } else {
+                response.put("success", false);
+                response.put("message", "基站配置2失败，请检查基站连接状态");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
+     * 基站配置RSSI
+     */
+    @PostMapping("/config-rssi")
+    public ResponseEntity<Map<String, Object>> configRSSI(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String ipAddress = (String) request.get("ipAddress");
+            Integer rssi = (Integer) request.get("rssi");
+            
             if (ipAddress == null || ipAddress.trim().isEmpty()) {
                 response.put("success", false);
                 response.put("message", "IP地址不能为空");
                 return ResponseEntity.badRequest().body(response);
             }
             
-            boolean result = stationService.locateStation(ipAddress.trim());
+            if (rssi == null) {
+                response.put("success", false);
+                response.put("message", "RSSI值不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 严格验证RSSI值范围
+            if (rssi < -100 || rssi > -40) {
+                response.put("success", false);
+                response.put("message", String.format("RSSI值必须在-100到-40dBm之间，当前值：%ddBm", rssi));
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            boolean result = stationService.configRSSI(ipAddress, rssi);
+            
             if (result) {
                 response.put("success", true);
-                response.put("message", "基站定位成功，基站灯将闪烁100次");
+                response.put("message", String.format("基站配置RSSI成功，RSSI值: %ddBm", rssi));
             } else {
                 response.put("success", false);
-                response.put("message", "基站定位失败");
+                response.put("message", "基站配置RSSI失败，请检查基站连接状态");
             }
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "基站定位失败: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
+     * 基站配置目标IP和端口
+     */
+    @PostMapping("/config-target")
+    public ResponseEntity<Map<String, Object>> configTarget(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String ipAddress = (String) request.get("ipAddress");
+            String targetIp = (String) request.get("targetIp");
+            Integer targetPort = (Integer) request.get("targetPort");
+            
+            if (ipAddress == null || ipAddress.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "基站IP地址不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (targetIp == null || targetIp.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "目标IP地址不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (targetPort == null) {
+                response.put("success", false);
+                response.put("message", "目标端口不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 验证端口范围和限制
+            if (targetPort <= 0 || targetPort > 65535) {
+                response.put("success", false);
+                response.put("message", String.format("目标端口必须在1-65535之间，当前值：%d", targetPort));
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (targetPort == 8833) {
+                response.put("success", false);
+                response.put("message", "目标端口不能是8833");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            boolean result = stationService.configTarget(ipAddress, targetIp, targetPort);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", String.format("基站配置目标IP端口成功，目标IP: %s, 端口: %d", targetIp, targetPort));
+            } else {
+                response.put("success", false);
+                response.put("message", "基站配置目标IP端口失败，请检查基站连接状态");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
         }
     }
 } 

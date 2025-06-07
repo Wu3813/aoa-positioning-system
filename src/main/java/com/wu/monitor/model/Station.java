@@ -17,8 +17,14 @@ public class Station {
     private String positionY; // Y轴加速度(十六进制)
     private String positionZ; // Z轴加速度(十六进制)
     private Double orientation;
+    private Double coordinateX; // X坐标(米)
+    private Double coordinateY; // Y坐标(米)
+    private Double coordinateZ; // Z坐标(米)
     private Integer status;
     private Boolean scanEnabled;  // 扫描功能是否开启
+    private Integer rssi;         // RSSI配置值(dBm)
+    private String targetIp;      // 目标IP地址
+    private Integer targetPort;   // 目标端口
     private LocalDateTime lastCommunication;
     private LocalDateTime createTime;
     private String remark;

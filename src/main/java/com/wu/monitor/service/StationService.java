@@ -132,6 +132,54 @@ public interface StationService {
     boolean locateStation(String ipAddress);
     
     /**
+     * 基站配置1
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean config1(String ipAddress);
+    
+    /**
+     * 基站配置2
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    boolean config2(String ipAddress);
+    
+    /**
+     * 基站配置RSSI
+     * @param ipAddress 基站IP地址
+     * @param rssi RSSI值（-100到-40dBm）
+     * @return 操作是否成功
+     */
+    boolean configRSSI(String ipAddress, int rssi);
+    
+    /**
+     * 更新基站RSSI配置值
+     * @param id 基站ID
+     * @param rssi RSSI值
+     * @return 操作是否成功
+     */
+    boolean updateRssi(Long id, Integer rssi);
+    
+    /**
+     * 基站配置目标IP和端口
+     * @param ipAddress 基站IP地址
+     * @param targetIp 目标IP地址
+     * @param targetPort 目标端口
+     * @return 操作是否成功
+     */
+    boolean configTarget(String ipAddress, String targetIp, int targetPort);
+    
+    /**
+     * 更新基站目标IP和端口配置值
+     * @param id 基站ID
+     * @param targetIp 目标IP地址
+     * @param targetPort 目标端口
+     * @return 操作是否成功
+     */
+    boolean updateTarget(Long id, String targetIp, Integer targetPort);
+    
+    /**
      * 刷新结果统计类
      */
     class RefreshResult {

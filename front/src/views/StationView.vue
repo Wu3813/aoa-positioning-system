@@ -17,6 +17,7 @@
               <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px;">
                 <el-option label="在线" :value="1" />
                 <el-option label="离线" :value="0" />
+                <el-option label="初始化" :value="2" />
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -63,11 +64,11 @@
         >
           <el-table-column type="selection" width="35" fixed="left" />
           <el-table-column prop="code" label="基站编号" width="105" fixed="left" show-overflow-tooltip sortable="custom" />
-          <el-table-column label="状态" width="80" fixed="left" sortable="custom" prop="status" align="center">
+          <el-table-column label="状态" width="90" fixed="left" sortable="custom" prop="status" align="center">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                {{ scope.row.status === 1 ? '在线' : '离线' }}
-              </el-tag>
+              <el-tag v-if="scope.row.status === 2" type="info">初始化</el-tag>
+              <el-tag v-else-if="scope.row.status === 1" type="success">在线</el-tag>
+              <el-tag v-else type="danger">离线</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="扫描状态" width="85" fixed="left" align="center">
@@ -90,9 +91,16 @@
               <div>Z: {{ scope.row.positionZ || '-' }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="orientation" label="方位角" width="100" sortable="custom">
+          <el-table-column label="方位角" width="100" sortable="custom">
             <template #default="scope">
               {{ formatCoordinate(scope.row.orientation) }}°
+            </template>
+          </el-table-column>
+          <el-table-column label="坐标(m)" width="200" align="center">
+            <template #default="scope">
+              <div>X: {{ formatCoordinate(scope.row.coordinateX) }}</div>
+              <div>Y: {{ formatCoordinate(scope.row.coordinateY) }}</div>
+              <div>Z: {{ formatCoordinate(scope.row.coordinateZ) }}</div>
             </template>
           </el-table-column>
           <el-table-column label="最后通讯时间" width="180" show-overflow-tooltip sortable="custom" prop="lastCommunication">
@@ -205,6 +213,41 @@
           </el-col>
         </el-row>
         
+        <el-form-item label="基站坐标(m)">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-input-number
+                v-model="stationForm.coordinateX"
+                :precision="3"
+                placeholder="请输入X坐标"
+                style="width: 100%"
+              >
+                <template #prepend>X轴</template>
+              </el-input-number>
+            </el-col>
+            <el-col :span="8">
+              <el-input-number
+                v-model="stationForm.coordinateY"
+                :precision="3"
+                placeholder="请输入Y坐标"
+                style="width: 100%"
+              >
+                <template #prepend>Y轴</template>
+              </el-input-number>
+            </el-col>
+            <el-col :span="8">
+              <el-input-number
+                v-model="stationForm.coordinateZ"
+                :precision="3"
+                placeholder="请输入Z坐标"
+                style="width: 100%"
+              >
+                <template #prepend>Z轴</template>
+              </el-input-number>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        
         <el-form-item label="备注" prop="remark">
           <el-input 
             v-model="stationForm.remark" 
@@ -286,7 +329,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button type="success" @click="handleTestConnection" :loading="testingConnection">
-            测试UDP连接
+            信息获取测试
           </el-button>
           <el-button 
             type="primary" 
@@ -309,6 +352,105 @@
           <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
         </div>
       </template>
+    </el-dialog>
+
+    <!-- 配置基站对话框 -->
+    <el-dialog
+      v-model="configDialogVisible"
+      :title="`配置基站 - ${currentConfigStation?.name || ''}`"
+      width="300px"
+      destroy-on-close
+    >
+      <div class="config-container">
+        <div class="config-section">
+          <h4 class="section-title">预设配置</h4>
+          <div class="config-buttons-row">
+            <el-button 
+              type="primary" 
+              @click="handleConfig1" 
+              :loading="config1Loading"
+              size="small"
+            >
+              配置1
+            </el-button>
+            <el-button 
+              type="primary" 
+              @click="handleConfig2" 
+              :loading="config2Loading"
+              size="small"
+            >
+              配置2
+            </el-button>
+          </div>
+        </div>
+        
+        <div class="config-section">
+          <h4 class="section-title">RSSI配置</h4>
+          <div class="config-row-inline">
+            <span class="item-label">RSSI值：</span>
+            <el-input-number
+              v-model="rssiValue"
+              :min="-100"
+              :max="-40"
+              :step="1"
+              size="small"
+              style="width: 90px"
+              placeholder="RSSI"
+            />
+            <el-button 
+              type="primary" 
+              @click="handleConfigRSSI" 
+              :loading="configRSSILoading" 
+              :disabled="!isRssiValid"
+              size="small"
+            >
+              保存
+            </el-button>
+          </div>
+          <div class="config-hint-inline">
+            <span class="hint-text">范围：-100 至 -40 dBm</span>
+            <span v-if="rssiErrorMessage" class="error-text">{{ rssiErrorMessage }}</span>
+          </div>
+        </div>
+        
+        <div class="config-section">
+          <h4 class="section-title">目标IP端口配置</h4>
+          <div class="config-row-inline">
+            <span class="item-label">目标IP：</span>
+            <el-input 
+              v-model="targetIp" 
+              placeholder="IP地址"
+              size="small"
+              style="width: 90px"
+            />
+          </div>
+          <div class="config-row-inline">
+            <span class="item-label">端口号：</span>
+            <el-input-number 
+              v-model="targetPort" 
+              :min="1" 
+              :max="65535" 
+              :step="1"
+              size="small"
+              style="width: 90px"
+              placeholder="端口"
+            />
+            <el-button 
+              type="primary" 
+              @click="handleConfigTarget" 
+              :loading="configTargetLoading"
+              :disabled="!isTargetValid"
+              size="small"
+            >
+              保存
+            </el-button>
+          </div>
+          <div class="config-hint-inline">
+            <span class="hint-text">端口范围：1-65535（不能是8833）</span>
+            <span v-if="targetErrorMessage" class="error-text">{{ targetErrorMessage }}</span>
+          </div>
+        </div>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -336,6 +478,15 @@ const testingConnection = ref(false) // 测试连接状态
 const udpConnected = ref(false) // UDP连接成功状态
 const enablingBroadcast = ref(false) // 开启标签广播状态
 const enablingScanning = ref(false) // 开启扫描状态
+const configDialogVisible = ref(false)
+const currentConfigStation = ref(null)
+const rssiValue = ref(-80)
+const config1Loading = ref(false)
+const config2Loading = ref(false)
+const configRSSILoading = ref(false)
+const configTargetLoading = ref(false)
+const targetIp = ref('')
+const targetPort = ref(null)
 
 // 搜索表单
 const searchForm = reactive({
@@ -361,7 +512,10 @@ const stationForm = reactive({
   positionY: '',
   positionZ: '',
   orientation: 0,
-  status: 1,
+  coordinateX: null,
+  coordinateY: null,
+  coordinateZ: null,
+  status: 2,
   scanEnabled: null,
   remark: ''
 })
@@ -519,7 +673,7 @@ const handleRefreshStation = async (row) => {
       if (response.data.data.status === 1) {
         ElMessage.success('基站信息刷新成功');
       } else {
-        ElMessage.warning('基站离线，状态已更新');
+        ElMessage.warning('状态已更新');
       }
     } else {
       ElMessage.warning(response.data.message || '刷新失败');
@@ -631,7 +785,10 @@ const handleAdd = () => {
     positionY: '',
     positionZ: '',
     orientation: 0,
-    status: 1,
+    coordinateX: null,
+    coordinateY: null,
+    coordinateZ: null,
+    status: 2,
     scanEnabled: null,
     remark: ''
   });
@@ -739,13 +896,45 @@ const handleSubmit = async () => {
     if (valid) {
       submitLoading.value = true;
       try {
+        // 为空的硬件信息字段填充占位数据
+        const submitData = { ...stationForm };
+        
+        // 判断是否获取到硬件信息，如果没有则设置为初始化状态
+        const hasHardwareInfo = submitData.macAddress && 
+                               submitData.macAddress.trim() !== '' && 
+                               submitData.macAddress !== '待获取';
+        
+        if (!submitData.macAddress || submitData.macAddress.trim() === '') {
+          submitData.macAddress = '待获取';
+        }
+        if (!submitData.model || submitData.model.trim() === '') {
+          submitData.model = '待获取';
+        }
+        if (!submitData.firmwareVersion || submitData.firmwareVersion.trim() === '') {
+          submitData.firmwareVersion = '待获取';
+        }
+        if (!submitData.positionX || submitData.positionX === '') {
+          submitData.positionX = '0';
+        }
+        if (!submitData.positionY || submitData.positionY === '') {
+          submitData.positionY = '0';
+        }
+        if (!submitData.positionZ || submitData.positionZ === '') {
+          submitData.positionZ = '0';
+        }
+        
+        // 如果是添加操作且没有获取到硬件信息，设置为初始化状态
+        if (dialogType.value === 'add' && !hasHardwareInfo) {
+          submitData.status = 2; // 初始化状态
+        }
+        
         if (dialogType.value === 'add') {
           // 添加基站
-          await axios.post('/api/stations', stationForm);
+          await axios.post('/api/stations', submitData);
           ElMessage.success('添加成功');
         } else {
           // 更新基站
-          await axios.put(`/api/stations/${stationForm.id}`, stationForm);
+          await axios.put(`/api/stations/${submitData.id}`, submitData);
           ElMessage.success('更新成功');
         }
         dialogVisible.value = false;
@@ -1032,8 +1221,206 @@ const handleUpdate = (row) => {
 
 // 配置基站
 const handleConfig = (row) => {
-  ElMessage.info(`配置基站功能暂未实现 - 基站: ${row.name}`);
-  // TODO: 实现配置基站功能
+  currentConfigStation.value = row
+  rssiValue.value = row.rssi || -80 // 使用基站当前的RSSI值，如果没有则使用默认值-80
+  targetIp.value = row.targetIp || '' // 使用基站当前的目标IP，如果没有则为空
+  targetPort.value = row.targetPort || null // 使用基站当前的目标端口，如果没有则为null
+  configDialogVisible.value = true
+}
+
+// 配置1
+const handleConfig1 = async () => {
+  const row = currentConfigStation.value
+  config1Loading.value = true
+  try {
+    const response = await axios.post('/api/stations/config1', {
+      ipAddress: row.ipAddress
+    });
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      configDialogVisible.value = false
+    } else {
+      ElMessage.warning(response.data.message || '基站配置1失败');
+    }
+  } catch (error) {
+    console.error('基站配置1错误:', error);
+    ElMessage.error('基站配置1失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    config1Loading.value = false
+  }
+}
+
+// 配置2
+const handleConfig2 = async () => {
+  const row = currentConfigStation.value
+  config2Loading.value = true
+  try {
+    const response = await axios.post('/api/stations/config2', {
+      ipAddress: row.ipAddress
+    });
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      configDialogVisible.value = false
+    } else {
+      ElMessage.warning(response.data.message || '基站配置2失败');
+    }
+  } catch (error) {
+    console.error('基站配置2错误:', error);
+    ElMessage.error('基站配置2失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    config2Loading.value = false
+  }
+}
+
+// 配置RSSI
+const handleConfigRSSI = async () => {
+  const row = currentConfigStation.value
+  
+  // 最后检查（虽然按钮应该已经被禁用）
+  if (!isRssiValid.value) {
+    ElMessage.warning('请输入有效的RSSI值（-100到-40dBm的整数）')
+    return
+  }
+  
+  configRSSILoading.value = true
+  try {
+    const response = await axios.post('/api/stations/config-rssi', {
+      ipAddress: row.ipAddress,
+      rssi: rssiValue.value
+    });
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      configDialogVisible.value = false
+      // 刷新基站列表以显示最新的RSSI值
+      await fetchStations()
+    } else {
+      ElMessage.warning(response.data.message || '基站配置RSSI失败');
+    }
+  } catch (error) {
+    console.error('基站配置RSSI错误:', error);
+    ElMessage.error('基站配置RSSI失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    configRSSILoading.value = false
+  }
+}
+
+// RSSI值验证计算属性
+const isRssiValid = computed(() => {
+  return rssiValue.value !== null && 
+         rssiValue.value !== undefined && 
+         rssiValue.value >= -100 && 
+         rssiValue.value <= -40 &&
+         Number.isInteger(rssiValue.value)
+})
+
+// RSSI错误信息计算属性
+const rssiErrorMessage = computed(() => {
+  if (rssiValue.value === null || rssiValue.value === undefined) {
+    return ''
+  }
+  if (rssiValue.value < -100) {
+    return 'RSSI值不能小于-100dBm'
+  }
+  if (rssiValue.value > -40) {
+    return 'RSSI值不能大于-40dBm'
+  }
+  if (!Number.isInteger(rssiValue.value)) {
+    return 'RSSI值必须为整数'
+  }
+  return ''
+})
+
+// 验证IP地址格式的辅助函数
+const isValidIpAddress = (ip) => {
+  if (!ip || ip.trim() === '') {
+    return false
+  }
+  
+  const parts = ip.split('.')
+  if (parts.length !== 4) {
+    return false
+  }
+  
+  return parts.every(part => {
+    const num = parseInt(part, 10)
+    return !isNaN(num) && num >= 0 && num <= 255
+  })
+}
+
+// 目标IP端口验证计算属性
+const isTargetValid = computed(() => {
+  return isValidIpAddress(targetIp.value) && 
+         targetPort.value !== null && 
+         targetPort.value !== undefined && 
+         targetPort.value >= 1 && 
+         targetPort.value <= 65535 &&
+         targetPort.value !== 8833 &&
+         Number.isInteger(targetPort.value)
+})
+
+// 目标IP端口错误信息计算属性
+const targetErrorMessage = computed(() => {
+  if (!targetIp.value && !targetPort.value) {
+    return ''
+  }
+  
+  if (targetIp.value && !isValidIpAddress(targetIp.value)) {
+    return '目标IP地址格式不正确'
+  }
+  
+  if (targetPort.value !== null && targetPort.value !== undefined) {
+    if (targetPort.value < 1) {
+      return '端口不能小于1'
+    }
+    if (targetPort.value > 65535) {
+      return '端口不能大于65535'
+    }
+    if (targetPort.value === 8833) {
+      return '端口不能是8833'
+    }
+    if (!Number.isInteger(targetPort.value)) {
+      return '端口必须为整数'
+    }
+  }
+  
+  return ''
+})
+
+// 配置目标IP端口
+const handleConfigTarget = async () => {
+  const row = currentConfigStation.value
+  
+  // 最后检查（虽然按钮应该已经被禁用）
+  if (!isTargetValid.value) {
+    ElMessage.warning('请输入有效的目标IP地址和端口')
+    return
+  }
+  
+  configTargetLoading.value = true
+  try {
+    const response = await axios.post('/api/stations/config-target', {
+      ipAddress: row.ipAddress,
+      targetIp: targetIp.value,
+      targetPort: targetPort.value
+    });
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message);
+      configDialogVisible.value = false
+      // 刷新基站列表以显示最新数据
+      await fetchStations()
+    } else {
+      ElMessage.warning(response.data.message || '基站配置目标IP端口失败');
+    }
+  } catch (error) {
+    console.error('基站配置目标IP端口错误:', error);
+    ElMessage.error('基站配置目标IP端口失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+  } finally {
+    configTargetLoading.value = false
+  }
 }
 </script>
 
@@ -1128,6 +1515,68 @@ const handleConfig = (row) => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.config-container {
+  padding: 0;
+}
+
+.config-section {
+  margin-bottom: 12px;
+}
+
+.config-section:last-child {
+  margin-bottom: 0;
+}
+
+.config-buttons-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.config-row-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.item-label {
+  width: 85px;
+  font-weight: 500;
+  color: #606266;
+  font-size: 13px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.config-hint-inline {
+  margin-left: 91px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 3px;
+}
+
+.hint-text {
+  font-size: 11px;
+  color: #909399;
+  line-height: 1.2;
+}
+
+.error-text {
+  color: #f56c6c;
+  font-size: 11px;
+}
+
+.section-title {
+  margin: 0 0 8px 0 !important;
+  color: #303133;
+  font-size: 13px;
+  font-weight: 600;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #e6e8eb;
 }
 </style>
 

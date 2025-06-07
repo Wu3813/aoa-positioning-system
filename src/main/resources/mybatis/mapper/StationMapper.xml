@@ -14,8 +14,14 @@
         <result column="position_y" property="positionY" />
         <result column="position_z" property="positionZ" />
         <result column="orientation" property="orientation" />
+        <result column="coordinate_x" property="coordinateX" />
+        <result column="coordinate_y" property="coordinateY" />
+        <result column="coordinate_z" property="coordinateZ" />
         <result column="status" property="status" />
         <result column="scan_enabled" property="scanEnabled" />
+        <result column="rssi" property="rssi" />
+        <result column="target_ip" property="targetIp" />
+        <result column="target_port" property="targetPort" />
         <result column="last_communication" property="lastCommunication" />
         <result column="create_time" property="createTime" />
         <result column="remark" property="remark" />
@@ -24,8 +30,8 @@
     
     <sql id="Base_Column_List">
         s.id, s.code, s.name, s.mac_address, s.ip_address, s.model, s.firmware_version, 
-        s.map_id, s.position_x, s.position_y, s.position_z, s.orientation, s.status, 
-        s.scan_enabled, s.last_communication, s.create_time, s.remark
+        s.map_id, s.position_x, s.position_y, s.position_z, s.orientation, s.coordinate_x, s.coordinate_y, s.coordinate_z, s.status, 
+        s.scan_enabled, s.rssi, s.target_ip, s.target_port, s.last_communication, s.create_time, s.remark
     </sql>
     
     <select id="selectAllStations" resultMap="BaseResultMap">
@@ -43,7 +49,7 @@
                 AND s.status = #{status}
             </if>
         </where>
-        ORDER BY s.create_time ASC
+        ORDER BY s.create_time DESC
     </select>
     
     <select id="selectStationById" resultMap="BaseResultMap">
@@ -77,13 +83,13 @@
     <insert id="insertStation" parameterType="com.wu.monitor.model.Station" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO station (
             code, name, mac_address, ip_address, model, firmware_version,
-            map_id, position_x, position_y, position_z, orientation,
-            status, scan_enabled, last_communication, create_time, remark
+            map_id, position_x, position_y, position_z, orientation, coordinate_x, coordinate_y, coordinate_z,
+            status, scan_enabled, rssi, target_ip, target_port, last_communication, create_time, remark
         )
         VALUES (
             #{code}, #{name}, #{macAddress}, #{ipAddress}, #{model}, #{firmwareVersion},
-            #{mapId}, #{positionX}, #{positionY}, #{positionZ}, #{orientation},
-            #{status}, #{scanEnabled}, #{lastCommunication}, #{createTime}, #{remark}
+            #{mapId}, #{positionX}, #{positionY}, #{positionZ}, #{orientation}, #{coordinateX}, #{coordinateY}, #{coordinateZ},
+            #{status}, #{scanEnabled}, #{rssi}, #{targetIp}, #{targetPort}, #{lastCommunication}, #{createTime}, #{remark}
         )
     </insert>
     
@@ -101,8 +107,14 @@
             <if test="positionY != null">position_y = #{positionY},</if>
             <if test="positionZ != null">position_z = #{positionZ},</if>
             <if test="orientation != null">orientation = #{orientation},</if>
+            <if test="coordinateX != null">coordinate_x = #{coordinateX},</if>
+            <if test="coordinateY != null">coordinate_y = #{coordinateY},</if>
+            <if test="coordinateZ != null">coordinate_z = #{coordinateZ},</if>
             <if test="status != null">status = #{status},</if>
             scan_enabled = #{scanEnabled},
+            <if test="rssi != null">rssi = #{rssi},</if>
+            <if test="targetIp != null">target_ip = #{targetIp},</if>
+            <if test="targetPort != null">target_port = #{targetPort},</if>
             <if test="lastCommunication != null">last_communication = #{lastCommunication},</if>
             <if test="remark != null">remark = #{remark}</if>
         </set>
@@ -121,6 +133,18 @@
         SET status = #{status}, 
             scan_enabled = #{scanEnabled},
             last_communication = #{lastCommunication}
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStationRssi">
+        UPDATE station
+        SET rssi = #{rssi}
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStationTarget">
+        UPDATE station
+        SET target_ip = #{targetIp}, target_port = #{targetPort}
         WHERE id = #{id}
     </update>
     

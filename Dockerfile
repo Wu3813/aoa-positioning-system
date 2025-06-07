@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine
 
-LABEL maintainer="support@aoa-monitor.com"
+
 
 WORKDIR /app
 

@@ -75,6 +75,45 @@ public class UdpStationInfoUtil {
         (byte) 0x8b, 0x00, 0x00, 0x00, 0x05, 0x01, 0x02, 0x00, 0x00, 0x00
     };
     
+    // 配置1指令：8a 00 00 00 02 01 27 00 01 00 00 00 00 00 00 00 00 00 e0 1a 00 00 14 01 01 00 00 00 12 28 28 08 0a 0c 0e 27 25 23 21 20 22 24 26 0f 0d 0b 09
+    private static final byte[] CONFIG1_COMMAND = {
+        (byte) 0x8a, 0x00, 0x00, 0x00, 0x02, 0x01, 0x27, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, (byte) 0xe0, 0x1a, 0x00, 0x00, 0x14, 0x01, 0x01, 0x00, 0x00, 0x00, 0x12, 0x28, 0x28, 0x08, 
+        0x0a, 0x0c, 0x0e, 0x27, 0x25, 0x23, 0x21, 0x20, 0x22, 0x24, 0x26, 0x0f, 0x0d, 0x0b, 0x09
+    };
+    
+    // 配置2指令：8a 00 00 00 02 01 1F 00 01 00 00 00 00 00 00 00 00 00 e0 12 00 00 14 01 01 00 00 00 0a 28 28 0a 0e 25 21 22 26 0d 09
+    private static final byte[] CONFIG2_COMMAND = {
+        (byte) 0x8a, 0x00, 0x00, 0x00, 0x02, 0x01, 0x1f, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, (byte) 0xe0, 0x12, 0x00, 0x00, 0x14, 0x01, 0x01, 0x00, 0x00, 0x00, 0x0a, 0x28, 0x28, 0x0a, 
+        0x0e, 0x25, 0x21, 0x22, 0x26, 0x0d, 0x09
+    };
+    
+    // 配置成功响应：8B 00 00 00 02 01 02 00 00 00
+    private static final byte[] CONFIG_SUCCESS_RESPONSE = {
+        (byte) 0x8b, 0x00, 0x00, 0x00, 0x02, 0x01, 0x02, 0x00, 0x00, 0x00
+    };
+    
+    // RSSI配置指令基础模板：8a 00 00 00 03 01 05 00 00 01 02 01 xx（最后一个字节xx为RSSI值补码）
+    private static final byte[] CONFIG_RSSI_COMMAND_BASE = {
+        (byte) 0x8a, 0x00, 0x00, 0x00, 0x03, 0x01, 0x05, 0x00, 0x00, 0x01, 0x02, 0x01
+    };
+    
+    // RSSI配置成功响应：8B 00 00 00 03 01 02 00 00 00
+    private static final byte[] CONFIG_RSSI_SUCCESS_RESPONSE = {
+        (byte) 0x8b, 0x00, 0x00, 0x00, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00
+    };
+    
+    // IP端口配置指令基础模板：8a 00 00 00 01 01 06 00 [IP地址4字节] [端口2字节]
+    private static final byte[] CONFIG_TARGET_COMMAND_BASE = {
+        (byte) 0x8a, 0x00, 0x00, 0x00, 0x01, 0x01, 0x06, 0x00
+    };
+    
+    // IP端口配置成功响应：8B 00 00 00 01 01 02 00 00 00
+    private static final byte[] CONFIG_TARGET_SUCCESS_RESPONSE = {
+        (byte) 0x8b, 0x00, 0x00, 0x00, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00
+    };
+    
     /**
      * 基站信息DTO
      */
@@ -591,5 +630,294 @@ public class UdpStationInfoUtil {
             log.error("基站 {} 定位通信异常: {}", ipAddress, e.getMessage());
             return false;
         }
+    }
+    
+    /**
+     * 配置1
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    public boolean config1(String ipAddress) {
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            log.warn("基站IP地址为空");
+            return false;
+        }
+        
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+            socket.setSoTimeout(TIMEOUT);
+            
+            // 发送配置1指令
+            InetAddress address = InetAddress.getByName(ipAddress.trim());
+            DatagramPacket sendPacket = new DatagramPacket(
+                CONFIG1_COMMAND, CONFIG1_COMMAND.length, address, UDP_PORT);
+            socket.send(sendPacket);
+            
+            log.debug("已向基站 {} 发送配置1指令", ipAddress);
+            
+            // 接收响应
+            byte[] buffer = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+            socket.receive(receivePacket);
+            
+            byte[] responseData = new byte[receivePacket.getLength()];
+            System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
+            
+            // 验证响应
+            boolean success = isResponseMatching(responseData, CONFIG_SUCCESS_RESPONSE);
+            log.debug("基站 {} 配置1响应验证: {}", ipAddress, success ? "成功" : "失败");
+            
+            return success;
+            
+        } catch (SocketTimeoutException e) {
+            log.warn("基站 {} 配置1超时", ipAddress);
+            return false;
+        } catch (Exception e) {
+            log.error("基站 {} 配置1失败: {}", ipAddress, e.getMessage());
+            return false;
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+    
+    /**
+     * 配置2
+     * @param ipAddress 基站IP地址
+     * @return 操作是否成功
+     */
+    public boolean config2(String ipAddress) {
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            log.warn("基站IP地址为空");
+            return false;
+        }
+        
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+            socket.setSoTimeout(TIMEOUT);
+            
+            // 发送配置2指令
+            InetAddress address = InetAddress.getByName(ipAddress.trim());
+            DatagramPacket sendPacket = new DatagramPacket(
+                CONFIG2_COMMAND, CONFIG2_COMMAND.length, address, UDP_PORT);
+            socket.send(sendPacket);
+            
+            log.debug("已向基站 {} 发送配置2指令", ipAddress);
+            
+            // 接收响应
+            byte[] buffer = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+            socket.receive(receivePacket);
+            
+            byte[] responseData = new byte[receivePacket.getLength()];
+            System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
+            
+            // 验证响应
+            boolean success = isResponseMatching(responseData, CONFIG_SUCCESS_RESPONSE);
+            log.debug("基站 {} 配置2响应验证: {}", ipAddress, success ? "成功" : "失败");
+            
+            return success;
+            
+        } catch (SocketTimeoutException e) {
+            log.warn("基站 {} 配置2超时", ipAddress);
+            return false;
+        } catch (Exception e) {
+            log.error("基站 {} 配置2失败: {}", ipAddress, e.getMessage());
+            return false;
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+    
+    /**
+     * 配置RSSI
+     * @param ipAddress 基站IP地址
+     * @param rssi RSSI值（-100到-40dBm）
+     * @return 操作是否成功
+     */
+    public boolean configRSSI(String ipAddress, int rssi) {
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            log.warn("基站IP地址为空");
+            return false;
+        }
+        
+        // 验证RSSI值范围
+        if (rssi < -100 || rssi > -40) {
+            log.warn("RSSI值 {} 超出有效范围（-100到-40dBm）", rssi);
+            return false;
+        }
+        
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+            socket.setSoTimeout(TIMEOUT);
+            
+            // 构建RSSI配置指令
+            byte[] command = buildRSSICommand(rssi);
+            
+            // 发送配置RSSI指令
+            InetAddress address = InetAddress.getByName(ipAddress.trim());
+            DatagramPacket sendPacket = new DatagramPacket(
+                command, command.length, address, UDP_PORT);
+            socket.send(sendPacket);
+            
+            log.debug("已向基站 {} 发送配置RSSI指令，RSSI值: {}dBm", ipAddress, rssi);
+            
+            // 接收响应
+            byte[] buffer = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+            socket.receive(receivePacket);
+            
+            byte[] responseData = new byte[receivePacket.getLength()];
+            System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
+            
+            // 验证响应
+            boolean success = isResponseMatching(responseData, CONFIG_RSSI_SUCCESS_RESPONSE);
+            log.debug("基站 {} 配置RSSI响应验证: {}", ipAddress, success ? "成功" : "失败");
+            
+            return success;
+            
+        } catch (SocketTimeoutException e) {
+            log.warn("基站 {} 配置RSSI超时", ipAddress);
+            return false;
+        } catch (Exception e) {
+            log.error("基站 {} 配置RSSI失败: {}", ipAddress, e.getMessage());
+            return false;
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+    
+    /**
+     * 构建RSSI配置指令
+     * @param rssi RSSI值（-100到-40dBm）
+     * @return 完整的指令字节数组
+     */
+    private byte[] buildRSSICommand(int rssi) {
+        // 复制基础指令模板
+        byte[] command = new byte[CONFIG_RSSI_COMMAND_BASE.length + 1];
+        System.arraycopy(CONFIG_RSSI_COMMAND_BASE, 0, command, 0, CONFIG_RSSI_COMMAND_BASE.length);
+        
+        // 将RSSI值转换为8位补码
+        // 对于负数，8位补码 = 256 + rssi
+        byte rssiComplement = (byte) (256 + rssi);
+        command[command.length - 1] = rssiComplement;
+        
+        log.debug("RSSI值 {}dBm 转换为补码: 0x{}", rssi, String.format("%02X", rssiComplement & 0xFF));
+        
+        return command;
+    }
+    
+    /**
+     * 配置目标IP和端口
+     * @param ipAddress 基站IP地址
+     * @param targetIp 目标IP地址
+     * @param targetPort 目标端口
+     * @return 操作是否成功
+     */
+    public boolean configTarget(String ipAddress, String targetIp, int targetPort) {
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            log.warn("基站IP地址为空");
+            return false;
+        }
+        
+        if (targetIp == null || targetIp.trim().isEmpty()) {
+            log.warn("目标IP地址为空");
+            return false;
+        }
+        
+        // 验证端口范围和限制
+        if (targetPort <= 0 || targetPort > 65535) {
+            log.warn("目标端口 {} 超出有效范围（1-65535）", targetPort);
+            return false;
+        }
+        
+        if (targetPort == 8833) {
+            log.warn("目标端口不能是8833");
+            return false;
+        }
+        
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+            socket.setSoTimeout(TIMEOUT);
+            
+            // 构建目标IP端口配置指令
+            byte[] command = buildTargetCommand(targetIp, targetPort);
+            
+            // 发送配置目标IP端口指令
+            InetAddress address = InetAddress.getByName(ipAddress.trim());
+            DatagramPacket sendPacket = new DatagramPacket(
+                command, command.length, address, UDP_PORT);
+            socket.send(sendPacket);
+            
+            log.debug("已向基站 {} 发送配置目标IP端口指令，目标IP: {}, 端口: {}", ipAddress, targetIp, targetPort);
+            
+            // 接收响应
+            byte[] buffer = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+            socket.receive(receivePacket);
+            
+            byte[] responseData = new byte[receivePacket.getLength()];
+            System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
+            
+            // 验证响应
+            boolean success = isResponseMatching(responseData, CONFIG_TARGET_SUCCESS_RESPONSE);
+            log.debug("基站 {} 配置目标IP端口响应验证: {}", ipAddress, success ? "成功" : "失败");
+            
+            return success;
+            
+        } catch (SocketTimeoutException e) {
+            log.warn("基站 {} 配置目标IP端口超时", ipAddress);
+            return false;
+        } catch (Exception e) {
+            log.error("基站 {} 配置目标IP端口失败: {}", ipAddress, e.getMessage());
+            return false;
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+    
+    /**
+     * 构建目标IP端口配置指令
+     * @param targetIp 目标IP地址
+     * @param targetPort 目标端口
+     * @return 完整的指令字节数组
+     */
+    private byte[] buildTargetCommand(String targetIp, int targetPort) {
+        // 复制基础指令模板
+        byte[] command = new byte[CONFIG_TARGET_COMMAND_BASE.length + 6]; // IP地址4字节 + 端口2字节
+        System.arraycopy(CONFIG_TARGET_COMMAND_BASE, 0, command, 0, CONFIG_TARGET_COMMAND_BASE.length);
+        
+        // 将IP地址转换为4字节
+        String[] ipParts = targetIp.split("\\.");
+        if (ipParts.length != 4) {
+            throw new IllegalArgumentException("无效的IP地址格式: " + targetIp);
+        }
+        
+        for (int i = 0; i < 4; i++) {
+            int ipPart = Integer.parseInt(ipParts[i]);
+            if (ipPart < 0 || ipPart > 255) {
+                throw new IllegalArgumentException("IP地址部分超出范围 (0-255): " + ipPart);
+            }
+            command[CONFIG_TARGET_COMMAND_BASE.length + i] = (byte) ipPart;
+        }
+        
+        // 将端口转换为2字节（小端编码）
+        command[CONFIG_TARGET_COMMAND_BASE.length + 4] = (byte) (targetPort & 0xFF);        // 低字节
+        command[CONFIG_TARGET_COMMAND_BASE.length + 5] = (byte) ((targetPort >> 8) & 0xFF); // 高字节
+        
+        log.debug("目标IP {} 端口 {} 转换为指令: {}", targetIp, targetPort, bytesToHex(command));
+        
+        return command;
     }
 } 
