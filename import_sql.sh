@@ -1,67 +1,72 @@
 #!/bin/bash
 
-# --- 配置 --- 
+# 配置参数
 CONTAINER_NAME="aoa-mysql"
 DB_NAME="aoa"
 DB_USER="root"
 DB_PASS="123456"
-SQL_DIR="docs/mysql" # SQL文件所在的目录 (相对于脚本执行位置)
+SQL_DIR="docs/mysql"
 
-# --- 检查MySQL容器是否在运行 ---
-echo "Checking if container '$CONTAINER_NAME' is running..."
-if ! docker ps --filter "name=^/${CONTAINER_NAME}$" --filter "status=running" --format "{{.ID}}" | grep -q .; then
-    echo "Error: Container '$CONTAINER_NAME' is not running."
-    echo "Please start the container using 'docker-compose up -d mysql' or 'docker-compose up -d'."
+echo "=== AOA MySQL 数据库导入脚本 ==="
+
+# 检查容器状态
+echo "检查MySQL容器状态..."
+if ! docker ps --filter "name=^/${CONTAINER_NAME}$" --filter "status=running" -q | grep -q .; then
+    echo "❌ 容器 '$CONTAINER_NAME' 未运行"
+    echo "请先启动容器: docker-compose up -d mysql"
     exit 1
 fi
-echo "Container '$CONTAINER_NAME' is running."
+echo "✅ 容器 '$CONTAINER_NAME' 正在运行"
 
-# --- 检查SQL目录是否存在 ---
+# 检查SQL目录
 if [ ! -d "$SQL_DIR" ]; then
-    echo "Error: SQL directory '$SQL_DIR' not found."
-    echo "Please make sure the script is run from the project root or adjust the SQL_DIR path."
+    echo "❌ SQL目录 '$SQL_DIR' 不存在"
     exit 1
 fi
 
-# --- 遍历并导入SQL文件 ---
-echo "Starting SQL import into container '$CONTAINER_NAME', database '$DB_NAME'..."
-
-# 定义导入顺序（可选，如果表之间有依赖关系）
-# 如果没有严格的依赖，可以省略这个数组，直接用 for sql_file in "$SQL_DIR"/*.sql
-# 注意：combined_map.sql 应该先执行，因为它创建了 map 表，而其他表可能依赖它。
-# user.sql 通常没有依赖，可以先执行。
-# station, engine, tag 依赖 map 表。
-import_order=(
-  "user.sql"
-  "combined_map.sql"
-  "station.sql"
-  "engine.sql"
-  "tag.sql"
+# 按依赖顺序导入SQL文件
+sql_files=(
+    "user.sql"           # 用户表 - 无依赖
+    "combined_map.sql"   # 地图表 - 无依赖，其他表依赖此表
+    "station.sql"        # 基站表 - 依赖map表
+    "engine.sql"         # 引擎表 - 依赖map表
+    "tag.sql"           # 标签表 - 依赖map表
+    "geofence.sql"      # 围栏表 - 依赖map表
+    "alarm.sql"         # 告警表 - 依赖map表和tag表
+    "task_config.sql"   # 任务配置表 - 无依赖
+    "trajectory.sql"    # 轨迹表 - 依赖tag表
 )
 
-import_successful=true
+echo "开始导入SQL文件..."
+success_count=0
+error_count=0
 
-for filename in "${import_order[@]}"; do
-    sql_file="$SQL_DIR/$filename"
-    if [ -f "$sql_file" ]; then # 检查文件是否存在
-        echo "-----------------------------------------"
-        echo "Importing '$sql_file'..."
-        # 使用 docker exec 将 SQL 文件内容导入 mysql 客户端
-        if docker exec -i "$CONTAINER_NAME" mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$sql_file"; then
-            echo "Successfully imported '$sql_file'."
-        else
-            echo "Error importing '$sql_file'. Please check the SQL syntax and container logs."
-            import_successful=false
-            # 可以选择在这里退出脚本: exit 1
-        fi
+for sql_file in "${sql_files[@]}"; do
+    file_path="$SQL_DIR/$sql_file"
+    
+    if [ ! -f "$file_path" ]; then
+        echo "⚠️  文件不存在: $sql_file (跳过)"
+        continue
+    fi
+    
+    echo "📄 导入: $sql_file"
+    
+    if docker exec -i "$CONTAINER_NAME" mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$file_path" 2>/dev/null; then
+        echo "✅ 成功: $sql_file"
+        ((success_count++))
     else
-        echo "Warning: SQL file '$sql_file' not found in '$SQL_DIR'. Skipping."
+        echo "❌ 失败: $sql_file"
+        ((error_count++))
     fi
 done
 
-echo "-----------------------------------------"
-if $import_successful; then
-    echo "SQL import process finished successfully."
+echo "===================="
+echo "导入完成: 成功 $success_count 个，失败 $error_count 个"
+
+if [ $error_count -eq 0 ]; then
+    echo "🎉 所有SQL文件导入成功！"
+    exit 0
 else
-    echo "SQL import process finished with errors."
+    echo "⚠️  部分文件导入失败，请检查错误信息"
+    exit 1
 fi 

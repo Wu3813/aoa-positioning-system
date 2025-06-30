@@ -122,10 +122,10 @@
                     刷新
                   </el-button>
                   <el-button type="default" size="small" @click="handleEdit(scope.row)">
-                    修改
+                    基本配置
                   </el-button>
                   <el-button type="default" size="small" @click="handleConfig(scope.row)">
-                    配置
+                    参数配置
                   </el-button>
                   
                   <el-button type="default" size="small" @click="handleRestart(scope.row)">
@@ -156,7 +156,7 @@
     <!-- 添加/编辑基站对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'add' ? '添加基站' : '编辑基站'"
+      :title="dialogType === 'add' ? '添加基站信息' : '编辑基站信息'"
       width="700px"
       @close="resetForm"
       destroy-on-close
@@ -194,7 +194,7 @@
                   v-for="map in mapList" 
                   :key="map.id" 
                   :label="map.name" 
-                  :value="map.id"
+                  :value="map.mapId"
                 />
               </el-select>
             </el-form-item>
@@ -357,37 +357,46 @@
     <!-- 配置基站对话框 -->
     <el-dialog
       v-model="configDialogVisible"
-      :title="`配置基站 - ${currentConfigStation?.name || ''}`"
+      :title="`参数配置 - ${currentConfigStation?.name || ''}`"
       width="300px"
       destroy-on-close
     >
       <div class="config-container">
         <div class="config-section">
-          <h4 class="section-title">预设配置</h4>
-          <div class="config-buttons-row">
+          <h4 class="section-title">参数扫描配置</h4>
+          <div class="config-row-inline">
+            <span class="item-label">扫描配置：</span>
+            <el-select 
+              v-model="selectedScanConfig" 
+              placeholder="请选择配置"
+              size="small"
+              style="width: 90px"
+            >
+              <el-option label="配置1" value="config1" />
+              <el-option label="配置2" value="config2" />
+            </el-select>
             <el-button 
               type="primary" 
-              @click="handleConfig1" 
-              :loading="config1Loading"
+              @click="handleApplyScanConfig" 
+              :loading="applyScanConfigLoading"
+              :disabled="!selectedScanConfig"
               size="small"
             >
-              配置1
+              应用
             </el-button>
-            <el-button 
-              type="primary" 
-              @click="handleConfig2" 
-              :loading="config2Loading"
-              size="small"
-            >
-              配置2
-            </el-button>
+          </div>
+          <div class="config-hint-inline">
+            <span class="hint-text">配置1：切换方式为1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16</span>
+          </div>
+          <div class="config-hint-inline">
+            <span class="hint-text">配置2：切换方式为2/4/6/8/10/12/14/16</span>
           </div>
         </div>
         
         <div class="config-section">
-          <h4 class="section-title">RSSI配置</h4>
+          <h4 class="section-title">RSSI阈值配置</h4>
           <div class="config-row-inline">
-            <span class="item-label">RSSI值：</span>
+            <span class="item-label">RSSI阈值：</span>
             <el-input-number
               v-model="rssiValue"
               :min="-100"
@@ -414,9 +423,9 @@
         </div>
         
         <div class="config-section">
-          <h4 class="section-title">目标IP端口配置</h4>
+          <h4 class="section-title">定位引擎配置</h4>
           <div class="config-row-inline">
-            <span class="item-label">目标IP：</span>
+            <span class="item-label">定位引擎IP：</span>
             <el-input 
               v-model="targetIp" 
               placeholder="IP地址"
@@ -481,8 +490,8 @@ const enablingScanning = ref(false) // 开启扫描状态
 const configDialogVisible = ref(false)
 const currentConfigStation = ref(null)
 const rssiValue = ref(-80)
-const config1Loading = ref(false)
-const config2Loading = ref(false)
+const selectedScanConfig = ref('')
+const applyScanConfigLoading = ref(false)
 const configRSSILoading = ref(false)
 const configTargetLoading = ref(false)
 const targetIp = ref('')
@@ -1059,8 +1068,11 @@ onBeforeUnmount(() => {
 // 添加自动刷新机制
 const startAutoRefresh = () => {
   autoRefreshTimer.value = setInterval(async () => {
-    await fetchStations();
-  }, 30000); // 每30秒刷新一次
+    // 只有在对话框关闭且没有正在加载时才刷新
+    if (!dialogVisible.value && !configDialogVisible.value && !loading.value) {
+      await fetchStations();
+    }
+  }, 30000); // 每3秒刷新一次
 }
 
 // 停止自动刷新机制
@@ -1222,55 +1234,44 @@ const handleUpdate = (row) => {
 // 配置基站
 const handleConfig = (row) => {
   currentConfigStation.value = row
+  selectedScanConfig.value = row.scanConfigType || '' // 使用基站当前的扫描配置类型
   rssiValue.value = row.rssi || -80 // 使用基站当前的RSSI值，如果没有则使用默认值-80
   targetIp.value = row.targetIp || '' // 使用基站当前的目标IP，如果没有则为空
   targetPort.value = row.targetPort || null // 使用基站当前的目标端口，如果没有则为null
   configDialogVisible.value = true
 }
 
-// 配置1
-const handleConfig1 = async () => {
+// 应用扫描配置
+const handleApplyScanConfig = async () => {
   const row = currentConfigStation.value
-  config1Loading.value = true
-  try {
-    const response = await axios.post('/api/stations/config1', {
-      ipAddress: row.ipAddress
-    });
-    
-    if (response.data.success) {
-      ElMessage.success(response.data.message);
-      configDialogVisible.value = false
-    } else {
-      ElMessage.warning(response.data.message || '基站配置1失败');
-    }
-  } catch (error) {
-    console.error('基站配置1错误:', error);
-    ElMessage.error('基站配置1失败: ' + (error.response?.data?.message || error.message || '网络错误'));
-  } finally {
-    config1Loading.value = false
+  
+  if (!selectedScanConfig.value) {
+    ElMessage.warning('请选择一个扫描配置');
+    return;
   }
-}
-
-// 配置2
-const handleConfig2 = async () => {
-  const row = currentConfigStation.value
-  config2Loading.value = true
+  
+  applyScanConfigLoading.value = true
+  
   try {
-    const response = await axios.post('/api/stations/config2', {
+    const configName = selectedScanConfig.value === 'config1' ? '配置1' : '配置2';
+    const response = await axios.post(`/api/stations/${selectedScanConfig.value}`, {
       ipAddress: row.ipAddress
     });
     
     if (response.data.success) {
-      ElMessage.success(response.data.message);
+      ElMessage.success(`基站${configName}应用成功`);
       configDialogVisible.value = false
+      // 刷新基站列表以显示最新的扫描配置
+      await fetchStations()
     } else {
-      ElMessage.warning(response.data.message || '基站配置2失败');
+      ElMessage.warning(response.data.message || `基站${configName}应用失败`);
     }
   } catch (error) {
-    console.error('基站配置2错误:', error);
-    ElMessage.error('基站配置2失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+    const configName = selectedScanConfig.value === 'config1' ? '配置1' : '配置2';
+    console.error(`基站${configName}错误:`, error);
+    ElMessage.error(`基站${configName}应用失败: ` + (error.response?.data?.message || error.message || '网络错误'));
   } finally {
-    config2Loading.value = false
+    applyScanConfigLoading.value = false
   }
 }
 
@@ -1529,11 +1530,7 @@ const handleConfigTarget = async () => {
   margin-bottom: 0;
 }
 
-.config-buttons-row {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
+
 
 .config-row-inline {
   display: flex;

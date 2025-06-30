@@ -18,10 +18,23 @@
           <span>实时轨迹</span>
         </el-menu-item>
         
-        <!-- 只有管理员可以看到地图管理 -->
+        
+        <el-menu-item index="/home/history">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>历史轨迹</span>
+        </el-menu-item>
+        <!-- 普通用户可以看到上面两条 -->
+
+        <!-- 地图管理 -->
         <el-menu-item v-if="userInfo.role === 'admin'" index="/home/maps">
           <el-icon><Location /></el-icon>
           <span>地图管理</span>
+        </el-menu-item>
+
+        <!-- 添加电子围栏菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/geofence">
+          <el-icon><Place /></el-icon>
+          <span>电子围栏</span>
         </el-menu-item>
         
         <!-- 添加基站管理菜单项 -->
@@ -46,6 +59,18 @@
         <el-menu-item v-if="userInfo.role === 'admin'" index="/home/users">
           <el-icon><User /></el-icon>
           <span>用户管理</span>
+        </el-menu-item>
+        
+        <!-- 添加报警管理菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/alarms">
+          <el-icon><Bell /></el-icon>
+          <span>报警管理</span>
+        </el-menu-item>
+        
+        <!-- 添加后台管理菜单项 -->
+        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/admin">
+          <el-icon><Setting /></el-icon>
+          <span>后台管理</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -85,7 +110,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Location, Fold, Expand, CaretBottom, Odometer, Connection, PriceTag } from '@element-plus/icons-vue'
+import { Monitor, User, Location, Fold, Expand, CaretBottom, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const route = useRoute()

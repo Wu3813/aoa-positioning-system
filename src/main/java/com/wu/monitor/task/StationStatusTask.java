@@ -1,6 +1,8 @@
 package com.wu.monitor.task;
 
 import com.wu.monitor.service.StationService;
+import com.wu.monitor.service.TaskConfigService;
+import com.wu.monitor.model.TaskConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +20,35 @@ public class StationStatusTask {
     @Autowired
     private StationService stationService;
     
+    @Autowired
+    private TaskConfigService taskConfigService;
+    
     /**
      * 定时检查所有基站状态并刷新完整信息
-     * 每1分钟执行一次，包括基站型号、MAC地址、固件版本、扫描状态、加速度数据等
+     * 根据配置的间隔时间执行
      */
-    @Scheduled(cron = "0 */1 * * * ?")
+    private long lastExecuteTime = 0;
+    
+    @Scheduled(fixedRate = 60000) // 每分钟检查一次配置
     public void checkAndRefreshStationInfo() {
         try {
-            log.info("=== 开始执行基站状态检查和信息刷新定时任务 ===");
-            long startTime = System.currentTimeMillis();
+            TaskConfig.StationTask config = taskConfigService.getStationTaskConfig();
             
-            StationService.RefreshResult result = stationService.checkAllStationsStatus();
+            // 如果任务被禁用，则直接返回
+            if (!config.isEnabled()) {
+                return;
+            }
             
-            long endTime = System.currentTimeMillis();
-            log.info("=== 基站状态检查和信息刷新完成 ===");
-            log.info("执行耗时: {}ms, 总计{}个，成功{}个，失败{}个", 
-                    (endTime - startTime), result.getTotal(), result.getSuccess(), result.getFailed());
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastExecuteTime >= config.getIntervalMs()) {
+                lastExecuteTime = currentTime;
+                
+                log.info("执行基站状态刷新任务");
+                stationService.checkAllStationsStatus();
+                
+            }
         } catch (Exception e) {
-            log.error("基站状态检查和信息刷新定时任务执行失败: {}", e.getMessage(), e);
+            log.error("基站状态刷新任务异常: {}", e.getMessage(), e);
         }
     }
 } 

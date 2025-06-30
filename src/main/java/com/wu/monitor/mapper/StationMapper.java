@@ -96,6 +96,14 @@ public interface StationMapper {
     int updateStationTarget(@Param("id") Long id, @Param("targetIp") String targetIp, @Param("targetPort") Integer targetPort);
     
     /**
+     * 更新基站扫描配置类型
+     * @param id 基站ID
+     * @param scanConfigType 扫描配置类型
+     * @return 影响行数
+     */
+    int updateStationScanConfig(@Param("id") Long id, @Param("scanConfigType") String scanConfigType);
+    
+    /**
      * 删除基站
      * @param id 基站ID
      * @return 影响行数

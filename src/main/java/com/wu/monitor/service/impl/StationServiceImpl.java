@@ -619,6 +619,7 @@ public class StationServiceImpl implements StationService {
     }
     
     @Override
+    @Transactional
     public boolean config1(String ipAddress) {
         try {
             if (ipAddress == null || ipAddress.trim().isEmpty()) {
@@ -628,7 +629,19 @@ public class StationServiceImpl implements StationService {
             boolean result = udpStationInfoUtil.config1(ipAddress);
             
             if (result) {
-                log.info("基站 {} 配置1成功", ipAddress);
+                // UDP配置成功后，更新数据库中的扫描配置类型
+                Station station = stationMapper.selectAllStations(null, null, null)
+                    .stream()
+                    .filter(s -> ipAddress.equals(s.getIpAddress()))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (station != null) {
+                    stationMapper.updateStationScanConfig(station.getId(), "config1");
+                    log.info("基站 {} (ID: {}) 配置1成功并已保存到数据库", ipAddress, station.getId());
+                } else {
+                    log.warn("基站 {} 配置1成功，但未找到对应的基站记录", ipAddress);
+                }
             } else {
                 log.warn("基站 {} 配置1失败", ipAddress);
             }
@@ -642,6 +655,7 @@ public class StationServiceImpl implements StationService {
     }
     
     @Override
+    @Transactional
     public boolean config2(String ipAddress) {
         try {
             if (ipAddress == null || ipAddress.trim().isEmpty()) {
@@ -651,7 +665,19 @@ public class StationServiceImpl implements StationService {
             boolean result = udpStationInfoUtil.config2(ipAddress);
             
             if (result) {
-                log.info("基站 {} 配置2成功", ipAddress);
+                // UDP配置成功后，更新数据库中的扫描配置类型
+                Station station = stationMapper.selectAllStations(null, null, null)
+                    .stream()
+                    .filter(s -> ipAddress.equals(s.getIpAddress()))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (station != null) {
+                    stationMapper.updateStationScanConfig(station.getId(), "config2");
+                    log.info("基站 {} (ID: {}) 配置2成功并已保存到数据库", ipAddress, station.getId());
+                } else {
+                    log.warn("基站 {} 配置2成功，但未找到对应的基站记录", ipAddress);
+                }
             } else {
                 log.warn("基站 {} 配置2失败", ipAddress);
             }
@@ -815,6 +841,44 @@ public class StationServiceImpl implements StationService {
         } catch (Exception e) {
             log.error("更新基站目标IP端口失败 - ID: {}, IP: {}, Port: {}, 错误: {}", id, targetIp, targetPort, e.getMessage());
             throw new RuntimeException("更新基站目标IP端口失败: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional
+    public boolean updateScanConfigType(Long id, String scanConfigType) {
+        try {
+            if (id == null) {
+                throw new RuntimeException("基站ID不能为空");
+            }
+            
+            if (scanConfigType == null || scanConfigType.trim().isEmpty()) {
+                throw new RuntimeException("扫描配置类型不能为空");
+            }
+            
+            // 验证配置类型
+            if (!"config1".equals(scanConfigType) && !"config2".equals(scanConfigType)) {
+                throw new RuntimeException("扫描配置类型只能是config1或config2");
+            }
+            
+            Station station = stationMapper.selectStationById(id);
+            if (station == null) {
+                throw new RuntimeException("基站不存在，ID: " + id);
+            }
+            
+            int result = stationMapper.updateStationScanConfig(id, scanConfigType);
+            
+            if (result > 0) {
+                log.info("基站 {} (ID: {}) 扫描配置类型更新成功: {}", station.getName(), id, scanConfigType);
+                return true;
+            } else {
+                log.warn("基站 {} (ID: {}) 扫描配置类型更新失败", station.getName(), id);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            log.error("更新基站扫描配置类型失败 - ID: {}, 配置类型: {}, 错误: {}", id, scanConfigType, e.getMessage());
+            throw new RuntimeException("更新基站扫描配置类型失败: " + e.getMessage());
         }
     }
     

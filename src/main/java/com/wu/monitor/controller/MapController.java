@@ -34,7 +34,7 @@ public class MapController {
 
     @PostMapping
     public Map createMap(
-            @RequestParam(value = "mapId", required = false) String mapId,
+            @RequestParam(value = "mapId", required = false) Long mapId,
             @RequestParam("name") String name,
             @RequestParam(value = "width", required = false) Integer width,
             @RequestParam(value = "height", required = false) Integer height,
@@ -67,7 +67,7 @@ public class MapController {
     @PutMapping("/{id}")
     public Map updateMap(
             @PathVariable Long id,
-            @RequestParam(required = false) String mapId,
+            @RequestParam(required = false) Long mapId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer width,
             @RequestParam(required = false) Integer height,

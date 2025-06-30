@@ -1,9 +1,9 @@
 package com.wu.monitor.service.impl;
 
-import com.wu.monitor.controller.PathProcessor;
-import com.wu.monitor.model.Path;
-import com.wu.monitor.model.PathDataDto;
+import com.wu.monitor.model.TrackingData;
+import com.wu.monitor.mapper.TagMapper;
 import com.wu.monitor.service.RealTimeTrackingService;
+import com.wu.monitor.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +27,8 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     
     private final RedisTemplate<String, Object> redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
+    private final TagService tagService;
+    private final TagMapper tagMapper;
     
     // Redis key 前缀
     private static final String DEVICE_LATEST_PREFIX = "device:latest:";
@@ -52,49 +54,64 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     }
     
     @Override
-    public void receiveTrackingData(Path pathData) {
+    public void receiveTrackingData(TrackingData trackingData) {
         try {
-            if (pathData == null || pathData.getRawTimestamp() == null) {
-                log.warn("接收到空数据或时间戳为空的数据: {}", pathData);
+            if (trackingData == null || trackingData.getTimestamp() == null) {
+                log.warn("接收到空数据或时间戳为空的数据: {}", trackingData);
                 return;
             }
             
-            String deviceId = pathData.getDeviceId();
-            PathDataDto dto = PathProcessor.convertToDto(pathData);
-            
-            // 保存最新位置
-            redisTemplate.opsForValue().set(
-                DEVICE_LATEST_PREFIX + deviceId, 
-                dto,
-                DATA_EXPIRE_TIME,
-                TimeUnit.SECONDS
-            );
-            
-            // 保存到历史记录
-            redisTemplate.opsForList().leftPush(DEVICE_HISTORY_PREFIX + deviceId, dto);
-            redisTemplate.opsForList().trim(DEVICE_HISTORY_PREFIX + deviceId, 0, 499); // 保留最近500条记录
-            
-            // 添加到活跃设备集合
-            redisTemplate.opsForSet().add(ACTIVE_DEVICES_KEY, deviceId);
-            
-            // 通过WebSocket推送到前端
-            messagingTemplate.convertAndSend("/topic/pathData", dto);
+            String deviceId = trackingData.getDeviceId();
+                 // 先立即推送到前端，减少实时显示延迟
+        messagingTemplate.convertAndSend("/topic/pathData", trackingData);
+        
+        // 异步处理存储操作，避免阻塞实时推送
+        CompletableFuture.runAsync(() -> {
+            try {
+                // 检查标签是否已登记，如果未登记则不存储但不影响前端显示
+                if (!isTagRegistered(deviceId)) {
+                    log.debug("标签 {} 未在标签管理中登记，跳过存储操作", deviceId);
+                    return;
+                }
+                
+                // 保存最新位置
+                redisTemplate.opsForValue().set(
+                    DEVICE_LATEST_PREFIX + deviceId, 
+                    trackingData,
+                    DATA_EXPIRE_TIME,
+                    TimeUnit.SECONDS
+                );
+                
+                // 保存到历史记录
+                redisTemplate.opsForList().leftPush(DEVICE_HISTORY_PREFIX + deviceId, trackingData);
+                redisTemplate.opsForList().trim(DEVICE_HISTORY_PREFIX + deviceId, 0, 499); // 保留最近500条记录
+                
+                // 添加到活跃设备集合
+                redisTemplate.opsForSet().add(ACTIVE_DEVICES_KEY, deviceId);
+                
+                // 根据MAC地址更新标签状态和位置信息
+                updateTagFromTrackingData(trackingData);
+                
+            } catch (Exception e) {
+                log.error("异步处理存储操作异常: {}", e.getMessage(), e);
+            }
+        }, executorService);
         } catch (Exception e) {
             log.error("处理单条轨迹数据异常", e);
         }
     }
     
     @Override
-    public void receiveBatchTrackingData(List<Path> pathDataList) {
-        if (pathDataList == null || pathDataList.isEmpty()) {
+    public void receiveBatchTrackingData(List<TrackingData> trackingDataList) {
+        if (trackingDataList == null || trackingDataList.isEmpty()) {
             log.warn("接收到空批量数据");
             return;
         }
         
-        log.info("接收批量数据: {} 条", pathDataList.size());
+        log.info("接收批量数据: {} 条", trackingDataList.size());
         
         // 分批处理大量数据
-        int totalSize = pathDataList.size();
+        int totalSize = trackingDataList.size();
         int batchCount = (totalSize + BATCH_SIZE - 1) / BATCH_SIZE; // 向上取整
         
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -102,7 +119,7 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
         for (int i = 0; i < batchCount; i++) {
             final int startIdx = i * BATCH_SIZE;
             final int endIdx = Math.min(startIdx + BATCH_SIZE, totalSize);
-            List<Path> batch = pathDataList.subList(startIdx, endIdx);
+            List<TrackingData> batch = trackingDataList.subList(startIdx, endIdx);
             
             // 异步处理每个批次
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
@@ -120,11 +137,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
             });
     }
     
-    private void processBatch(List<Path> batch) {
+    private void processBatch(List<TrackingData> batch) {
         try {
-            for (Path path : batch) {
-                if (path != null && path.getRawTimestamp() != null) {
-                    receiveTrackingData(path);
+            for (TrackingData trackingData : batch) {
+                if (trackingData != null && trackingData.getTimestamp() != null) {
+                    receiveTrackingData(trackingData);
                 }
             }
         } catch (Exception e) {
@@ -133,9 +150,9 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     }
     
     @Override
-    public PathDataDto getLatestPosition(String deviceId) {
+    public TrackingData getLatestPosition(String deviceId) {
         try {
-            return (PathDataDto) redisTemplate.opsForValue().get(DEVICE_LATEST_PREFIX + deviceId);
+            return (TrackingData) redisTemplate.opsForValue().get(DEVICE_LATEST_PREFIX + deviceId);
         } catch (ClassCastException e) {
             log.error("类型转换异常: {}", e.getMessage());
             // 从Redis中获取原始数据
@@ -146,18 +163,18 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     }
     
     @Override
-    public List<PathDataDto> getDeviceHistory(String deviceId, int limit) {
+    public List<TrackingData> getDeviceHistory(String deviceId, int limit) {
         List<Object> history = redisTemplate.opsForList().range(
             DEVICE_HISTORY_PREFIX + deviceId,
             0,
             limit - 1
         );
         
-        List<PathDataDto> result = new ArrayList<>();
+        List<TrackingData> result = new ArrayList<>();
         if (history != null) {
             for (Object item : history) {
                 try {
-                    result.add((PathDataDto) item);
+                    result.add((TrackingData) item);
                 } catch (ClassCastException e) {
                     log.error("历史数据类型转换异常: {}", e.getMessage());
                 }
@@ -183,12 +200,63 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
         redisTemplate.opsForSet().remove(ACTIVE_DEVICES_KEY, deviceId);
     }
     
+    /**
+     * 检查标签是否已在标签管理中登记
+     * @param macAddress MAC地址
+     * @return 是否已登记
+     */
+    private boolean isTagRegistered(String macAddress) {
+        try {
+            // 通过TagMapper直接查询数据库
+            return tagMapper.selectTagByMacAddress(macAddress) != null;
+        } catch (Exception e) {
+            log.error("检查标签登记状态异常: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
+     * 根据跟踪数据更新标签状态
+     * @param trackingData 跟踪数据
+     */
+    private void updateTagFromTrackingData(TrackingData trackingData) {
+        try {
+            String macAddress = trackingData.getDeviceId(); // deviceId即为MAC地址
+            Double positionX = trackingData.getX();
+            Double positionY = trackingData.getY();
+            Double positionZ = 0.0; // 默认Z坐标为0，如果需要可以扩展
+            Integer rssi = trackingData.getRssi();
+            Integer batteryLevel = trackingData.getBattery();
+            Integer mapId = trackingData.getMapId(); // 从JSON数据中获取地图ID
+            
+            // 调用标签服务更新标签状态
+            boolean updated = tagService.updateTagStatusByMac(
+                macAddress, 
+                rssi, 
+                positionX, 
+                positionY, 
+                positionZ, 
+                batteryLevel,
+                mapId
+            );
+            
+            if (updated) {
+                log.debug("成功更新标签状态: MAC={}, X={}, Y={}, RSSI={}, Battery={}, MapId={}", 
+                         macAddress, positionX, positionY, rssi, batteryLevel, mapId);
+            } else {
+                log.debug("标签不存在或更新失败: MAC={}", macAddress);
+            }
+        } catch (Exception e) {
+            log.error("更新标签状态异常: {}", e.getMessage(), e);
+        }
+    }
+    
     // 定时清理过期数据
     @Scheduled(fixedRate = 3600000) // 每小时执行一次
     public void scheduleCleanup() {
         List<String> activeDevices = getActiveDevices();
         for (String deviceId : activeDevices) {
-            PathDataDto latest = getLatestPosition(deviceId);
+            TrackingData latest = getLatestPosition(deviceId);
             if (latest == null) {
                 cleanExpiredData(deviceId);
             }

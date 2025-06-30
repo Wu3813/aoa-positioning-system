@@ -5,6 +5,11 @@ import axios from 'axios'
 export const useMapStore = defineStore('map', () => {
   const mapList = ref([])
   const selectedMap = ref(null)
+  const pageMapSelections = ref({
+    monitor: null,
+    history: null,
+    // 可以添加其他页面的选择
+  })
   
   const mapUrl = computed(() => {
     return selectedMap.value ? `/api/maps/${selectedMap.value.id}/image?t=${Date.now()}` : ''
@@ -52,7 +57,8 @@ export const useMapStore = defineStore('map', () => {
     }
   }
 
-  async function selectMap(mapId) {
+  // 根据页面记住选择的地图
+  async function selectMap(mapId, pageName = null) {
     try {
       if (!mapId) {
         selectedMap.value = null
@@ -61,16 +67,63 @@ export const useMapStore = defineStore('map', () => {
       
       const response = await axios.get(`/api/maps/${mapId}`)
       selectedMap.value = response.data
+      
+      // 如果指定了页面名称，保存该页面的选择
+      if (pageName && Object.keys(pageMapSelections.value).includes(pageName)) {
+        pageMapSelections.value[pageName] = mapId
+        // 保存到localStorage
+        saveMapSelections()
+      }
+      
       return selectedMap.value
     } catch (error) {
       console.error('获取地图详情失败:', error)
       return null
     }
   }
+  
+  // 获取特定页面保存的地图选择
+  function getPageMapSelection(pageName) {
+    if (!pageName || !Object.keys(pageMapSelections.value).includes(pageName)) {
+      return null
+    }
+    return pageMapSelections.value[pageName]
+  }
+  
+  // 保存所有页面的地图选择到localStorage
+  function saveMapSelections() {
+    try {
+      localStorage.setItem('pageMapSelections', JSON.stringify(pageMapSelections.value))
+    } catch (error) {
+      console.error('保存地图选择失败:', error)
+    }
+  }
+  
+  // 从localStorage加载页面地图选择
+  function loadMapSelections() {
+    try {
+      const saved = localStorage.getItem('pageMapSelections')
+      if (saved) {
+        const selections = JSON.parse(saved)
+        // 合并保存的选择到当前状态
+        Object.keys(pageMapSelections.value).forEach(key => {
+          if (selections[key]) {
+            pageMapSelections.value[key] = selections[key]
+          }
+        })
+      }
+    } catch (error) {
+      console.error('加载地图选择失败:', error)
+    }
+  }
+  
+  // 初始化时加载保存的选择
+  loadMapSelections()
 
   return {
     mapList,
     selectedMap,
+    pageMapSelections,
     mapUrl,
     pixelsPerMeter,
     meterToPixelX,
@@ -78,6 +131,7 @@ export const useMapStore = defineStore('map', () => {
     pixelToMeterX,
     pixelToMeterY,
     fetchMapList,
-    selectMap
+    selectMap,
+    getPageMapSelection
   }
 })

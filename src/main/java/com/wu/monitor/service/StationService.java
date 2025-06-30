@@ -146,6 +146,14 @@ public interface StationService {
     boolean config2(String ipAddress);
     
     /**
+     * 更新基站扫描配置类型
+     * @param id 基站ID
+     * @param scanConfigType 扫描配置类型
+     * @return 操作是否成功
+     */
+    boolean updateScanConfigType(Long id, String scanConfigType);
+    
+    /**
      * 基站配置RSSI
      * @param ipAddress 基站IP地址
      * @param rssi RSSI值（-100到-40dBm）

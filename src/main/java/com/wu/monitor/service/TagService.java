@@ -6,13 +6,12 @@ import java.util.List;
 public interface TagService {
     /**
      * 获取所有标签
-     * @param code 标签编号（可选）
      * @param name 标签名称（可选）
-     * @param groupName 标签分组（可选）
+     * @param macAddress MAC地址（可选）
      * @param status 标签状态（可选）
      * @return 标签列表
      */
-    List<Tag> getAllTags(String code, String name, String groupName, Integer status);
+    List<Tag> getAllTags(String name, String macAddress, Integer status);
     
     /**
      * 根据ID获取标签
@@ -56,17 +55,30 @@ public interface TagService {
     List<Tag> getTagsByMapId(Long mapId);
     
     /**
-     * 获取指定分组下的所有标签
-     * @param groupName 分组名称
-     * @return 标签列表
-     */
-    List<Tag> getTagsByGroupName(String groupName);
-    
-    /**
      * 更新标签状态和位置
      * @param id 标签ID
      * @param tag 包含状态和位置信息的标签对象
      * @return 更新后的标签信息
      */
     Tag updateTagStatus(Long id, Tag tag);
+    
+    /**
+     * 根据MAC地址更新标签状态和位置信息
+     * @param macAddress MAC地址
+     * @param rssi RSSI信号强度
+     * @param positionX X坐标
+     * @param positionY Y坐标
+     * @param positionZ Z坐标
+     * @param batteryLevel 电量百分比
+     * @param mapId 地图ID
+     * @return 是否更新成功
+     */
+    boolean updateTagStatusByMac(String macAddress, Integer rssi, Double positionX, 
+                                Double positionY, Double positionZ, Integer batteryLevel, Integer mapId);
+    
+    /**
+     * 检查并更新长时间未更新的标签为离线状态
+     * @param offlineThresholdMillis 离线阈值（毫秒）
+     */
+    void checkAndUpdateOfflineTags(long offlineThresholdMillis);
 } 

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.monitor.mapper.GeofenceMapper">
+
+    <resultMap id="BaseResultMap" type="com.wu.monitor.model.Geofence">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="map_id" property="mapId" jdbcType="BIGINT"/>
+        <result column="coordinates" property="coordinates" jdbcType="LONGVARCHAR"/>
+        <result column="enabled" property="enabled" jdbcType="TINYINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="map_name" property="mapName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, map_id, coordinates, enabled, create_time, remark
+    </sql>
+
+    <sql id="Base_Column_List_With_Map">
+        g.id, g.name, g.map_id, g.coordinates, g.enabled, g.create_time, g.remark, m.name as map_name
+    </sql>
+
+    <!-- 查询所有电子围栏 -->
+    <select id="selectAllGeofences" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List_With_Map"/>
+        FROM geofence g
+        LEFT JOIN map m ON g.map_id = m.map_id
+        <where>
+            <if test="name != null and name != ''">
+                AND g.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="mapId != null">
+                AND g.map_id = #{mapId}
+            </if>
+            <if test="enabled != null">
+                AND g.enabled = #{enabled}
+            </if>
+        </where>
+        ORDER BY g.create_time DESC
+    </select>
+
+    <!-- 根据ID查询电子围栏 -->
+    <select id="selectGeofenceById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List_With_Map"/>
+        FROM geofence g
+        LEFT JOIN map m ON g.map_id = m.map_id
+        WHERE g.id = #{id}
+    </select>
+
+    <!-- 根据地图ID查询电子围栏 -->
+    <select id="selectGeofencesByMapId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM geofence
+        WHERE map_id = #{mapId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据地图ID查询启用的电子围栏 -->
+    <select id="selectEnabledGeofencesByMapId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM geofence
+        WHERE map_id = #{mapId} AND enabled = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据名称查询电子围栏（用于检查重名） -->
+    <select id="selectGeofenceByName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM geofence
+        WHERE name = #{name}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+        LIMIT 1
+    </select>
+
+    <!-- 插入电子围栏 -->
+    <insert id="insertGeofence" parameterType="com.wu.monitor.model.Geofence" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO geofence (name, map_id, coordinates, enabled, create_time, remark)
+        VALUES (#{name}, #{mapId}, #{coordinates}, #{enabled}, #{createTime}, #{remark})
+    </insert>
+
+    <!-- 更新电子围栏 -->
+    <update id="updateGeofence" parameterType="com.wu.monitor.model.Geofence">
+        UPDATE geofence
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="mapId != null">map_id = #{mapId},</if>
+            <if test="coordinates != null">coordinates = #{coordinates},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新围栏启用状态 -->
+    <update id="updateGeofenceEnabled">
+        UPDATE geofence SET enabled = #{enabled} WHERE id = #{id}
+    </update>
+
+    <!-- 删除电子围栏 -->
+    <delete id="deleteGeofenceById">
+        DELETE FROM geofence WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除电子围栏 -->
+    <delete id="batchDeleteGeofences">
+        DELETE FROM geofence WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper> 

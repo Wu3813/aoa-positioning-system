@@ -1,9 +1,10 @@
 <template>
   <div class="user-view-container">
+    <!-- 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
         <h2>用户管理</h2>
-        <!-- 添加搜索/过滤栏 -->
+        <!-- 搜索/过滤栏 -->
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
             <el-form-item label="用户名">
@@ -31,39 +32,45 @@
       </div>
     </div>
 
+    <!-- 主要内容区域 -->
     <div class="main-content">
-      <div class="user-table">
+      <!-- 表格 -->
+      <div class="user-table-wrapper">
         <el-table 
           :data="userList" 
           style="width: 100%"
           @selection-change="handleSelectionChange"
           v-loading="loading"
-          height="calc(100vh - 280px)"
+          height="calc(100vh - 320px)"
+          border
+          stripe
+          class="user-table"
         >
-          <el-table-column type="selection" width="55" />
-          <el-table-column label="序号" width="80" align="center">
-            <template #default="scope">
-              {{ scope.$index + 1 }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="username" label="用户名" width="180" show-overflow-tooltip />
-          <el-table-column prop="role" label="角色" width="180">
+          <el-table-column type="selection" width="40" fixed="left" />
+          <el-table-column prop="username" label="用户名" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="role" label="角色" min-width="120">
             <template #default="scope">
               <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'info'">
                 {{ scope.row.role === 'admin' ? '管理员' : '普通用户' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" width="180" show-overflow-tooltip />
-          <el-table-column label="操作" fixed="right" min-width="150">
+          <el-table-column prop="createTime" label="创建时间" min-width="160" show-overflow-tooltip>
+            <template #default="scope">
+              {{ formatDateTime(scope.row.createTime) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" fixed="right" width="140">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
-                  <el-icon><Edit /></el-icon> 修改
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleEdit(scope.row)">
+                    修改
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
+                    删除
+                  </el-button>
+                </el-button-group>
               </div>
             </template>
           </el-table-column>
@@ -317,6 +324,27 @@ const handleSubmit = async () => {
   })
 }
 
+// 格式化日期时间
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return '-';
+  try {
+    const date = new Date(dateTimeStr);
+    if (isNaN(date.getTime())) return dateTimeStr;
+    
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(date);
+  } catch (e) {
+    return dateTimeStr;
+  }
+}
+
 // 页面加载时获取用户列表
 onMounted(() => {
   fetchUsers()
@@ -335,7 +363,7 @@ onMounted(() => {
 
 .control-panel {
   padding: 0 20px;
-  margin: 20px 0;
+  margin: 15px 0;
   display: flex;
 }
 
@@ -344,27 +372,39 @@ onMounted(() => {
   padding: 16px;
   background-color: #fff;
   flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .main-content {
   flex: 1;
   padding: 0 20px;
   overflow: hidden;
+  margin-bottom: 30px;
 }
 
-.user-table {
+.user-table-wrapper {
   background: #fff;
-  padding: 20px;
+  padding: 16px 16px 20px 16px;
   border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
 }
 
+.user-table {
+  width: 100%;
+  flex: 1;
+}
+
 .search-bar {
-  margin-bottom: 16px;
+  margin-top: 15px;
 }
 
 .action-bar {
+  margin-top: 15px;
   display: flex;
   gap: 10px;
 }
@@ -375,24 +415,85 @@ onMounted(() => {
   gap: 10px;
 }
 
-/* 移除表格滚动条样式 */
-.el-table {
-  --el-table-border-color: transparent;
-  overflow-x: hidden;
-}
-
-.el-table__body-wrapper {
-  overflow-x: hidden !important;
-}
-
 .operation-buttons {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 130px;
 }
 
-/* 移除分页容器样式 */
-.pagination-container {
+.operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.operation-buttons .el-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 1px;
+  height: 22px;
+  min-width: 0;
+}
+
+/* 响应式布局适配 */
+@media screen and (max-width: 768px) {
+  .control-panel {
+    padding: 0 10px;
+    margin: 10px 0;
+  }
+  
+  .main-content {
+    padding: 0 10px;
+  }
+  
+  .user-table-wrapper {
+    padding: 10px;
+  }
+  
+  .el-form-item {
+    margin-bottom: 12px;
+  }
+}
+</style>
+
+<style>
+/* 确保Element表格内部滚动正常工作 */
+.el-table__body-wrapper {
+  overflow-x: auto !important;
+}
+
+/* 确保表格底部边框显示正常 */
+.el-table::before,
+.el-table::after {
   display: none;
+}
+
+.el-table {
+  border-bottom: 1px solid #ebeef5;
+}
+
+/* 美化表格内部滚动条 */
+.el-table__body-wrapper::-webkit-scrollbar {
+  height: 12px !important;
+  display: block !important;
+}
+
+.el-table__body-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.el-table__body-wrapper::-webkit-scrollbar-thumb {
+  background: #909399;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #606266;
+}
+
+.el-select {
+  width: 100%;
 }
 </style>

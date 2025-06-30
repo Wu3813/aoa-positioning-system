@@ -1,15 +1,33 @@
-<script setup>
-// 移除了未使用的组件引用
+<script>
+export default {
+  name: 'App'
+}
 </script>
 
 <template>
-  <router-view></router-view>
+  <div class="app">
+    <router-view />
+    
+    <!-- 全局电子围栏告警不需要在这里显示，已由ElNotification组件处理 -->
+  </div>
 </template>
 
 <style>
-body {
+html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>
 

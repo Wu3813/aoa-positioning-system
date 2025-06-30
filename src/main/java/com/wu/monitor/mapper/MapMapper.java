@@ -19,5 +19,5 @@ public interface MapMapper {
     
     void batchDeleteMaps(@Param("ids") List<Long> ids);
     
-    Map selectMapByMapId(String mapId);
+    Map selectMapByMapId(Long mapId);
 }

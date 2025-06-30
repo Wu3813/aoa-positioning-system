@@ -15,8 +15,8 @@ init()
 JSON_FILES_DIR = "src/main/resources/data"  # JSON文件所在目录
 API_ENDPOINT = "http://localhost:8080/api/realtime/paths/batch"  # 默认的批量接口
 CHECK_ENDPOINT = "http://localhost:8080/api/realtime/devices"  # 检查服务器是否在线的接口
-INTERVAL = 0.5  # 默认发送间隔(秒)
-BATCH_SIZE = 10  # 每次发送的数据条数
+INTERVAL = 0.1  # 发送间隔(秒) - 更快的发送速度
+BATCH_SIZE = 20  # 每次发送的数据条数 - 增加批次大小
 COLORS = {
     "success": Fore.GREEN,
     "error": Fore.RED,
@@ -125,35 +125,19 @@ def main():
         cprint("无法连接到后端服务器，请检查服务是否已启动", "error")
         return
     
-    # 准备轨迹1-4的文件路径
-    trajectory_files = []
-    for i in range(1, 5):
-        file_path = os.path.join(JSON_FILES_DIR, f"trajectory_{i}.json")
-        if os.path.exists(file_path):
-            trajectory_files.append(file_path)
-        else:
-            cprint(f"文件 trajectory_{i}.json 不存在", "error")
+    # 准备test.json文件路径
+    test_file = os.path.join(JSON_FILES_DIR, "test.json")
     
-    if not trajectory_files:
-        cprint("未找到任何轨迹文件", "error")
+    if not os.path.exists(test_file):
+        cprint("文件 test.json 不存在", "error")
         return
     
-    cprint(f"找到 {len(trajectory_files)} 个轨迹文件: {[os.path.basename(f) for f in trajectory_files]}", "info")
+    cprint(f"找到轨迹文件: test.json", "info")
     
-    # 创建并启动线程
-    threads = []
-    for i, file_path in enumerate(trajectory_files):
-        t = threading.Thread(target=process_file, args=(file_path, i))
-        threads.append(t)
-        t.start()
-        # 短暂延迟避免线程同时启动
-        time.sleep(0.2)
+    # 处理test.json文件
+    process_file(test_file, 0)
     
-    # 等待所有线程完成
-    for t in threads:
-        t.join()
-    
-    cprint("所有轨迹文件处理完毕", "success")
+    cprint("轨迹文件处理完毕", "success")
 
 if __name__ == "__main__":
     try:

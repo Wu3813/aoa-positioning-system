@@ -20,20 +20,18 @@ public class TagController {
 
     /**
      * 获取所有标签
-     * @param code 标签编号（可选）
      * @param name 标签名称（可选）
-     * @param groupName 标签分组（可选）
+     * @param macAddress MAC地址（可选）
      * @param status 标签状态（可选）
      * @return 标签列表
      */
     @GetMapping
     public List<Tag> getAllTags(
-            @RequestParam(required = false) String code,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String groupName,
+            @RequestParam(required = false) String macAddress,
             @RequestParam(required = false) Integer status
     ) {
-        return tagService.getAllTags(code, name, groupName, status);
+        return tagService.getAllTags(name, macAddress, status);
     }
 
     /**
@@ -96,16 +94,6 @@ public class TagController {
     @GetMapping("/map/{mapId}")
     public List<Tag> getTagsByMapId(@PathVariable Long mapId) {
         return tagService.getTagsByMapId(mapId);
-    }
-
-    /**
-     * 获取指定分组下的所有标签
-     * @param groupName 分组名称
-     * @return 标签列表
-     */
-    @GetMapping("/group/{groupName}")
-    public List<Tag> getTagsByGroupName(@PathVariable String groupName) {
-        return tagService.getTagsByGroupName(groupName);
     }
 
     /**

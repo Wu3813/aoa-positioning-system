@@ -46,6 +46,26 @@ const router = createRouter({
           path: 'tags',
           name: 'tags',
           component: () => import('@/views/TagView.vue')
+        },
+        {
+          path: 'history',
+          name: 'history',
+          component: () => import('@/views/HistoryView.vue')
+        },
+        {
+          path: 'geofence',
+          name: 'geofence',
+          component: () => import('@/views/GeofenceView.vue')
+        },
+        {
+          path: 'admin',
+          name: 'admin',
+          component: () => import('@/views/AdminView.vue')
+        },
+        {
+          path: 'alarms',
+          name: 'alarms',
+          component: () => import('@/views/AlarmView.vue')
         }
       ]
     }

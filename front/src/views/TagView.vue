@@ -7,15 +7,11 @@
         <!-- 搜索/过滤栏 - 调整布局以保持一行 -->
         <div class="search-bar">
          <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
-            <el-form-item label="标签编号" class="search-item">
-              <el-input v-model="searchForm.code" placeholder="请输入标签编号" clearable style="width: 150px;"/>
-            </el-form-item>
+
             <el-form-item label="标签名称" class="search-item">
               <el-input v-model="searchForm.name" placeholder="请输入标签名称" clearable style="width: 150px;"/>
             </el-form-item>
-            <el-form-item label="分组" class="search-item">
-              <el-input v-model="searchForm.groupName" placeholder="请输入分组名称" clearable style="width: 150px;"/>
-            </el-form-item>
+
             <el-form-item label="状态" class="search-item">
               <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px;"> 
                 <el-option label="在线" :value="1" />
@@ -60,31 +56,15 @@
           @sort-change="handleSortChange" 
         >
           <el-table-column type="selection" width="55" fixed="left" />
-          <el-table-column label="序号" width="60" align="center" fixed="left">
+          <el-table-column prop="name" label="标签名称" width="150" fixed="left" show-overflow-tooltip sortable="custom" />
+          <el-table-column label="状态" width="100" fixed="left">
             <template #default="scope">
-              {{ scope.$index + 1 }}
+              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+                {{ scope.row.status === 1 ? '在线' : '离线' }}
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="标签编号" width="120" fixed="left" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="name" label="标签名称" width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="groupName" label="分组" width="120" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="model" label="标签型号" width="120" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="mapName" label="所属地图" width="120" show-overflow-tooltip sortable="custom" />
-          <el-table-column label="坐标位置" width="180">
-            <template #default="scope">
-              <div>X: {{ formatCoordinate(scope.row.positionX) }} m</div>
-              <div>Y: {{ formatCoordinate(scope.row.positionY) }} m</div>
-              <div>Z: {{ formatCoordinate(scope.row.positionZ) }} m</div>
-            </template>
-          </el-table-column>
-          <el-table-column label="RSSI" width="100" prop="rssi" sortable="custom">
-            <template #default="scope">
-              {{ scope.row.rssi || '-' }} dBm
-            </template>
-          </el-table-column>
-          <el-table-column label="电量" width="100" prop="batteryLevel" sortable="custom">
+          <el-table-column label="电量" width="100" prop="batteryLevel" sortable="custom" fixed="left">
             <template #default="scope">
               <el-progress 
                 :percentage="scope.row.batteryLevel || 0" 
@@ -93,13 +73,30 @@
               />
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="100" prop="status" sortable="custom">
+          <el-table-column label="RSSI" width="100" prop="rssi" sortable="custom" fixed="left">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                {{ scope.row.status === 1 ? '在线' : '离线' }}
-              </el-tag>
+              {{ scope.row.rssi || '-' }} dBm
             </template>
           </el-table-column>
+          <el-table-column label="MAC地址" width="150" show-overflow-tooltip sortable="custom" prop="macAddress">
+            <template #default="scope">
+              {{ formatMacAddress(scope.row.macAddress) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="坐标位置" width="150">
+            <template #default="scope">
+              <div>X: {{ formatCoordinate(scope.row.positionX) }} m</div>
+              <div>Y: {{ formatCoordinate(scope.row.positionY) }} m</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="model" label="标签型号" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column label="所属地图" width="120" show-overflow-tooltip sortable="custom">
+            <template #default="scope">
+              {{ getMapNameById(scope.row.mapId) }}
+            </template>
+          </el-table-column>
+
           <el-table-column label="最后可见时间" width="180" show-overflow-tooltip prop="lastSeen" sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.lastSeen) }}
@@ -111,15 +108,17 @@
             </template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="140" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
-                  <el-icon><Edit /></el-icon> 修改
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleEdit(scope.row)">
+                    修改
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
+                    删除
+                  </el-button>
+                </el-button-group>
               </div>
             </template>
           </el-table-column>
@@ -144,26 +143,24 @@
       >
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="标签编号" prop="code">
-              <el-input v-model="tagForm.code" placeholder="请输入标签编号" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="标签名称" prop="name">
               <el-input v-model="tagForm.name" placeholder="请输入标签名称" />
             </el-form-item>
           </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="MAC地址" prop="macAddress">
-              <el-input v-model="tagForm.macAddress" placeholder="请输入MAC地址" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="分组" prop="groupName">
-              <el-input v-model="tagForm.groupName" placeholder="请输入分组名称" />
+              <el-input 
+                v-model="tagForm.macAddress" 
+                placeholder="请输入12位十六进制字符，不要包含冒号或连字符"
+                maxlength="12"
+                style="text-transform: uppercase;"
+              >
+                <template #suffix>
+                  <el-tooltip content="输入格式如：84FD27EEE603（12位十六进制，不含分隔符）" placement="top">
+                    <el-icon style="color: #909399; cursor: help;"><QuestionFilled /></el-icon>
+                  </el-tooltip>
+                </template>
+              </el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -181,98 +178,7 @@
           </el-col>
         </el-row>
         
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="所属地图" prop="mapId">
-              <el-select v-model="tagForm.mapId" placeholder="请选择地图" style="width: 100%">
-                <el-option 
-                  v-for="map in mapList" 
-                  :key="map.id" 
-                  :label="map.name" 
-                  :value="map.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="电量(%)" prop="batteryLevel">
-              <el-input-number 
-                v-model="tagForm.batteryLevel" 
-                :min="0" 
-                :max="100" 
-                :precision="0"
-                style="width: 100%"
-                placeholder="请输入电量百分比"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-          <el-col :span="24">
-            <el-form-item label="标签坐标">
-              <el-col :span="7">
-                <el-form-item prop="positionX">
-                  <el-input-number
-                    v-model="tagForm.positionX"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="X坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">X</el-col>
-              <el-col :span="7">
-                <el-form-item prop="positionY">
-                  <el-input-number
-                    v-model="tagForm.positionY"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="Y坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">Y</el-col>
-              <el-col :span="7">
-                <el-form-item prop="positionZ">
-                  <el-input-number
-                    v-model="tagForm.positionZ"
-                    :precision="3"
-                    :step="0.1"
-                    placeholder="Z坐标"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="1" class="text-center">Z</el-col>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="RSSI" prop="rssi">
-              <el-input-number 
-                v-model="tagForm.rssi" 
-                :min="-100" 
-                :max="0" 
-                :precision="0"
-                style="width: 100%"
-                placeholder="信号强度"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="标签状态" prop="status">
-              <el-select v-model="tagForm.status" placeholder="请选择状态" style="width: 100%">
-                <el-option label="在线" :value="1" />
-                <el-option label="离线" :value="0" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <!-- 移除地图选择，改为自动从JSON数据获取 -->
         
         <el-form-item label="备注" prop="remark">
           <el-input 
@@ -296,11 +202,11 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue' /* 添加 watch */
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Delete, Edit } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Edit, QuestionFilled } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const tagList = ref([])
-const mapList = ref([])
+const mapCache = ref(new Map()) // 地图缓存
 const loading = ref(false)
 const submitLoading = ref(false)
 const dialogVisible = ref(false)
@@ -311,9 +217,7 @@ const resizeObserver = ref(null)
 
 // 搜索表单
 const searchForm = reactive({
-  code: '',
   name: '',
-  groupName: '',
   status: ''
 })
 
@@ -323,38 +227,27 @@ const multipleSelection = ref([])
 // 标签表单
 const tagForm = reactive({
   id: null,
-  code: '',
   name: '',
-  groupName: '',
   macAddress: '',
   model: '',
   firmwareVersion: '',
-  mapId: null,
-  mapName: null,
-  positionX: 0,
-  positionY: 0,
-  positionZ: 0,
-  rssi: -70,
-  batteryLevel: 100,
-  status: 1,
   remark: ''
 })
 
 // 表单校验规则
 const rules = {
-  code: [
-    { required: true, message: '请输入标签编号', trigger: 'blur' },
-    { pattern: /^[A-Za-z0-9_-]+$/, message: '标签编号只能包含字母、数字、下划线和横线', trigger: 'blur' }
-  ],
   name: [
     { required: true, message: '请输入标签名称', trigger: 'blur' }
   ],
   macAddress: [
     { required: true, message: '请输入MAC地址', trigger: 'blur' },
-    { pattern: /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/, message: 'MAC地址格式不正确', trigger: 'blur' }
+    { pattern: /^[0-9A-Fa-f]{12}$/, message: 'MAC地址格式不正确，请输入12位十六进制字符（如：84FD27EEE603），不要包含冒号或连字符', trigger: 'blur' }
   ],
-  mapId: [
-    { required: true, message: '请选择所属地图', trigger: 'change' }
+  model: [
+    { required: true, message: '请输入标签型号', trigger: 'blur' }
+  ],
+  firmwareVersion: [
+    { required: true, message: '请输入固件版本', trigger: 'blur' }
   ]
 }
 
@@ -393,6 +286,16 @@ const formatDateTime = (dateTimeStr) => {
   }
 }
 
+// 格式化MAC地址显示（添加冒号）
+const formatMacAddress = (macAddress) => {
+  if (!macAddress) return '-';
+  if (macAddress.length === 12) {
+    // 将12位连续格式转换为标准格式 (例: 84FD27EEE603 -> 84:FD:27:EE:E6:03)
+    return macAddress.replace(/(.{2})/g, '$1:').slice(0, -1);
+  }
+  return macAddress; // 如果已经是标准格式或其他格式，直接返回
+}
+
 // 适应窗口大小调整表格高度
 const setupResizeObserver = () => {
   if (window.ResizeObserver) {
@@ -416,15 +319,11 @@ const fetchTags = async () => {
   try {
     const params = {};
     
-    if (searchForm.code && searchForm.code.trim()) {
-      params.code = searchForm.code.trim();
-    }
+
     if (searchForm.name && searchForm.name.trim()) {
       params.name = searchForm.name.trim();
     }
-    if (searchForm.groupName && searchForm.groupName.trim()) {
-      params.groupName = searchForm.groupName.trim();
-    }
+
     if (searchForm.status !== '') {
       params.status = searchForm.status;
     }
@@ -448,22 +347,20 @@ const fetchTags = async () => {
   }
 }
 
-// 获取地图列表
-const fetchMaps = async () => {
+// 获取地图列表并缓存
+const fetchMapsToCache = async () => {
   try {
     const response = await axios.get('/api/maps');
-    // 与 StationView.vue 保持一致
-    if (Array.isArray(response.data)) {
-      mapList.value = response.data;
-    } else if (response.data && Array.isArray(response.data.content)) {
-      mapList.value = response.data.content;
-    } else {
-      mapList.value = [];
-    }
+    const maps = Array.isArray(response.data) ? response.data : 
+                 (response.data && Array.isArray(response.data.content)) ? response.data.content : [];
+    
+    // 清空旧缓存并重新填充
+    mapCache.value.clear();
+    maps.forEach(map => {
+      mapCache.value.set(map.mapId, map.name);
+    });
   } catch (error) {
     console.error('获取地图列表错误:', error);
-    ElMessage.error('获取地图列表失败');
-    mapList.value = [];
   }
 }
 
@@ -474,9 +371,7 @@ const handleSearch = () => {
 
 // 重置搜索
 const handleResetSearch = () => {
-  searchForm.code = '';
   searchForm.name = '';
-  searchForm.groupName = '';
   searchForm.status = '';
   fetchTags();
 }
@@ -516,37 +411,35 @@ const handleBatchDelete = () => {
   });
 }
 
-// 监听mapId变化，自动设置对应的mapName
-watch(() => tagForm.mapId, (newMapId) => {
-  if (newMapId) {
-    const selectedMap = mapList.value.find(map => map.id === newMapId);
-    if (selectedMap) {
-      tagForm.mapName = selectedMap.name;
-    }
-  } else {
-    tagForm.mapName = null;
+// 获取地图名称的工具方法（从缓存中获取）
+const getMapNameById = (mapId) => {
+  if (!mapId) return '-';
+  return mapCache.value.get(mapId) || '未知地图';
+};
+
+// MAC地址输入格式化
+const formatMacInput = (value) => {
+  if (!value) return '';
+  // 移除所有非十六进制字符，并转换为大写
+  return value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase().substring(0, 12);
+};
+
+// 监听MAC地址输入变化
+watch(() => tagForm.macAddress, (newValue) => {
+  if (newValue) {
+    tagForm.macAddress = formatMacInput(newValue);
   }
-}, { immediate: true });
+});
 
 // 添加标签
 const handleAdd = () => {
   dialogType.value = 'add';
   Object.assign(tagForm, {
     id: null,
-    code: '',
     name: '',
-    groupName: '',
     macAddress: '',
     model: '',
     firmwareVersion: '',
-    mapId: null,
-    mapName: null,
-    positionX: 0,
-    positionY: 0,
-    positionZ: 0,
-    rssi: -70,
-    batteryLevel: 100,
-    status: 1,
     remark: ''
   });
   dialogVisible.value = true;
@@ -562,8 +455,15 @@ const handleAdd = () => {
 // 编辑标签
 const handleEdit = (row) => {
   dialogType.value = 'edit';
-  const rowData = JSON.parse(JSON.stringify(row));
-  Object.assign(tagForm, rowData);
+  // 只复制用户可以编辑的字段
+  Object.assign(tagForm, {
+    id: row.id,
+    name: row.name || '',
+    macAddress: row.macAddress || '',
+    model: row.model || '',
+    firmwareVersion: row.firmwareVersion || '',
+    remark: row.remark || ''
+  });
   dialogVisible.value = true;
   
   // 使用 nextTick 确保 DOM 更新后再清空校验
@@ -606,13 +506,7 @@ const handleSubmit = async () => {
     if (valid) {
       submitLoading.value = true;
       try {
-        // 确保在提交前更新mapName
-        if (tagForm.mapId) {
-          const selectedMap = mapList.value.find(map => map.id === tagForm.mapId);
-          if (selectedMap) {
-            tagForm.mapName = selectedMap.name;
-          }
-        }
+        // 只需要提交mapId，后端不再存储mapName
         
         if (dialogType.value === 'add') {
           await axios.post('/api/tags', tagForm);
@@ -711,16 +605,40 @@ const handleSortChange = ({ prop, order }) => {
   sortOrder.value = { prop, order };
 }
 
+// 定时器引用
+const refreshTimer = ref(null);
+
+// 自动刷新数据
+const startAutoRefresh = () => {
+  // 每3秒刷新一次标签数据
+  refreshTimer.value = setInterval(() => {
+    // 只有在对话框关闭且没有正在加载时才刷新
+    if (!dialogVisible.value && !loading.value) {
+      fetchTags();
+    }
+  }, 3000); // 3秒 = 3000毫秒
+}
+
+// 停止自动刷新
+const stopAutoRefresh = () => {
+  if (refreshTimer.value) {
+    clearInterval(refreshTimer.value);
+    refreshTimer.value = null;
+  }
+}
+
 // 组件挂载
 onMounted(() => {
   fetchTags();
-  fetchMaps();
+  fetchMapsToCache(); // 获取地图列表到缓存
   updateTableHeight();
   setupResizeObserver();
+  startAutoRefresh(); // 启动自动刷新
 })
 
 // 组件卸载前清理
 onBeforeUnmount(() => {
+  stopAutoRefresh(); // 停止自动刷新
   if (resizeObserver.value) {
     resizeObserver.value.disconnect();
   } else {
@@ -801,7 +719,22 @@ onBeforeUnmount(() => {
 
 .operation-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 130px;
+}
+
+.operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.operation-buttons .el-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 1px;
+  height: 22px;
+  min-width: 0;
 }
 
 .text-center {

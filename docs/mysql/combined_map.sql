@@ -1,7 +1,7 @@
 
 CREATE TABLE `map` (
-  `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-  `map_id` VARCHAR(50) NOT NULL COMMENT '地图业务ID',
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `map_id` bigint(20) NOT NULL COMMENT '地图业务ID',
   `name` VARCHAR(255) NOT NULL COMMENT '地图名称',
   `image_path` VARCHAR(255) COMMENT '地图图片路径',
   `width` INT NULL COMMENT '图片宽度(像素)',
@@ -15,6 +15,7 @@ CREATE TABLE `map` (
   `point2_y` INT NULL COMMENT '测量点2的Y坐标(像素)',
   `real_distance` DOUBLE NULL COMMENT '测量点间实际距离(米)',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
   UNIQUE KEY `idx_map_id` (`map_id`) -- map_id 唯一索引
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='地图信息表';
 

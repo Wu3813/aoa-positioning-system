@@ -1,7 +1,8 @@
 package com.wu.monitor.util;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.net.*;
@@ -12,9 +13,11 @@ import java.nio.ByteOrder;
  * 基站UDP通信工具类
  * 用于通过UDP协议获取基站信息（型号、MAC地址、固件版本）
  */
-@Slf4j
 @Component
 public class UdpStationInfoUtil {
+    
+    // 使用专门的UDP基站通信日志记录器
+    private static final Logger log = LoggerFactory.getLogger("UDP_STATION_LOGGER");
     
     private static final int UDP_PORT = 6000;
     private static final int TIMEOUT = 5000; // 5秒超时
@@ -136,13 +139,43 @@ public class UdpStationInfoUtil {
     }
     
     /**
+     * 获取基站标识符，优先使用MAC地址，没有MAC地址时使用IP地址
+     * @param ipAddress 基站IP地址
+     * @param macAddress 基站MAC地址（可以为null）
+     * @return 基站标识符字符串
+     */
+    private String getStationIdentifier(String ipAddress, String macAddress) {
+        if (macAddress != null && !macAddress.trim().isEmpty()) {
+            return String.format("MAC:%s", macAddress);
+        }
+        return String.format("IP:%s", ipAddress);
+    }
+    
+    /**
+     * 尝试获取基站MAC地址用于日志标识
+     * @param ipAddress 基站IP地址
+     * @return MAC地址，获取失败返回null
+     */
+    private String tryGetMacForLogging(String ipAddress) {
+        try {
+            StationInfo info = getStationInfo(ipAddress);
+            return info != null ? info.getMacAddress() : null;
+        } catch (Exception e) {
+            // 静默处理，不影响主要功能
+            return null;
+        }
+    }
+    
+    /**
      * 通过UDP获取基站信息
      * @param ipAddress 基站IP地址
      * @return 基站信息，获取失败返回null
      */
     public StationInfo getStationInfo(String ipAddress) {
+        log.info("开始获取基站信息 - IP地址: {}", ipAddress);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("获取基站信息失败 - 基站IP地址为空");
             return null;
         }
         
@@ -157,7 +190,7 @@ public class UdpStationInfoUtil {
                 QUERY_COMMAND, QUERY_COMMAND.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送查询指令", ipAddress);
+            log.debug("已向基站 IP:{} 发送查询指令", ipAddress);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -167,16 +200,24 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("收到基站 {} 响应，长度: {}", ipAddress, responseData.length);
+            log.debug("收到基站 IP:{} 响应，长度: {}", ipAddress, responseData.length);
             
             // 解析响应数据
-            return parseResponse(responseData);
+            StationInfo result = parseResponse(responseData);
+            if (result != null) {
+                String stationId = getStationIdentifier(ipAddress, result.getMacAddress());
+                log.info("获取基站信息成功 - {}, 型号: {}, 固件版本: {}, 扫描功能: {}", 
+                        stationId, result.getModel(), result.getFirmwareVersion(), result.isScanEnabled());
+            } else {
+                log.warn("获取基站信息失败 - IP:{}, 响应数据解析失败", ipAddress);
+            }
+            return result;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} UDP通信超时", ipAddress);
+            log.warn("获取基站信息失败 - IP:{}, UDP通信超时", ipAddress);
             return null;
         } catch (Exception e) {
-            log.error("获取基站 {} 信息失败: {}", ipAddress, e.getMessage());
+            log.error("获取基站信息异常 - IP:{}, 错误信息: {}", ipAddress, e.getMessage());
             return null;
         } finally {
             if (socket != null && !socket.isClosed()) {
@@ -257,8 +298,13 @@ public class UdpStationInfoUtil {
      * @return 加速度信息，获取失败返回null
      */
     public AccelerationInfo getAccelerationInfo(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始获取基站加速度信息 - {}", stationId);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("获取基站加速度信息失败 - 基站IP地址为空");
             return null;
         }
         
@@ -273,7 +319,7 @@ public class UdpStationInfoUtil {
                 ACCELERATION_COMMAND, ACCELERATION_COMMAND.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送加速度查询指令", ipAddress);
+            log.debug("已向基站 {} 发送加速度查询指令", stationId);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -283,16 +329,23 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(buffer, 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("收到基站 {} 加速度响应，长度: {}", ipAddress, responseData.length);
+            log.debug("收到基站 {} 加速度响应，长度: {}", stationId, responseData.length);
             
             // 解析响应数据
-            return parseAccelerationResponse(responseData);
+            AccelerationInfo result = parseAccelerationResponse(responseData);
+            if (result != null) {
+                log.info("获取基站加速度信息成功 - {}, X轴: {}, Y轴: {}, Z轴: {}", 
+                        stationId, result.getAccelerationX(), result.getAccelerationY(), result.getAccelerationZ());
+            } else {
+                log.warn("获取基站加速度信息失败 - {}, 响应数据解析失败", stationId);
+            }
+            return result;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} 加速度查询UDP通信超时", ipAddress);
+            log.warn("获取基站加速度信息失败 - {}, UDP通信超时", stationId);
             return null;
         } catch (Exception e) {
-            log.error("获取基站 {} 加速度信息失败: {}", ipAddress, e.getMessage());
+            log.error("获取基站加速度信息异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return null;
         } finally {
             if (socket != null && !socket.isClosed()) {
@@ -364,6 +417,11 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean enableBroadcast(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始开启标签广播数据上报 - {}", stationId);
+        
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(TIMEOUT);
             
@@ -378,7 +436,7 @@ public class UdpStationInfoUtil {
             );
             
             log.debug("向基站 {} 发送开启标签广播数据上报指令: {}", 
-                     ipAddress, bytesToHex(ENABLE_BROADCAST_COMMAND));
+                     stationId, bytesToHex(ENABLE_BROADCAST_COMMAND));
             socket.send(sendPacket);
             
             // 接收响应
@@ -389,21 +447,21 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(receivePacket.getData(), 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("基站 {} 开启标签广播数据上报响应: {}", ipAddress, bytesToHex(responseData));
+            log.debug("基站 {} 开启标签广播数据上报响应: {}", stationId, bytesToHex(responseData));
             
             // 检查响应是否为成功响应
             boolean success = isResponseMatching(responseData, BROADCAST_SUCCESS_RESPONSE);
             
             if (success) {
-                log.info("基站 {} 标签广播数据上报开启成功", ipAddress);
+                log.info("开启标签广播数据上报成功 - {}", stationId);
             } else {
-                log.warn("基站 {} 标签广播数据上报开启失败，响应: {}", ipAddress, bytesToHex(responseData));
+                log.warn("开启标签广播数据上报失败 - {}, 响应: {}", stationId, bytesToHex(responseData));
             }
             
             return success;
             
         } catch (Exception e) {
-            log.error("基站 {} 开启标签广播数据上报通信异常: {}", ipAddress, e.getMessage());
+            log.error("开启标签广播数据上报异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         }
     }
@@ -414,6 +472,11 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean enableScanning(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始开启扫描功能 - {}", stationId);
+        
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(TIMEOUT);
             
@@ -428,7 +491,7 @@ public class UdpStationInfoUtil {
             );
             
             log.debug("向基站 {} 发送开启扫描指令: {}", 
-                     ipAddress, bytesToHex(ENABLE_SCANNING_COMMAND));
+                     stationId, bytesToHex(ENABLE_SCANNING_COMMAND));
             socket.send(sendPacket);
             
             // 接收响应
@@ -439,21 +502,21 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(receivePacket.getData(), 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("基站 {} 开启扫描响应: {}", ipAddress, bytesToHex(responseData));
+            log.debug("基站 {} 开启扫描响应: {}", stationId, bytesToHex(responseData));
             
             // 检查响应是否为成功响应
             boolean success = isResponseMatching(responseData, SCANNING_SUCCESS_RESPONSE);
             
             if (success) {
-                log.info("基站 {} 扫描开启成功", ipAddress);
+                log.info("开启扫描功能成功 - {}", stationId);
             } else {
-                log.warn("基站 {} 扫描开启失败，响应: {}", ipAddress, bytesToHex(responseData));
+                log.warn("开启扫描功能失败 - {}, 响应: {}", stationId, bytesToHex(responseData));
             }
             
             return success;
             
         } catch (Exception e) {
-            log.error("基站 {} 开启扫描通信异常: {}", ipAddress, e.getMessage());
+            log.error("开启扫描功能异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         }
     }
@@ -488,6 +551,11 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean factoryReset(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始恢复出厂设置 - {}", stationId);
+        
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(TIMEOUT);
             
@@ -502,7 +570,7 @@ public class UdpStationInfoUtil {
             );
             
             log.debug("向基站 {} 发送恢复出厂指令: {}", 
-                     ipAddress, bytesToHex(FACTORY_RESET_COMMAND));
+                     stationId, bytesToHex(FACTORY_RESET_COMMAND));
             socket.send(sendPacket);
             
             // 接收响应
@@ -513,21 +581,21 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(receivePacket.getData(), 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("基站 {} 恢复出厂响应: {}", ipAddress, bytesToHex(responseData));
+            log.debug("基站 {} 恢复出厂响应: {}", stationId, bytesToHex(responseData));
             
             // 检查响应是否为成功响应
             boolean success = isResponseMatching(responseData, FACTORY_RESET_SUCCESS_RESPONSE);
             
             if (success) {
-                log.info("基站 {} 恢复出厂设置成功", ipAddress);
+                log.info("恢复出厂设置成功 - {}", stationId);
             } else {
-                log.warn("基站 {} 恢复出厂设置失败，响应: {}", ipAddress, bytesToHex(responseData));
+                log.warn("恢复出厂设置失败 - {}, 响应: {}", stationId, bytesToHex(responseData));
             }
             
             return success;
             
         } catch (Exception e) {
-            log.error("基站 {} 恢复出厂设置通信异常: {}", ipAddress, e.getMessage());
+            log.error("恢复出厂设置异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         }
     }
@@ -538,6 +606,11 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean restartStation(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始重启基站 - {}", stationId);
+        
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(TIMEOUT);
             
@@ -552,7 +625,7 @@ public class UdpStationInfoUtil {
             );
             
             log.debug("向基站 {} 发送重启指令: {}", 
-                     ipAddress, bytesToHex(RESTART_COMMAND));
+                     stationId, bytesToHex(RESTART_COMMAND));
             socket.send(sendPacket);
             
             // 接收响应
@@ -563,21 +636,21 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(receivePacket.getData(), 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("基站 {} 重启响应: {}", ipAddress, bytesToHex(responseData));
+            log.debug("基站 {} 重启响应: {}", stationId, bytesToHex(responseData));
             
             // 检查响应是否为成功响应（和恢复出厂使用相同的响应格式）
             boolean success = isResponseMatching(responseData, FACTORY_RESET_SUCCESS_RESPONSE);
             
             if (success) {
-                log.info("基站 {} 重启成功", ipAddress);
+                log.info("重启基站成功 - {}", stationId);
             } else {
-                log.warn("基站 {} 重启失败，响应: {}", ipAddress, bytesToHex(responseData));
+                log.warn("重启基站失败 - {}, 响应: {}", stationId, bytesToHex(responseData));
             }
             
             return success;
             
         } catch (Exception e) {
-            log.error("基站 {} 重启通信异常: {}", ipAddress, e.getMessage());
+            log.error("重启基站异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         }
     }
@@ -588,6 +661,11 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean locateStation(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始基站定位操作 - {}", stationId);
+        
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(TIMEOUT);
             
@@ -602,7 +680,7 @@ public class UdpStationInfoUtil {
             );
             
             log.debug("向基站 {} 发送定位指令: {}", 
-                     ipAddress, bytesToHex(LOCATE_COMMAND));
+                     stationId, bytesToHex(LOCATE_COMMAND));
             socket.send(sendPacket);
             
             // 接收响应
@@ -613,21 +691,21 @@ public class UdpStationInfoUtil {
             byte[] responseData = new byte[receivePacket.getLength()];
             System.arraycopy(receivePacket.getData(), 0, responseData, 0, receivePacket.getLength());
             
-            log.debug("基站 {} 定位响应: {}", ipAddress, bytesToHex(responseData));
+            log.debug("基站 {} 定位响应: {}", stationId, bytesToHex(responseData));
             
             // 检查响应是否为成功响应
             boolean success = isResponseMatching(responseData, LOCATE_SUCCESS_RESPONSE);
             
             if (success) {
-                log.info("基站 {} 定位成功，基站灯将闪烁100次", ipAddress);
+                log.info("基站定位操作成功 - {}, 基站灯将闪烁100次", stationId);
             } else {
-                log.warn("基站 {} 定位失败，响应: {}", ipAddress, bytesToHex(responseData));
+                log.warn("基站定位操作失败 - {}, 响应: {}", stationId, bytesToHex(responseData));
             }
             
             return success;
             
         } catch (Exception e) {
-            log.error("基站 {} 定位通信异常: {}", ipAddress, e.getMessage());
+            log.error("基站定位操作异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         }
     }
@@ -638,8 +716,13 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean config1(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始执行配置1操作 - {}", stationId);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("配置1操作失败 - 基站IP地址为空");
             return false;
         }
         
@@ -654,7 +737,7 @@ public class UdpStationInfoUtil {
                 CONFIG1_COMMAND, CONFIG1_COMMAND.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送配置1指令", ipAddress);
+            log.debug("已向基站 {} 发送配置1指令", stationId);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -666,15 +749,19 @@ public class UdpStationInfoUtil {
             
             // 验证响应
             boolean success = isResponseMatching(responseData, CONFIG_SUCCESS_RESPONSE);
-            log.debug("基站 {} 配置1响应验证: {}", ipAddress, success ? "成功" : "失败");
+            if (success) {
+                log.info("配置1操作成功 - {}", stationId);
+            } else {
+                log.warn("配置1操作失败 - {}, 响应验证失败", stationId);
+            }
             
             return success;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} 配置1超时", ipAddress);
+            log.warn("配置1操作失败 - {}, UDP通信超时", stationId);
             return false;
         } catch (Exception e) {
-            log.error("基站 {} 配置1失败: {}", ipAddress, e.getMessage());
+            log.error("配置1操作异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         } finally {
             if (socket != null && !socket.isClosed()) {
@@ -689,8 +776,13 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean config2(String ipAddress) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始执行配置2操作 - {}", stationId);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("配置2操作失败 - 基站IP地址为空");
             return false;
         }
         
@@ -705,7 +797,7 @@ public class UdpStationInfoUtil {
                 CONFIG2_COMMAND, CONFIG2_COMMAND.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送配置2指令", ipAddress);
+            log.debug("已向基站 {} 发送配置2指令", stationId);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -717,15 +809,19 @@ public class UdpStationInfoUtil {
             
             // 验证响应
             boolean success = isResponseMatching(responseData, CONFIG_SUCCESS_RESPONSE);
-            log.debug("基站 {} 配置2响应验证: {}", ipAddress, success ? "成功" : "失败");
+            if (success) {
+                log.info("配置2操作成功 - {}", stationId);
+            } else {
+                log.warn("配置2操作失败 - {}, 响应验证失败", stationId);
+            }
             
             return success;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} 配置2超时", ipAddress);
+            log.warn("配置2操作失败 - {}, UDP通信超时", stationId);
             return false;
         } catch (Exception e) {
-            log.error("基站 {} 配置2失败: {}", ipAddress, e.getMessage());
+            log.error("配置2操作异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         } finally {
             if (socket != null && !socket.isClosed()) {
@@ -741,14 +837,19 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean configRSSI(String ipAddress, int rssi) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始配置RSSI - {}, RSSI值: {}dBm", stationId, rssi);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("配置RSSI失败 - 基站IP地址为空");
             return false;
         }
         
         // 验证RSSI值范围
         if (rssi < -100 || rssi > -40) {
-            log.warn("RSSI值 {} 超出有效范围（-100到-40dBm）", rssi);
+            log.warn("配置RSSI失败 - {} RSSI值 {} 超出有效范围（-100到-40dBm）", stationId, rssi);
             return false;
         }
         
@@ -766,7 +867,7 @@ public class UdpStationInfoUtil {
                 command, command.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送配置RSSI指令，RSSI值: {}dBm", ipAddress, rssi);
+            log.debug("已向基站 {} 发送配置RSSI指令，RSSI值: {}dBm", stationId, rssi);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -778,15 +879,19 @@ public class UdpStationInfoUtil {
             
             // 验证响应
             boolean success = isResponseMatching(responseData, CONFIG_RSSI_SUCCESS_RESPONSE);
-            log.debug("基站 {} 配置RSSI响应验证: {}", ipAddress, success ? "成功" : "失败");
+            if (success) {
+                log.info("配置RSSI成功 - {}, RSSI值: {}dBm", stationId, rssi);
+            } else {
+                log.warn("配置RSSI失败 - {}, RSSI值: {}dBm, 响应验证失败", stationId, rssi);
+            }
             
             return success;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} 配置RSSI超时", ipAddress);
+            log.warn("配置RSSI失败 - {}, UDP通信超时", stationId);
             return false;
         } catch (Exception e) {
-            log.error("基站 {} 配置RSSI失败: {}", ipAddress, e.getMessage());
+            log.error("配置RSSI异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         } finally {
             if (socket != null && !socket.isClosed()) {
@@ -823,24 +928,29 @@ public class UdpStationInfoUtil {
      * @return 操作是否成功
      */
     public boolean configTarget(String ipAddress, String targetIp, int targetPort) {
+        String macAddress = tryGetMacForLogging(ipAddress);
+        String stationId = getStationIdentifier(ipAddress, macAddress);
+        
+        log.info("开始配置目标IP端口 - {}, 目标IP: {}, 目标端口: {}", stationId, targetIp, targetPort);
+        
         if (ipAddress == null || ipAddress.trim().isEmpty()) {
-            log.warn("基站IP地址为空");
+            log.warn("配置目标IP端口失败 - 基站IP地址为空");
             return false;
         }
         
         if (targetIp == null || targetIp.trim().isEmpty()) {
-            log.warn("目标IP地址为空");
+            log.warn("配置目标IP端口失败 - 目标IP地址为空");
             return false;
         }
         
         // 验证端口范围和限制
         if (targetPort <= 0 || targetPort > 65535) {
-            log.warn("目标端口 {} 超出有效范围（1-65535）", targetPort);
+            log.warn("配置目标IP端口失败 - {} 目标端口 {} 超出有效范围（1-65535）", stationId, targetPort);
             return false;
         }
         
         if (targetPort == 8833) {
-            log.warn("目标端口不能是8833");
+            log.warn("配置目标IP端口失败 - {} 目标端口不能是8833", stationId);
             return false;
         }
         
@@ -858,7 +968,7 @@ public class UdpStationInfoUtil {
                 command, command.length, address, UDP_PORT);
             socket.send(sendPacket);
             
-            log.debug("已向基站 {} 发送配置目标IP端口指令，目标IP: {}, 端口: {}", ipAddress, targetIp, targetPort);
+            log.debug("已向基站 {} 发送配置目标IP端口指令，目标IP: {}, 端口: {}", stationId, targetIp, targetPort);
             
             // 接收响应
             byte[] buffer = new byte[1024];
@@ -870,15 +980,19 @@ public class UdpStationInfoUtil {
             
             // 验证响应
             boolean success = isResponseMatching(responseData, CONFIG_TARGET_SUCCESS_RESPONSE);
-            log.debug("基站 {} 配置目标IP端口响应验证: {}", ipAddress, success ? "成功" : "失败");
+            if (success) {
+                log.info("配置目标IP端口成功 - {}, 目标IP: {}, 目标端口: {}", stationId, targetIp, targetPort);
+            } else {
+                log.warn("配置目标IP端口失败 - {}, 目标IP: {}, 目标端口: {}, 响应验证失败", stationId, targetIp, targetPort);
+            }
             
             return success;
             
         } catch (SocketTimeoutException e) {
-            log.warn("基站 {} 配置目标IP端口超时", ipAddress);
+            log.warn("配置目标IP端口失败 - {}, UDP通信超时", stationId);
             return false;
         } catch (Exception e) {
-            log.error("基站 {} 配置目标IP端口失败: {}", ipAddress, e.getMessage());
+            log.error("配置目标IP端口异常 - {}, 错误信息: {}", stationId, e.getMessage());
             return false;
         } finally {
             if (socket != null && !socket.isClosed()) {

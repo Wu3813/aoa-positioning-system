@@ -113,12 +113,14 @@
           <el-table-column label="操作" fixed="right" width="140">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)" class="op-btn">
-                  <el-icon><Edit /></el-icon> 修改
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)" class="op-btn">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleEdit(scope.row)">
+                    修改
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
+                    删除
+                  </el-button>
+                </el-button-group>
               </div>
             </template>
           </el-table-column>
@@ -1521,18 +1523,22 @@ watch(
 
 .operation-buttons {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 120px;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 130px;
 }
 
-.op-btn {
-  padding: 0 5px;
-  width: 55px;
-  text-align: center;
+.operation-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+}
+
+.operation-buttons .el-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 1px;
+  height: 22px;
+  min-width: 0;
 }
 
 .current-map-tag {

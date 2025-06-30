@@ -1,4 +1,5 @@
-FROM openjdk:8-jdk-alpine
+# 使用支持多架构(包括ARM64)的Amazon Corretto JDK 8
+FROM amazoncorretto:8-alpine-jdk
 
 
 

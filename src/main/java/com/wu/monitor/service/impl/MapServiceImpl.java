@@ -36,7 +36,7 @@ public class MapServiceImpl implements MapService {
     @Override
     public Map createMap(Map map, MultipartFile file) {
         // 检查 mapId 是否为空
-        if (map.getMapId() == null || map.getMapId().trim().isEmpty()) {
+        if (map.getMapId() == null) {
             throw new RuntimeException("地图ID不能为空");
         }
         

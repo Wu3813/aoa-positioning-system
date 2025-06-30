@@ -4,11 +4,14 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@EnableScheduling
 public class ConcurrencyConfig implements WebMvcConfigurer {
 
     /**
@@ -41,6 +44,25 @@ public class ConcurrencyConfig implements WebMvcConfigurer {
         executor.setThreadNamePrefix("mvc-async-");
         executor.initialize();
         return executor;
+    }
+    
+    /**
+     * 定时任务专用线程池
+     * 为轨迹存储等定时任务提供独立的高优先级线程池
+     */
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2); // 设置线程池大小
+        scheduler.setThreadNamePrefix("task-scheduler-");
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setErrorHandler(throwable -> {
+            throwable.printStackTrace();
+            System.err.println("定时任务执行异常: " + throwable.getMessage());
+        });
+        scheduler.setRemoveOnCancelPolicy(true);
+        return scheduler;
     }
 
     /**

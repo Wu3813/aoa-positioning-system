@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.monitor.mapper.TaskConfigMapper">
+    <resultMap id="TaskConfigResultMap" type="com.wu.monitor.model.TaskConfig">
+        <id column="id" property="id" />
+        <!-- 基站任务配置 -->
+        <result column="station_interval_ms" property="stationTask.intervalMs" />
+        <result column="station_enabled" property="stationTask.enabled" />
+        <!-- 轨迹任务配置 -->
+        <result column="trajectory_enabled" property="trajectoryTask.enabled" />
+        <result column="trajectory_send_interval_ms" property="trajectoryTask.sendIntervalMs" />
+        <result column="trajectory_pause_ms" property="trajectoryTask.pauseMs" />
+        <!-- 存储任务配置 -->
+        <result column="storage_interval_ms" property="storageTask.intervalMs" />
+    </resultMap>
+    
+    <select id="selectTaskConfig" resultMap="TaskConfigResultMap">
+        SELECT 
+            id, 
+            station_interval_ms, 
+            station_enabled, 
+            trajectory_enabled, 
+            trajectory_send_interval_ms, 
+            trajectory_pause_ms, 
+            storage_interval_ms
+        FROM task_config
+        LIMIT 1
+    </select>
+    
+    <insert id="insertTaskConfig" parameterType="com.wu.monitor.model.TaskConfig">
+        INSERT INTO task_config (
+            station_interval_ms,
+            station_enabled,
+            trajectory_enabled,
+            trajectory_send_interval_ms,
+            trajectory_pause_ms,
+            storage_interval_ms
+        ) VALUES (
+            #{stationTask.intervalMs},
+            #{stationTask.enabled},
+            #{trajectoryTask.enabled},
+            #{trajectoryTask.sendIntervalMs},
+            #{trajectoryTask.pauseMs},
+            #{storageTask.intervalMs}
+        )
+    </insert>
+    
+    <update id="updateTaskConfig" parameterType="com.wu.monitor.model.TaskConfig">
+        UPDATE task_config
+        SET
+            station_interval_ms = #{stationTask.intervalMs},
+            station_enabled = #{stationTask.enabled},
+            trajectory_enabled = #{trajectoryTask.enabled},
+            trajectory_send_interval_ms = #{trajectoryTask.sendIntervalMs},
+            trajectory_pause_ms = #{trajectoryTask.pauseMs},
+            storage_interval_ms = #{storageTask.intervalMs}
+    </update>
+    
+    <select id="countTaskConfig" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM task_config
+    </select>
+</mapper> 

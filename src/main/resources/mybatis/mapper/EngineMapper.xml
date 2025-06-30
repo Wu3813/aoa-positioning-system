@@ -8,7 +8,7 @@
         <result property="name" column="name"/>
         <result property="managementUrl" column="management_url"/>
         <result property="dataUrl" column="data_url"/>
-        <result property="mapId" column="map_id"/>
+        <result property="mapId" column="map_id" jdbcType="BIGINT"/>
         <result property="mapName" column="map_name"/>
         <result property="status" column="status"/>
         <result property="version" column="version"/>
@@ -27,7 +27,7 @@
     <select id="findAll" resultMap="engineMap">
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
-        LEFT JOIN map m ON e.map_id = m.id
+        LEFT JOIN map m ON e.map_id = m.map_id
         <where>
             <if test="code != null and code != ''">
                 AND e.code LIKE CONCAT('%', #{code}, '%')
@@ -46,7 +46,7 @@
     <select id="findById" resultMap="engineMap">
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
-        LEFT JOIN map m ON e.map_id = m.id
+        LEFT JOIN map m ON e.map_id = m.map_id
         WHERE e.id = #{id}
     </select>
 
@@ -54,7 +54,7 @@
     <select id="findByCode" resultMap="engineMap">
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
-        LEFT JOIN map m ON e.map_id = m.id
+        LEFT JOIN map m ON e.map_id = m.map_id
         WHERE e.code = #{code}
     </select>
 
@@ -103,7 +103,7 @@
     <select id="findByMapId" resultMap="engineMap">
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
-        LEFT JOIN map m ON e.map_id = m.id
+        LEFT JOIN map m ON e.map_id = m.map_id
         WHERE e.map_id = #{mapId}
         ORDER BY e.create_time ASC
     </select>

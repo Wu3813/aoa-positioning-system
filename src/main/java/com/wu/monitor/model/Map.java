@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 @Data
 public class Map {
     private Long id;
-    private String mapId;  // 已经存在，不需要修改
+    private Long mapId;
     private String name;
     private String imagePath;
     private Integer width;

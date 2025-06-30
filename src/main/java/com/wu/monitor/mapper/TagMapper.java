@@ -11,15 +11,13 @@ import java.util.List;
 public interface TagMapper {
     /**
      * 查询所有标签
-     * @param code 标签编号（可选）
      * @param name 标签名称（可选）
-     * @param groupName 标签分组（可选）
+     * @param macAddress MAC地址（可选）
      * @param status 标签状态（可选）
      * @return 标签列表
      */
-    List<Tag> selectAllTags(@Param("code") String code, 
-                           @Param("name") String name, 
-                           @Param("groupName") String groupName,
+    List<Tag> selectAllTags(@Param("name") String name,
+                           @Param("macAddress") String macAddress,
                            @Param("status") Integer status);
     
     /**
@@ -35,13 +33,6 @@ public interface TagMapper {
      * @return 标签信息
      */
     Tag selectTagByMacAddress(@Param("macAddress") String macAddress);
-    
-    /**
-     * 根据编号查询标签
-     * @param code 标签编号
-     * @return 标签信息
-     */
-    Tag selectTagByCode(@Param("code") String code);
     
     /**
      * 插入标签信息
@@ -99,9 +90,32 @@ public interface TagMapper {
     List<Tag> selectTagsByMapId(@Param("mapId") Long mapId);
     
     /**
-     * 根据分组查询标签
-     * @param groupName 分组名称
-     * @return 标签列表
+     * 根据MAC地址更新标签状态和位置信息
+     * @param macAddress MAC地址
+     * @param status 状态
+     * @param rssi RSSI信号强度
+     * @param positionX X坐标
+     * @param positionY Y坐标
+     * @param positionZ Z坐标
+     * @param batteryLevel 电量百分比
+     * @param mapId 地图ID
+     * @param lastSeen 最后可见时间
+     * @return 影响行数
      */
-    List<Tag> selectTagsByGroupName(@Param("groupName") String groupName);
+    int updateTagStatusByMac(@Param("macAddress") String macAddress, 
+                            @Param("status") Integer status, 
+                            @Param("rssi") Integer rssi,
+                            @Param("positionX") Double positionX,
+                            @Param("positionY") Double positionY,
+                            @Param("positionZ") Double positionZ,
+                            @Param("batteryLevel") Integer batteryLevel,
+                            @Param("mapId") Integer mapId,
+                            @Param("lastSeen") LocalDateTime lastSeen);
+    
+    /**
+     * 将长时间未更新的标签设置为离线状态
+     * @param thresholdTime 阈值时间
+     * @return 影响行数
+     */
+    int updateOfflineTagsByTime(@Param("thresholdTime") LocalDateTime thresholdTime);
 } 

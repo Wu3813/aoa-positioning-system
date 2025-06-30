@@ -25,6 +25,7 @@ public class Station {
     private Integer rssi;         // RSSI配置值(dBm)
     private String targetIp;      // 目标IP地址
     private Integer targetPort;   // 目标端口
+    private String scanConfigType; // 扫描配置类型(config1/config2)
     private LocalDateTime lastCommunication;
     private LocalDateTime createTime;
     private String remark;

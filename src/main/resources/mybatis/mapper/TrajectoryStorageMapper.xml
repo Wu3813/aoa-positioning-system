@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wu.monitor.mapper.TrajectoryStorageMapper">
+    
+    <!-- 批量插入轨迹记录 -->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO trajectory_data 
+        (device_id, map_id, timestamp, x, y, rssi, battery, point_count)
+        VALUES
+        <foreach collection="records" item="record" separator=",">
+            (#{record.deviceId}, #{record.mapId}, #{record.timestamp},
+             #{record.x}, #{record.y}, #{record.rssi}, #{record.battery}, #{record.pointCount})
+        </foreach>
+    </insert>
+    
+    <!-- 查询设备历史轨迹 - 直接使用前端传入的时间，不做任何时区转换处理 -->
+    <select id="selectByDeviceId" resultType="com.wu.monitor.model.TrajectoryRecord">
+        SELECT 
+            id, 
+            device_id as deviceId, 
+            map_id as mapId, 
+            timestamp, 
+            x, 
+            y, 
+            rssi, 
+            battery, 
+            point_count as pointCount
+        FROM trajectory_data
+        WHERE device_id = #{deviceId}
+        <if test="mapId != null">
+            AND map_id = #{mapId}
+        </if>
+        <if test="startTime != null">
+            <!-- 使用CONVERT_TZ函数将时间戳转换为UTC时区，以消除时区影响 -->
+            AND timestamp >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND timestamp &lt;= #{endTime}
+        </if>
+        ORDER BY timestamp ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 创建分区 -->
+    <select id="createPartition" statementType="CALLABLE">
+        {call CreateTrajectoryPartition(#{year}, #{month})}
+    </select>
+    
+    <!-- 检查分区是否存在 -->
+    <select id="checkPartitionExists" resultType="int">
+        SELECT COUNT(*) 
+        FROM information_schema.partitions 
+        WHERE table_schema = DATABASE() 
+          AND table_name = 'trajectory_data' 
+          AND partition_name = #{partitionName}
+    </select>
+    
+</mapper> 

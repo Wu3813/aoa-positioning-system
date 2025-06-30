@@ -88,12 +88,14 @@
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
-                  <el-icon><Edit /></el-icon> 修改
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-button-group class="operation-row">
+                  <el-button type="default" size="small" @click="handleEdit(scope.row)">
+                    修改
+                  </el-button>
+                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
+                    删除
+                  </el-button>
+                </el-button-group>
               </div>
             </template>
           </el-table-column>
@@ -150,7 +152,7 @@
                   v-for="map in mapList" 
                   :key="map.id" 
                   :label="map.name" 
-                  :value="map.id"
+                  :value="map.mapId"
                 />
               </el-select>
             </el-form-item>
@@ -653,7 +655,22 @@ onBeforeUnmount(() => {
 
 .operation-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 130px;
+}
+
+.operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.operation-buttons .el-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 1px;
+  height: 22px;
+  min-width: 0;
 }
 
 .dialog-footer {
