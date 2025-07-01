@@ -29,8 +29,8 @@ public class MapServiceImpl implements MapService {
     }
     
     @Override
-    public Map getMapById(Long id) {
-        return mapMapper.selectMapById(id);
+    public Map getMapByMapId(Long mapId) {
+        return mapMapper.selectMapByMapId(mapId);
     }
     
     @Override
@@ -68,8 +68,8 @@ public class MapServiceImpl implements MapService {
     }
     
     @Override
-    public Map updateMap(Long id, Map map, MultipartFile file) {
-        Map existingMap = mapMapper.selectMapById(id);
+    public Map updateMap(Long mapId, Map map, MultipartFile file) {
+        Map existingMap = mapMapper.selectMapByMapId(mapId);
         if (existingMap == null) {
             throw new RuntimeException("地图不存在");
         }
@@ -96,7 +96,7 @@ public class MapServiceImpl implements MapService {
         }
     
         // 设置ID
-        map.setId(id);
+        map.setId(existingMap.getId());
         // 保留原有的创建时间
         map.setCreateTime(existingMap.getCreateTime());
         // 如果没有新文件，保留原有的图片路径
@@ -105,31 +105,31 @@ public class MapServiceImpl implements MapService {
         }
         
         mapMapper.updateMap(map);
-        return mapMapper.selectMapById(id);
+        return mapMapper.selectMapByMapId(mapId);
     }
     
     @Override
-    public void deleteMap(Long id) {
-        Map map = mapMapper.selectMapById(id);
+    public void deleteMapByMapId(Long mapId) {
+        Map map = mapMapper.selectMapByMapId(mapId);
         if (map != null && map.getImagePath() != null) {
             // 删除文件
             new File(Paths.get(uploadPath, map.getImagePath()).toString()).delete();
         }
-        mapMapper.deleteMapById(id);
+        mapMapper.deleteMapByMapId(mapId);
     }
     
     @Override
-    public void batchDeleteMaps(List<Long> ids) {
+    public void batchDeleteMapsByMapIds(List<Long> mapIds) {
         // 删除文件
-        for (Long id : ids) {
-            Map map = mapMapper.selectMapById(id);
+        for (Long mapId : mapIds) {
+            Map map = mapMapper.selectMapByMapId(mapId);
             if (map != null && map.getImagePath() != null) {
                 new File(Paths.get(uploadPath, map.getImagePath()).toString()).delete();
             }
         }
         
         // 批量删除数据库记录
-        mapMapper.batchDeleteMaps(ids);
+        mapMapper.batchDeleteMapsByMapIds(mapIds);
     }
     
     private String getFileExtension(String filename) {

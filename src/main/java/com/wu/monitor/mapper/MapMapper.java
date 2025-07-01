@@ -9,15 +9,13 @@ import java.util.List;
 public interface MapMapper {
     List<Map> selectAllMaps(@Param("name") String name);
     
-    Map selectMapById(@Param("id") Long id);
+    Map selectMapByMapId(@Param("mapId") Long mapId);
     
     int insertMap(Map map);
     
     int updateMap(Map map);
     
-    int deleteMapById(@Param("id") Long id);
+    int deleteMapByMapId(@Param("mapId") Long mapId);
     
-    void batchDeleteMaps(@Param("ids") List<Long> ids);
-    
-    Map selectMapByMapId(Long mapId);
+    void batchDeleteMapsByMapIds(@Param("mapIds") List<Long> mapIds);
 }

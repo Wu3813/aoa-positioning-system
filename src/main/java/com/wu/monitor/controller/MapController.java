@@ -21,15 +21,37 @@ public class MapController {
     @Autowired
     private MapService mapService;
 
+    // 当前选中的地图ID
+    private Long currentMapId;
+
     @GetMapping
     public List<Map> getAllMaps(@RequestParam(required = false) String name) {
         return mapService.getAllMaps(name);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Map> getMapById(@PathVariable Long id) {
-        Map map = mapService.getMapById(id);
+    @GetMapping("/{mapId}")
+    public ResponseEntity<Map> getMapByMapId(@PathVariable Long mapId) {
+        Map map = mapService.getMapByMapId(mapId);
         return map != null ? ResponseEntity.ok(map) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<Map> getCurrentMap() {
+        if (currentMapId == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Map map = mapService.getMapByMapId(currentMapId);
+        return map != null ? ResponseEntity.ok(map) : ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/current/{mapId}")
+    public ResponseEntity<Map> setCurrentMap(@PathVariable Long mapId) {
+        Map map = mapService.getMapByMapId(mapId);
+        if (map != null) {
+            currentMapId = mapId;
+            return ResponseEntity.ok(map);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -64,10 +86,9 @@ public class MapController {
         return mapService.createMap(map, file);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{mapId}")
     public Map updateMap(
-            @PathVariable Long id,
-            @RequestParam(required = false) Long mapId,
+            @PathVariable Long mapId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer width,
             @RequestParam(required = false) Integer height,
@@ -94,18 +115,18 @@ public class MapController {
         map.setPoint2X(point2X);
         map.setPoint2Y(point2Y);
         map.setRealDistance(realDistance);
-        return mapService.updateMap(id, map, file);
+        return mapService.updateMap(mapId, map, file);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteMap(@PathVariable Long id) {
-        mapService.deleteMap(id);
+    @DeleteMapping("/{mapId}")
+    public void deleteMap(@PathVariable Long mapId) {
+        mapService.deleteMapByMapId(mapId);
     }
 
-    @GetMapping("/{id}/image")
-    public ResponseEntity<Resource> getMapImage(@PathVariable Long id) {
+    @GetMapping("/{mapId}/image")
+    public ResponseEntity<Resource> getMapImage(@PathVariable Long mapId) {
         try {
-            Map map = mapService.getMapById(id);
+            Map map = mapService.getMapByMapId(mapId);
             if (map != null && map.getImagePath() != null) {
                 Path imagePath = Paths.get(System.getProperty("user.dir"), "uploads", "maps", map.getImagePath());
                 Resource resource = new UrlResource(imagePath.toUri());
@@ -123,7 +144,7 @@ public class MapController {
     }
 
     @DeleteMapping("/batch")
-    public void batchDeleteMaps(@RequestBody List<Long> ids) {
-        mapService.batchDeleteMaps(ids);
+    public void batchDeleteMaps(@RequestBody List<Long> mapIds) {
+        mapService.batchDeleteMapsByMapIds(mapIds);
     }
 }

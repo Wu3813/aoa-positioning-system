@@ -150,7 +150,7 @@
               <el-select v-model="engineForm.mapId" placeholder="请选择地图" style="width: 100%">
                 <el-option 
                   v-for="map in mapList" 
-                  :key="map.id" 
+                  :key="map.mapId"
                   :label="map.name" 
                   :value="map.mapId"
                 />

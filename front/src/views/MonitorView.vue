@@ -13,9 +13,9 @@
           >
             <el-option
               v-for="map in mapList"
-              :key="map.id"
+              :key="map.mapId"
               :label="map.name"
-              :value="map.id"
+              :value="map.mapId"
             />
           </el-select>
           <div class="trace-control">
@@ -116,6 +116,7 @@
               :width="imageInfo.width * imageInfo.scaleX"
               :height="imageInfo.height * imageInfo.scaleY"
               :viewBox="`0 0 ${imageInfo.width} ${imageInfo.height}`"
+              :style="{ willChange: 'transform' }"
             >
               <!-- 围栏多边形 -->
               <template v-for="geofence in trackingStore.geofenceList" :key="geofence.id">
@@ -143,7 +144,8 @@
                 </text>
               </template>
               
-              <template v-for="sensor in trackingStore.visibleSensorsList" :key="sensor.mac">
+              <!-- 优化渲染，使用单个g元素分组传感器轨迹 -->
+              <g v-for="sensor in trackingStore.visibleSensorsList" :key="sensor.mac">
                 <!-- 当前位置点 -->
                 <circle
                   v-if="sensor.lastPoint"
@@ -164,7 +166,7 @@
                   stroke-width="2"
                   opacity="0.6"
                 />
-              </template>
+              </g>
             </svg>
           </div>
         </div>
@@ -176,7 +178,7 @@
 <script setup>
 import { useMapStore } from '@/stores/map'
 import { useTrackingStore } from '@/stores/tracking'
-import { ref, onMounted, computed, watch, reactive } from 'vue'
+import { ref, onMounted, computed, watch, reactive, onUnmounted, nextTick } from 'vue'
 import { Search, Refresh, Plus, Delete, Edit, Setting, Picture } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -193,6 +195,10 @@ const imageInfo = reactive({
 })
 const mapStore = useMapStore()
 const trackingStore = useTrackingStore()
+
+// 自动刷新相关
+let autoRefreshInterval = null
+const AUTO_REFRESH_INTERVAL = 1000 // 1秒刷新一次
 
 // 地图选择相关
 const mapList = ref([])
@@ -224,14 +230,14 @@ const fetchMapList = async () => {
     // 尝试获取上次选择的地图ID
     const savedMapId = mapStore.getPageMapSelection('monitor')
     
-    // 查找保存的地图是否在当前地图列表中
-    const savedMapExists = savedMapId && mapList.value.some(map => map.id === savedMapId)
+    // 查找保存的地图是否在当前地图列表中（使用mapId）
+    const savedMapExists = savedMapId && mapList.value.some(map => map.mapId === savedMapId)
     
     // 如果存在已保存的选择，使用它；否则使用第一张地图
     if (savedMapExists) {
       selectedMapId.value = savedMapId
     } else if (mapList.value.length > 0 && !selectedMapId.value) {
-      selectedMapId.value = mapList.value[0].id
+      selectedMapId.value = mapList.value[0].mapId
     }
     
     if (selectedMapId.value) {
@@ -247,13 +253,24 @@ const fetchMapList = async () => {
 const handleMapChange = async (mapId, isInitialLoad = false) => {
   try {
     await mapStore.selectMap(mapId, 'monitor') // 传入页面名称参数
+    
+    // 调用过滤函数，确保只显示与当前地图匹配的传感器
+    trackingStore.filterSensorsByMapId();
+    
+    // 加载当前地图的电子围栏
+    await trackingStore.fetchGeofences(mapId);
+    
+    // 启动WebSocket连接
+    if (!trackingStore.wsConnected) {
+      trackingStore.connect();
+    }
   } catch (error) {
     console.error('切换地图失败:', error)
     ElMessage.error('切换地图失败')
   }
 }
 
-// 获取轨迹点函数 - 优化性能，减少计算开销
+// 获取轨迹点函数 - 高性能优化版
 const getTracePoints = (points) => {
   if (!points || points.length === 0) return ''
   
@@ -262,55 +279,108 @@ const getTracePoints = (points) => {
     displayPoints = points.slice(-trackingStore.traceLimit)
   }
   
-  // 移除调试日志，减少性能开销
-  return displayPoints
-    .map(p => {
-      // 使用store的转换方法获取图片上的像素坐标
-      const pixelX = mapStore.meterToPixelX(p.x)
-      const pixelY = mapStore.meterToPixelY(p.y)
-      
-      // 防止NaN或无效值
-      if (isNaN(pixelX) || isNaN(pixelY)) return null
-      
-      return `${pixelX},${pixelY}`
-    })
-    .filter(p => p !== null) // 过滤掉无效点
-    .join(' ')
-}
-
-// 获取围栏多边形点字符串
-const getGeofencePoints = (points) => {
-  if (!points || points.length === 0) return ''
+  // 创建性能优化的字符串构建器
+  const pointsArray = new Array(displayPoints.length)
+  let validPointsCount = 0
   
-  return points
-    .map(p => {
-      // 围栏点存储的是图片像素坐标，直接使用
-      const pixelX = p.x
-      const pixelY = p.y
-      
-      // 防止NaN或无效值
-      if (isNaN(pixelX) || isNaN(pixelY)) return null
-      
-      return `${pixelX},${pixelY}`
-    })
-    .filter(p => p !== null) // 过滤掉无效点
-    .join(' ')
+  // 避免多次转换、批量处理
+  for (let i = 0; i < displayPoints.length; i++) {
+    const p = displayPoints[i]
+    
+    // 使用store的转换方法获取图片上的像素坐标
+    const pixelX = mapStore.meterToPixelX(p.x)
+    const pixelY = mapStore.meterToPixelY(p.y)
+    
+    // 防止NaN或无效值
+    if (isNaN(pixelX) || isNaN(pixelY)) continue
+    
+    // 直接添加到数组中，避免字符串拼接
+    pointsArray[validPointsCount++] = `${pixelX},${pixelY}`
+  }
+  
+  // 如果没有有效点，返回空字符串
+  if (validPointsCount === 0) return ''
+  
+  // 只在最后执行一次join操作，提高性能
+  return pointsArray.slice(0, validPointsCount).join(' ')
 }
 
-// 获取围栏中心点X坐标（用于显示围栏名称）
+// 获取围栏多边形点字符串 - 优化版
+const getGeofencePoints = (() => {
+  // 闭包缓存已计算的结果
+  const cache = new Map()
+  
+  return (points) => {
+    if (!points || points.length === 0) return ''
+    
+    // 生成缓存key
+    const cacheKey = points.map(p => `${p.x},${p.y}`).join('|')
+    
+    // 检查缓存
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey)
+    }
+    
+    // 没有缓存，计算结果
+    const result = points
+      .map(p => {
+        // 围栏点存储的是图片像素坐标，直接使用
+        const pixelX = p.x
+        const pixelY = p.y
+        
+        // 防止NaN或无效值
+        if (isNaN(pixelX) || isNaN(pixelY)) return null
+        
+        return `${pixelX},${pixelY}`
+      })
+      .filter(p => p !== null) // 过滤掉无效点
+      .join(' ')
+    
+    // 存入缓存
+    if (cache.size > 100) { // 限制缓存大小
+      // 清除第一个缓存项
+      const firstKey = cache.keys().next().value
+      cache.delete(firstKey)
+    }
+    cache.set(cacheKey, result)
+    
+    return result
+  }
+})()
+
+// 使用缓存的围栏中心点计算
+const geofenceCenters = new Map()
+
+// 获取围栏中心点X坐标（用于显示围栏名称）- 优化版
 const getGeofenceCenterX = (points) => {
   if (!points || points.length === 0) return 0
   
-  const avgX = points.reduce((sum, p) => sum + (p.x || 0), 0) / points.length
-  return avgX
+  const id = JSON.stringify(points) // 简单的缓存键
+  
+  if (!geofenceCenters.has(id)) {
+    // 计算并缓存中心点
+    const avgX = points.reduce((sum, p) => sum + (p.x || 0), 0) / points.length
+    const avgY = points.reduce((sum, p) => sum + (p.y || 0), 0) / points.length
+    geofenceCenters.set(id, { x: avgX, y: avgY })
+  }
+  
+  return geofenceCenters.get(id).x
 }
 
-// 获取围栏中心点Y坐标（用于显示围栏名称）
+// 获取围栏中心点Y坐标（用于显示围栏名称）- 优化版
 const getGeofenceCenterY = (points) => {
   if (!points || points.length === 0) return 0
   
-  const avgY = points.reduce((sum, p) => sum + (p.y || 0), 0) / points.length
-  return avgY
+  const id = JSON.stringify(points) // 简单的缓存键
+  
+  if (!geofenceCenters.has(id)) {
+    // 计算并缓存中心点
+    const avgX = points.reduce((sum, p) => sum + (p.x || 0), 0) / points.length
+    const avgY = points.reduce((sum, p) => sum + (p.y || 0), 0) / points.length
+    geofenceCenters.set(id, { x: avgX, y: avgY })
+  }
+  
+  return geofenceCenters.get(id).y
 }
 
 // 修改显示切换逻辑
@@ -393,19 +463,57 @@ const updateScaleFactor = () => {
   }
 }
 
+// 设置自动刷新
+const setupAutoRefresh = () => {
+  // 先清除已有的定时器
+  clearAutoRefresh();
+  
+  // 设置新的定时器
+  autoRefreshInterval = setInterval(() => {
+    // 强制重新渲染组件，确保轨迹正确显示
+    nextTick(() => {
+      // 只有当有传感器数据且地图已加载时才需刷新
+      if (trackingStore.visibleSensorsList.length > 0 && mapStore.selectedMap && imageInfo.loaded) {
+        // 检查轨迹数据是否有更新
+        const hasNewData = trackingStore.hasDataUpdates();
+        
+        // 如果有新数据，触发Vue更新
+        if (hasNewData) {
+          // 通知Vue更新DOM
+          trackingStore.notifyUpdate();
+        }
+      }
+    });
+  }, AUTO_REFRESH_INTERVAL);
+}
+
+// 清除自动刷新
+const clearAutoRefresh = () => {
+  if (autoRefreshInterval !== null) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+  }
+}
+
 // 组件挂载
 onMounted(async () => {
-  await fetchMapList()
+  await fetchMapList();
+  
   window.addEventListener('resize', () => {
     // 窗口大小变化时更新缩放比例
     if (mapStore.selectedMap && imageInfo.loaded) {
       updateScaleFactor();
     }
-  })
+  });
+  
+  // 设置自动刷新，确保轨迹实时显示
+  setupAutoRefresh();
 })
 
 // 监听地图变化
 watch(() => mapStore.selectedMap, () => {
+  geofenceCenters.clear();
+  
   // 当地图变化时，重置图片信息状态
   imageInfo.loaded = false;
   imageInfo.width = 0;
@@ -413,6 +521,15 @@ watch(() => mapStore.selectedMap, () => {
   imageInfo.scaleX = 1;
   imageInfo.scaleY = 1;
 }, { deep: true })
+
+// 组件卸载时清除缓存和定时器
+onUnmounted(() => {
+  geofenceCenters.clear();
+  clearAutoRefresh();
+  
+  // 断开WebSocket连接
+  trackingStore.disconnect();
+})
 </script>
 
 <style scoped>

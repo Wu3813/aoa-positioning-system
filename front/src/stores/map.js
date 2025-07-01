@@ -12,7 +12,7 @@ export const useMapStore = defineStore('map', () => {
   })
   
   const mapUrl = computed(() => {
-    return selectedMap.value ? `/api/maps/${selectedMap.value.id}/image?t=${Date.now()}` : ''
+    return selectedMap.value ? `/api/maps/${selectedMap.value.mapId}/image?t=${Date.now()}` : ''
   })
 
   // 计算坐标像素转换比例
@@ -65,12 +65,13 @@ export const useMapStore = defineStore('map', () => {
         return null
       }
       
+      // 直接使用mapId查询地图详情
       const response = await axios.get(`/api/maps/${mapId}`)
       selectedMap.value = response.data
       
-      // 如果指定了页面名称，保存该页面的选择
+      // 如果指定了页面名称，保存该页面的选择（存储mapId而不是id）
       if (pageName && Object.keys(pageMapSelections.value).includes(pageName)) {
-        pageMapSelections.value[pageName] = mapId
+        pageMapSelections.value[pageName] = selectedMap.value.mapId
         // 保存到localStorage
         saveMapSelections()
       }

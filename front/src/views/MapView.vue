@@ -57,10 +57,10 @@
           <el-table-column prop="name" label="地图名称" min-width="150" show-overflow-tooltip sortable="custom" />
           <el-table-column label="地图图片" width="110">
             <template #default="scope">
-              <div v-if="scope.row.id" class="image-container">
+              <div v-if="scope.row.mapId" class="image-container">
                 <el-image 
                   style="width: 70px; height: 50px"
-                  :src="getMapImageUrl(scope.row.id)" 
+                  :src="getMapImageUrl(scope.row.mapId)" 
                   fit="cover"
                   loading="lazy"
                 >
@@ -451,20 +451,19 @@ const multipleSelection = ref([])
 
 // 添加/编辑表单
 const mapForm = reactive({
-  id: null,
   mapId: '',
   name: '',
   file: null,
-  originX: 0,
-  originY: 0,
   width: 0,
   height: 0,
+  originX: null,
+  originY: null,
   scale: null,
   point1X: null,
   point1Y: null,
   point2X: null,
   point2Y: null,
-  realDistance: 1
+  realDistance: 0
 })
 
 // 排序相关
@@ -521,13 +520,8 @@ const hasCompletedScale = ref(false)
 
 // 获取地图图片 URL
 const getMapImageUrl = (mapId) => {
-  try {
-    if (!mapId) return '';
-    return `/api/maps/${mapId}/image?t=${Date.now()}`;
-  } catch (error) {
-    console.error('生成图片URL时出错:', error);
-    return '';
-  }
+  if (!mapId) return '';
+  return `/api/maps/${mapId}/image?t=${Date.now()}`;
 }
 
 // 获取地图列表
@@ -561,7 +555,7 @@ const fetchMapList = async () => {
 const fetchCurrentMapId = async () => {
    try {
       const currentMapResponse = await axios.get('/api/maps/current')
-      currentMapId.value = currentMapResponse.data?.id || null
+      currentMapId.value = currentMapResponse.data?.mapId || null
     } catch (error) {
        console.warn('获取当前地图失败:', error)
        if (!currentMapId.value) {
@@ -942,7 +936,6 @@ const resetForm = () => {
   if (mapFormRef.value) {
     mapFormRef.value.resetFields();
   }
-  mapForm.id = null;
   mapForm.mapId = '';
   mapForm.file = null;
   mapForm.name = '';
@@ -985,7 +978,6 @@ const handleEdit = (row) => {
   resetForm();
   dialogType.value = 'edit';
   // 填充表单数据
-  mapForm.id = row.id;
   mapForm.mapId = row.mapId;
   mapForm.name = row.name;
   mapForm.originX = row.originX || 0;
@@ -1033,7 +1025,7 @@ const handleEdit = (row) => {
   
   // 加载预览图
   previewLoading.value = true;
-  previewImageUrl.value = getMapImageUrl(row.id);
+  previewImageUrl.value = getMapImageUrl(row.mapId);
   
   dialogVisible.value = true;
   if (uploadRef.value) {
@@ -1048,7 +1040,7 @@ const handleDelete = (row) => {
     type: 'warning'
   }).then(async () => {
     try {
-      await axios.delete(`/api/maps/${row.id}`)
+      await axios.delete(`/api/maps/${row.mapId}`)
       ElMessage.success('删除成功')
       fetchMapList()
     } catch (error) {
@@ -1073,8 +1065,8 @@ const handleBatchDelete = () => {
     type: 'warning'
   }).then(async () => {
     try {
-      const ids = multipleSelection.value.map(item => item.id)
-      await axios.delete('/api/maps/batch', { data: ids })
+      const mapIds = multipleSelection.value.map(item => item.mapId)
+      await axios.delete('/api/maps/batch', { data: mapIds })
       ElMessage.success('删除成功')
       handleSearch()
     } catch (error) {
@@ -1135,12 +1127,12 @@ const handleSubmit = async () => {
       if (mapForm.file) {
         formData.append('file', mapForm.file)
       }
-      if (!mapForm.id) {
-        console.error('编辑地图时 ID 丢失')
-        ElMessage.error('编辑失败，地图 ID 丢失')
+      if (!mapForm.mapId) {
+        console.error('编辑地图时 mapId 丢失')
+        ElMessage.error('编辑失败，地图 mapId 丢失')
         return
       }
-      await axios.put(`/api/maps/${mapForm.id}`, formData)
+      await axios.put(`/api/maps/${mapForm.mapId}`, formData)
       ElMessage.success('编辑成功')
     }
     
@@ -1156,8 +1148,8 @@ const handleSubmit = async () => {
 // 设置为当前地图
 const handleSetCurrent = async (row) => {
   try {
-    await axios.put(`/api/maps/current/${row.id}`)
-    currentMapId.value = row.id
+    await axios.put(`/api/maps/current/${row.mapId}`)
+    currentMapId.value = row.mapId
     ElMessage.success(`已将 "${row.name}" 设置为当前地图`)
   } catch (error) {
     console.error('设置当前地图失败:', error)

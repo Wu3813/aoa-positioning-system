@@ -15,9 +15,9 @@
                 <el-select v-model="searchForm.mapId" placeholder="请选择地图" clearable style="width: 200px;">
                   <el-option 
                     v-for="map in mapList" 
-                    :key="map.id || map.mapId" 
+                    :key="map.mapId"
                     :label="map.name" 
-                    :value="map.id || map.mapId"
+                    :value="map.mapId"
                   />
                 </el-select>
               </el-form-item>

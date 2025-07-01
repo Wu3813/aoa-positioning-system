@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface MapService {
     List<Map> getAllMaps(String name);
-    Map getMapById(Long id);
+    Map getMapByMapId(Long mapId);
     Map createMap(Map map, MultipartFile file);
-    Map updateMap(Long id, Map map, MultipartFile file);
-    void deleteMap(Long id);
-    void batchDeleteMaps(List<Long> ids);
+    Map updateMap(Long mapId, Map map, MultipartFile file);
+    void deleteMapByMapId(Long mapId);
+    void batchDeleteMapsByMapIds(List<Long> mapIds);
 }

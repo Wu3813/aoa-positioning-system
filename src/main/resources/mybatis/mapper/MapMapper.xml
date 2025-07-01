@@ -35,12 +35,6 @@
         ORDER BY create_time ASC
     </select>
     
-    <select id="selectMapById" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List" />
-        FROM map
-        WHERE id = #{id}
-    </select>
-    
     <select id="selectMapByMapId" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM map
@@ -78,14 +72,14 @@
         WHERE id = #{id}
     </update>
     
-    <delete id="deleteMapById">
-        DELETE FROM map WHERE id = #{id}
+    <delete id="deleteMapByMapId">
+        DELETE FROM map WHERE map_id = #{mapId}
     </delete>
     
-    <delete id="batchDeleteMaps">
-        DELETE FROM map WHERE id IN
-        <foreach collection="ids" item="id" open="(" separator="," close=")">
-            #{id}
+    <delete id="batchDeleteMapsByMapIds">
+        DELETE FROM map WHERE map_id IN
+        <foreach collection="mapIds" item="mapId" open="(" separator="," close=")">
+            #{mapId}
         </foreach>
     </delete>
 </mapper>

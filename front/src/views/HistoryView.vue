@@ -16,9 +16,9 @@
               >
                 <el-option
                   v-for="map in mapList"
-                  :key="map.id"
+                  :key="map.mapId"
                   :label="map.name"
-                  :value="map.id"
+                  :value="map.mapId"
                 />
               </el-select>
             </el-form-item>
@@ -295,13 +295,13 @@ const fetchMapList = async () => {
     const savedMapId = mapStore.getPageMapSelection('history')
     
     // 查找保存的地图是否在当前地图列表中
-    const savedMapExists = savedMapId && mapList.value.some(map => map.id === savedMapId)
+    const savedMapExists = savedMapId && mapList.value.some(map => map.mapId === savedMapId)
     
     // 如果存在已保存的选择，使用它；否则使用第一张地图
     if (savedMapExists) {
       selectedMapId.value = savedMapId
     } else if (mapList.value.length > 0 && !selectedMapId.value) {
-      selectedMapId.value = mapList.value[0].id
+      selectedMapId.value = mapList.value[0].mapId
     }
     
     if (selectedMapId.value) {

@@ -14,9 +14,9 @@
               <el-select v-model="searchForm.mapId" placeholder="请选择地图" clearable style="width: 200px;">
                 <el-option 
                   v-for="map in mapList" 
-                  :key="map.id || map.mapId" 
+                  :key="map.mapId" 
                   :label="map.name" 
-                  :value="map.id || map.mapId"
+                  :value="map.mapId"
                 />
               </el-select>
             </el-form-item>
@@ -153,9 +153,9 @@
                 <el-select v-model="geofenceForm.mapId" placeholder="请选择地图" style="width: 100%;">
                   <el-option 
                     v-for="map in mapList" 
-                    :key="map.id || map.mapId" 
+                    :key="map.mapId" 
                     :label="map.name" 
-                    :value="map.id || map.mapId"
+                    :value="map.mapId"
                   />
                 </el-select>
               </el-form-item>
@@ -380,7 +380,7 @@ const fetchGeofences = async () => {
       // 为每个围栏添加 mapName 字段
       geofences.forEach(geofence => {
         if (geofence.mapId) {
-          const map = mapList.value.find(m => (m.id || m.mapId) === geofence.mapId)
+          const map = mapList.value.find(m => m.mapId === geofence.mapId)
           geofence.mapName = map ? map.name : '未知地图'
         } else {
           geofence.mapName = '-'
