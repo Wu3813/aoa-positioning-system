@@ -110,64 +110,22 @@
               ref="mapImage"
               @load="handleImageLoad"
             />
-            <svg 
+            <!-- 替换SVG为Canvas，并将尺寸设置为显示尺寸 -->
+            <canvas 
               v-if="imageInfo.loaded"
+              ref="mapCanvas"
               class="coordinate-overlay" 
-              :width="imageInfo.width * imageInfo.scaleX"
-              :height="imageInfo.height * imageInfo.scaleY"
-              :viewBox="`0 0 ${imageInfo.width} ${imageInfo.height}`"
-              :style="{ willChange: 'transform' }"
-            >
-              <!-- 围栏多边形 -->
-              <template v-for="geofence in trackingStore.geofenceList" :key="geofence.id">
-                <polygon 
-                  :points="getGeofencePoints(geofence.points)" 
-                  fill="rgba(255, 193, 7, 0.1)"
-                  stroke="#FFC107" 
-                  stroke-width="2"
-                  stroke-dasharray="5,5"
-                  opacity="0.8"
-                />
-                <!-- 围栏名称标签 -->
-                <text 
-                  v-if="geofence.points && geofence.points.length > 0"
-                  :x="getGeofenceCenterX(geofence.points)"
-                  :y="getGeofenceCenterY(geofence.points)"
-                  text-anchor="middle"
-                  dominant-baseline="middle"
-                  fill="#E65100"
-                  font-size="12"
-                  font-weight="bold"
-                  style="pointer-events: none; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);"
-                >
-                  {{ geofence.name }}
-                </text>
-              </template>
-              
-              <!-- 优化渲染，使用单个g元素分组传感器轨迹 -->
-              <g v-for="sensor in trackingStore.visibleSensorsList" :key="sensor.mac">
-                <!-- 当前位置点 -->
-                <circle
-                  v-if="sensor.lastPoint"
-                  :cx="mapStore.meterToPixelX(sensor.lastPoint.x)"
-                  :cy="mapStore.meterToPixelY(sensor.lastPoint.y)"
-                  r="5"
-                  :fill="sensor.color"
-                  stroke="#fff"
-                  stroke-width="2"
-                  style="filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));"
-                />
-                <!-- 轨迹线 -->
-                <polyline
-                  v-if="sensor.points && sensor.points.length > 1"
-                  :points="getTracePoints(sensor.points)"
-                  :stroke="sensor.color"
-                  fill="none"
-                  stroke-width="2"
-                  opacity="0.6"
-                />
-              </g>
-            </svg>
+              :width="imageInfo.displayWidth"
+              :height="imageInfo.displayHeight"
+              :style="{
+                position: 'absolute',
+                top: `${imageInfo.domInfo.offsetY}px`,
+                left: `${imageInfo.domInfo.offsetX}px`,
+                width: `${imageInfo.displayWidth}px`,
+                height: `${imageInfo.displayHeight}px`,
+                pointerEvents: 'none'
+              }"
+            ></canvas>
           </div>
         </div>
       </div>
@@ -186,18 +144,28 @@ import axios from 'axios'
 
 const router = useRouter()
 const mapImage = ref(null)
+const mapCanvas = ref(null)
 const imageInfo = reactive({
   width: 0,
   height: 0,
   loaded: false,
   scaleX: 1,
-  scaleY: 1
+  scaleY: 1,
+  displayWidth: 0,
+  displayHeight: 0,
+  domInfo: {
+    offsetX: 0,
+    offsetY: 0,
+    displayWidth: 0,
+    displayHeight: 0
+  }
 })
 const mapStore = useMapStore()
 const trackingStore = useTrackingStore()
 
 // 自动刷新相关
 let autoRefreshInterval = null
+let renderRequestId = null
 const AUTO_REFRESH_INTERVAL = 1000 // 1秒刷新一次
 
 // 地图选择相关
@@ -270,83 +238,152 @@ const handleMapChange = async (mapId, isInitialLoad = false) => {
   }
 }
 
-// 获取轨迹点函数 - 高性能优化版
-const getTracePoints = (points) => {
-  if (!points || points.length === 0) return ''
-  
-  let displayPoints = points
-  if (trackingStore.limitTraceEnabled) {
-    displayPoints = points.slice(-trackingStore.traceLimit)
-  }
-  
-  // 创建性能优化的字符串构建器
-  const pointsArray = new Array(displayPoints.length)
-  let validPointsCount = 0
-  
-  // 避免多次转换、批量处理
-  for (let i = 0; i < displayPoints.length; i++) {
-    const p = displayPoints[i]
-    
-    // 使用store的转换方法获取图片上的像素坐标
-    const pixelX = mapStore.meterToPixelX(p.x)
-    const pixelY = mapStore.meterToPixelY(p.y)
-    
-    // 防止NaN或无效值
-    if (isNaN(pixelX) || isNaN(pixelY)) continue
-    
-    // 直接添加到数组中，避免字符串拼接
-    pointsArray[validPointsCount++] = `${pixelX},${pixelY}`
-  }
-  
-  // 如果没有有效点，返回空字符串
-  if (validPointsCount === 0) return ''
-  
-  // 只在最后执行一次join操作，提高性能
-  return pointsArray.slice(0, validPointsCount).join(' ')
+// 坐标转换函数 - 将原始像素坐标转换为显示尺寸坐标
+const convertToDisplayX = (x) => {
+  return x * imageInfo.scaleX;
 }
 
-// 获取围栏多边形点字符串 - 优化版
-const getGeofencePoints = (() => {
-  // 闭包缓存已计算的结果
-  const cache = new Map()
+const convertToDisplayY = (y) => {
+  return y * imageInfo.scaleY;
+}
+
+// 修改: 使用Canvas绘制轨迹点函数
+const renderCanvas = () => {
+  if (!mapCanvas.value || !imageInfo.loaded) return
   
-  return (points) => {
-    if (!points || points.length === 0) return ''
+  const canvas = mapCanvas.value
+  const ctx = canvas.getContext('2d')
+  
+  // 清除画布
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  
+  // 绘制围栏
+  renderGeofences(ctx)
+  
+  // 绘制传感器轨迹和当前位置点
+  trackingStore.visibleSensorsList.forEach(sensor => {
+    if (!sensor.points || sensor.points.length === 0) return
     
-    // 生成缓存key
-    const cacheKey = points.map(p => `${p.x},${p.y}`).join('|')
-    
-    // 检查缓存
-    if (cache.has(cacheKey)) {
-      return cache.get(cacheKey)
+    // 确定要显示的点
+    let displayPoints = sensor.points
+    if (trackingStore.limitTraceEnabled) {
+      displayPoints = displayPoints.slice(-trackingStore.traceLimit)
     }
     
-    // 没有缓存，计算结果
-    const result = points
-      .map(p => {
-        // 围栏点存储的是图片像素坐标，直接使用
-        const pixelX = p.x
-        const pixelY = p.y
-        
-        // 防止NaN或无效值
-        if (isNaN(pixelX) || isNaN(pixelY)) return null
-        
-        return `${pixelX},${pixelY}`
+    // 绘制轨迹线
+    if (displayPoints.length > 1) {
+      ctx.beginPath()
+      ctx.strokeStyle = sensor.color
+      ctx.lineWidth = 2
+      ctx.globalAlpha = 0.6
+      
+      // 确保第一个点是有效的
+      let validPoints = displayPoints.filter(p => {
+        const x = mapStore.meterToPixelX(p.x)
+        const y = mapStore.meterToPixelY(p.y)
+        return !isNaN(x) && !isNaN(y)
       })
-      .filter(p => p !== null) // 过滤掉无效点
-      .join(' ')
-    
-    // 存入缓存
-    if (cache.size > 100) { // 限制缓存大小
-      // 清除第一个缓存项
-      const firstKey = cache.keys().next().value
-      cache.delete(firstKey)
+      
+      if (validPoints.length > 0) {
+        const firstPoint = validPoints[0]
+        // 转换到显示坐标
+        const x = convertToDisplayX(mapStore.meterToPixelX(firstPoint.x))
+        const y = convertToDisplayY(mapStore.meterToPixelY(firstPoint.y))
+        ctx.moveTo(x, y)
+        
+        // 绘制后续点
+        for (let i = 1; i < validPoints.length; i++) {
+          const p = validPoints[i]
+          // 转换到显示坐标
+          const x = convertToDisplayX(mapStore.meterToPixelX(p.x))
+          const y = convertToDisplayY(mapStore.meterToPixelY(p.y))
+          ctx.lineTo(x, y)
+        }
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1.0
     }
-    cache.set(cacheKey, result)
     
-    return result
-  }
-})()
+    // 绘制当前位置点
+    if (sensor.lastPoint) {
+      // 转换到显示坐标
+      const x = convertToDisplayX(mapStore.meterToPixelX(sensor.lastPoint.x))
+      const y = convertToDisplayY(mapStore.meterToPixelY(sensor.lastPoint.y))
+      
+      if (!isNaN(x) && !isNaN(y)) {
+        // 绘制外圈阴影
+        ctx.beginPath()
+        ctx.shadowBlur = 3
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 2
+        ctx.fillStyle = sensor.color
+        ctx.arc(x, y, 5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        ctx.shadowBlur = 0
+      }
+    }
+  })
+}
+
+// 新增：绘制围栏函数
+const renderGeofences = (ctx) => {
+  // 绘制所有围栏
+  trackingStore.geofenceList.forEach(geofence => {
+    if (!geofence.points || geofence.points.length < 3) return
+    
+    // 绘制围栏多边形
+    ctx.beginPath()
+    ctx.fillStyle = 'rgba(255, 193, 7, 0.1)'
+    ctx.strokeStyle = '#FFC107'
+    ctx.lineWidth = 2
+    
+    // 使用虚线绘制
+    ctx.setLineDash([5, 5])
+    
+    const firstPoint = geofence.points[0]
+    // 转换到显示坐标
+    ctx.moveTo(convertToDisplayX(firstPoint.x), convertToDisplayY(firstPoint.y))
+    
+    for (let i = 1; i < geofence.points.length; i++) {
+      const point = geofence.points[i]
+      // 转换到显示坐标
+      ctx.lineTo(convertToDisplayX(point.x), convertToDisplayY(point.y))
+    }
+    
+    // 闭合路径
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+    
+    // 重置线型为实线
+    ctx.setLineDash([])
+    
+    // 绘制围栏名称
+    const centerX = convertToDisplayX(getGeofenceCenterX(geofence.points))
+    const centerY = convertToDisplayY(getGeofenceCenterY(geofence.points))
+    
+    ctx.font = 'bold 12px Arial'
+    ctx.fillStyle = '#E65100'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    
+    // 添加文字阴影效果
+    ctx.shadowColor = 'rgba(255,255,255,0.8)'
+    ctx.shadowBlur = 2
+    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetY = 1
+    
+    ctx.fillText(geofence.name, centerX, centerY)
+    
+    // 重置阴影
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+  })
+}
 
 // 使用缓存的围栏中心点计算
 const geofenceCenters = new Map()
@@ -386,11 +423,15 @@ const getGeofenceCenterY = (points) => {
 // 修改显示切换逻辑
 const toggleVisibility = (sensor) => {
   trackingStore.toggleVisibility(sensor)
+  // 切换显示状态后重新渲染Canvas
+  renderCanvas()
 }
 
 // 切换所有传感器显示状态
 const toggleAllVisible = (visible) => {
   trackingStore.toggleAllVisible(visible)
+  // 切换显示状态后重新渲染Canvas
+  renderCanvas()
 }
 
 // 图片加载事件处理函数
@@ -407,35 +448,47 @@ const handleImageLoad = (e) => {
       imageInfo.height = mapStore.selectedMap.height
     }
     
-    // 计算图片的显示尺寸与实际尺寸的比例
-    const displayWidth = img.clientWidth
-    const displayHeight = img.clientHeight
-    imageInfo.scaleX = displayWidth / imageInfo.width
-    imageInfo.scaleY = displayHeight / imageInfo.height
-    
-    console.log("地图图片加载完成，尺寸：", imageInfo.width, "x", imageInfo.height, "缩放比例:", imageInfo.scaleX, imageInfo.scaleY)
-    imageInfo.loaded = true
-    
-    // 确保地图和坐标系计算正确初始化
-    if (mapStore.selectedMap) {
-      console.log("地图设置：", {
-        原点: { x: mapStore.selectedMap.originX, y: mapStore.selectedMap.originY },
-        比例尺: mapStore.pixelsPerMeter,
-        尺寸: { width: imageInfo.width, height: imageInfo.height }
-      })
-    }
-    
-    // 添加DOM位置信息，用于精确坐标计算
-    const imgRect = img.getBoundingClientRect();
-    const containerRect = img.parentElement.getBoundingClientRect();
-    imageInfo.domInfo = {
-      offsetX: imgRect.left - containerRect.left,
-      offsetY: imgRect.top - containerRect.top,
-      displayWidth: imgRect.width,
-      displayHeight: imgRect.height
-    };
-    
-    console.log("图片DOM位置信息:", imageInfo.domInfo);
+    // 等待图片完全加载并布局完成
+    nextTick(() => {
+      // 获取图片的实际显示尺寸和位置信息
+      const imgRect = img.getBoundingClientRect();
+      const containerRect = img.parentElement.getBoundingClientRect();
+      
+      // 存储图片在容器中的偏移量和显示尺寸
+      imageInfo.domInfo = {
+        offsetX: imgRect.left - containerRect.left,
+        offsetY: imgRect.top - containerRect.top,
+        displayWidth: imgRect.width,
+        displayHeight: imgRect.height
+      };
+      
+      // 更新显示尺寸和缩放比例
+      imageInfo.displayWidth = imgRect.width;
+      imageInfo.displayHeight = imgRect.height;
+      imageInfo.scaleX = imageInfo.displayWidth / imageInfo.width;
+      imageInfo.scaleY = imageInfo.displayHeight / imageInfo.height;
+      
+      console.log("地图图片加载完成，尺寸：", imageInfo.width, "x", imageInfo.height, 
+                "显示尺寸:", imageInfo.displayWidth, "x", imageInfo.displayHeight, 
+                "偏移位置:", imageInfo.domInfo.offsetX, "x", imageInfo.domInfo.offsetY,
+                "缩放比例:", imageInfo.scaleX, imageInfo.scaleY);
+      
+      imageInfo.loaded = true;
+      
+      // 确保地图和坐标系计算正确初始化
+      if (mapStore.selectedMap) {
+        console.log("地图设置：", {
+          原点: { x: mapStore.selectedMap.originX, y: mapStore.selectedMap.originY },
+          比例尺: mapStore.pixelsPerMeter,
+          尺寸: { width: imageInfo.width, height: imageInfo.height }
+        });
+      }
+      
+      // 图片加载完成后，初始化Canvas并首次渲染
+      if (mapCanvas.value) {
+        renderCanvas();
+      }
+    });
   }
 }
 
@@ -444,13 +497,11 @@ const updateScaleFactor = () => {
   if (mapImage.value && imageInfo.width && imageInfo.height) {
     const img = mapImage.value;
     
-    // 更新显示比例
-    imageInfo.scaleX = img.clientWidth / imageInfo.width;
-    imageInfo.scaleY = img.clientHeight / imageInfo.height;
-    
-    // 更新DOM位置信息
+    // 获取最新的图片位置和尺寸信息
     const imgRect = img.getBoundingClientRect();
     const containerRect = img.parentElement.getBoundingClientRect();
+    
+    // 更新偏移量和显示尺寸
     imageInfo.domInfo = {
       offsetX: imgRect.left - containerRect.left,
       offsetY: imgRect.top - containerRect.top,
@@ -458,9 +509,25 @@ const updateScaleFactor = () => {
       displayHeight: imgRect.height
     };
     
+    // 更新显示尺寸和比例
+    imageInfo.displayWidth = imgRect.width;
+    imageInfo.displayHeight = imgRect.height;
+    imageInfo.scaleX = imageInfo.displayWidth / imageInfo.width;
+    imageInfo.scaleY = imageInfo.displayHeight / imageInfo.height;
+    
     console.log("更新缩放因子:", imageInfo.scaleX, imageInfo.scaleY);
-    console.log("更新DOM位置信息:", imageInfo.domInfo);
+    console.log("更新显示尺寸:", imageInfo.displayWidth, "x", imageInfo.displayHeight);
+    console.log("更新图片位置:", imageInfo.domInfo.offsetX, ",", imageInfo.domInfo.offsetY);
+    
+    // 缩放比例更新后重新渲染Canvas
+    renderCanvas();
   }
+}
+
+// 修改：Canvas渲染动画帧
+const renderFrame = () => {
+  renderCanvas();
+  renderRequestId = requestAnimationFrame(renderFrame);
 }
 
 // 设置自动刷新
@@ -468,22 +535,22 @@ const setupAutoRefresh = () => {
   // 先清除已有的定时器
   clearAutoRefresh();
   
-  // 设置新的定时器
+  // 使用requestAnimationFrame进行Canvas渲染
+  renderRequestId = requestAnimationFrame(renderFrame);
+  
+  // 设置新的定时器用于数据检查
   autoRefreshInterval = setInterval(() => {
-    // 强制重新渲染组件，确保轨迹正确显示
-    nextTick(() => {
-      // 只有当有传感器数据且地图已加载时才需刷新
-      if (trackingStore.visibleSensorsList.length > 0 && mapStore.selectedMap && imageInfo.loaded) {
-        // 检查轨迹数据是否有更新
-        const hasNewData = trackingStore.hasDataUpdates();
-        
-        // 如果有新数据，触发Vue更新
-        if (hasNewData) {
-          // 通知Vue更新DOM
-          trackingStore.notifyUpdate();
-        }
+    // 只有当有传感器数据且地图已加载时才需处理
+    if (trackingStore.visibleSensorsList.length > 0 && mapStore.selectedMap && imageInfo.loaded) {
+      // 检查轨迹数据是否有更新
+      const hasNewData = trackingStore.hasDataUpdates();
+      
+      // 如果有新数据，触发Vue更新
+      if (hasNewData) {
+        // 通知Vue更新DOM
+        trackingStore.notifyUpdate();
       }
-    });
+    }
   }, AUTO_REFRESH_INTERVAL);
 }
 
@@ -492,6 +559,12 @@ const clearAutoRefresh = () => {
   if (autoRefreshInterval !== null) {
     clearInterval(autoRefreshInterval);
     autoRefreshInterval = null;
+  }
+  
+  // 取消requestAnimationFrame
+  if (renderRequestId !== null) {
+    cancelAnimationFrame(renderRequestId);
+    renderRequestId = null;
   }
 }
 
@@ -502,7 +575,13 @@ onMounted(async () => {
   window.addEventListener('resize', () => {
     // 窗口大小变化时更新缩放比例
     if (mapStore.selectedMap && imageInfo.loaded) {
-      updateScaleFactor();
+      // 清除坐标转换缓存
+      trackingStore.coordinateCache?.clear();
+      
+      // 延迟更新缩放比例，确保DOM已经完成重排
+      setTimeout(() => {
+        updateScaleFactor();
+      }, 100);
     }
   });
   
@@ -520,7 +599,23 @@ watch(() => mapStore.selectedMap, () => {
   imageInfo.height = 0;
   imageInfo.scaleX = 1;
   imageInfo.scaleY = 1;
+  imageInfo.displayWidth = 0;
+  imageInfo.displayHeight = 0;
+  imageInfo.domInfo = {
+    offsetX: 0,
+    offsetY: 0,
+    displayWidth: 0,
+    displayHeight: 0
+  };
 }, { deep: true })
+
+// 监听轨迹数据更新
+watch(() => trackingStore.forceUpdateFlag, () => {
+  // 轨迹数据更新时，触发Canvas重绘
+  if (imageInfo.loaded && mapCanvas.value) {
+    renderCanvas();
+  }
+})
 
 // 组件卸载时清除缓存和定时器
 onUnmounted(() => {
@@ -633,8 +728,6 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 }
 

@@ -22,8 +22,8 @@ export const useTrackingStore = defineStore('tracking', () => {
   // 数据处理优化相关变量
   const dataBuffer = ref([]) // 存储接收到的数据
   const processingData = ref(false) // 标记是否正在处理数据
-  const BUFFER_SIZE = 500 // 缓冲区大小，每批处理500条数据
-  const PROCESSING_INTERVAL = 16 // 16ms (约60fps)，控制处理频率
+  const BUFFER_SIZE = 200 // 缓冲区大小，每批处理200条数据，减少单次处理量
+  const PROCESSING_INTERVAL = 32 // 32ms (约30fps)，降低处理频率以减轻CPU负担
   let processingTimer = null // 处理定时器
   
   // 缓存映射，提高查找性能
@@ -34,8 +34,8 @@ export const useTrackingStore = defineStore('tracking', () => {
   const sensorTimeouts = ref({}) // 存储每个传感器的超时定时器
   
   // 轨迹控制相关
-  const limitTraceEnabled = ref(false)
-  const traceLimit = ref(100)
+  const limitTraceEnabled = ref(true) // 默认启用轨迹限制
+  const traceLimit = ref(50) // 默认轨迹点数减少到50
   
   // 围栏列表
   const geofenceList = ref([])
@@ -45,7 +45,7 @@ export const useTrackingStore = defineStore('tracking', () => {
   
   // 坐标转换性能优化 - 预计算和缓存
   const coordinateCache = ref(new Map()) // 坐标转换缓存
-  const CACHE_SIZE = 10000 // 缓存大小限制
+  const CACHE_SIZE = 2000 // 缓存大小限制减小到2000，减少内存占用
   
   // 存储已登记的标签列表 (MAC地址 -> 标签信息的映射)
   const registeredTags = ref(new Map())
@@ -79,7 +79,7 @@ export const useTrackingStore = defineStore('tracking', () => {
     return [r, g, b]
   }
   
-  // 生成500种不同颜色
+  // 生成颜色
   const generateColors = (count) => {
     const colors = []
     // 使用黄金比例分割法生成均匀分布的色相值
@@ -90,10 +90,9 @@ export const useTrackingStore = defineStore('tracking', () => {
     for (let i = 0; i < count; i++) {
       h = (h + goldenRatioConjugate) % 1
       
-      // 计算饱和度和亮度变化
-      // 使用三组不同的饱和度和亮度值使颜色更加多样化
-      const s = 0.6 + Math.random() * 0.2
-      const l = i % 3 === 0 ? 0.65 : (i % 3 === 1 ? 0.45 : 0.55)
+      // 简化饱和度和亮度计算，减少随机数生成
+      const s = 0.65
+      const l = i % 2 === 0 ? 0.6 : 0.5
       
       // 转换HSL为十六进制颜色代码
       const rgb = hslToRgb(h, s, l)
@@ -108,8 +107,8 @@ export const useTrackingStore = defineStore('tracking', () => {
     return colors
   }
   
-  // 生成500种不同颜色
-  const COLORS = generateColors(550) // 生成550种颜色以确保有足够的备用
+  // 减少颜色生成数量，节省内存
+  const COLORS = generateColors(150)
   
   // 可见的传感器列表 (用于渲染)
   const visibleSensorsList = computed(() => {
@@ -119,6 +118,12 @@ export const useTrackingStore = defineStore('tracking', () => {
   // 自动连接相关的变量和函数
   const autoConnect = ref(false)
   const reconnectInterval = ref(null)
+  
+  // 标签轮询相关变量
+  const tagsPollingInterval = ref(null)
+  
+  // 内存使用监控
+  let memoryMonitorInterval = null
   
   // 在useTrackingStore定义的开始，添加lastUpdateTimestamp变量用于跟踪数据更新
   const lastUpdateTimestamp = ref(Date.now());
@@ -130,6 +135,9 @@ export const useTrackingStore = defineStore('tracking', () => {
       console.log('WebSocket已连接，无需重复连接')
       return
     }
+    
+    // 启动标签轮询
+    startTagsPolling()
   
     stompClient.value = new Client({
       brokerURL: '/ws-path/websocket',
@@ -210,26 +218,32 @@ export const useTrackingStore = defineStore('tracking', () => {
       processingTimer = setTimeout(processBatch, PROCESSING_INTERVAL)
     }
 
-    // 使用Web Worker或requestAnimationFrame可以考虑在此处添加
-    requestAnimationFrame(() => {
-      // 按MAC分组处理，减少对同一传感器的反复操作
-      const groupedData = new Map()
-      
-      // 将数据按MAC地址分组
-      for (const data of currentBatch) {
-        if (!groupedData.has(data.mac)) {
-          groupedData.set(data.mac, [])
-        }
-        groupedData.get(data.mac).push(data)
+    // 使用更高效的处理方式，不依赖requestAnimationFrame减少回调开销
+    // 按MAC分组处理，减少对同一传感器的反复操作
+    const groupedData = Object.create(null) // 使用Object而非Map减少内存开销
+    
+    // 将数据按MAC地址分组，使用对象属性访问比Map快
+    for (let i = 0; i < currentBatch.length; i++) {
+      const data = currentBatch[i]
+      if (!groupedData[data.mac]) {
+        groupedData[data.mac] = []
       }
+      groupedData[data.mac].push(data)
+    }
+    
+    // 释放原始数据引用，帮助GC回收
+    currentBatch.length = 0
+    
+    // 处理每组数据
+    for (const mac in groupedData) {
+      const dataList = groupedData[mac]
+      // 只处理最新的一条数据，提高性能
+      const latestData = dataList[dataList.length - 1]
+      processTrackingData(latestData)
       
-      // 处理每组数据
-      for (const [mac, dataList] of groupedData.entries()) {
-        // 只处理最新的一条数据，提高性能
-        const latestData = dataList[dataList.length - 1]
-        processTrackingData(latestData)
-      }
-    })
+      // 释放数据引用
+      dataList.length = 0
+    }
   }
   
   // 断开WebSocket连接
@@ -718,6 +732,33 @@ export const useTrackingStore = defineStore('tracking', () => {
     }
   }
   
+  // 启动标签定时轮询
+  function startTagsPolling() {
+    // 先清除可能存在的定时器
+    if (tagsPollingInterval.value) {
+      clearInterval(tagsPollingInterval.value)
+    }
+    
+    // 立即执行一次
+    fetchRegisteredTags()
+    
+    // 设置10秒轮询间隔
+    tagsPollingInterval.value = setInterval(() => {
+      fetchRegisteredTags()
+    }, 10000)
+    
+    console.log('已启动标签信息10秒轮询')
+  }
+  
+  // 停止标签定时轮询
+  function stopTagsPolling() {
+    if (tagsPollingInterval.value) {
+      clearInterval(tagsPollingInterval.value)
+      tagsPollingInterval.value = null
+      console.log('已停止标签信息轮询')
+    }
+  }
+  
   // 切换地图时的处理
   async function handleMapChange(mapId) {
     try {
@@ -774,6 +815,62 @@ export const useTrackingStore = defineStore('tracking', () => {
       
       window.cancelIdleCallback = (id) => clearTimeout(id)
     }
+    
+    // 开启内存监控，定期清理可能的内存泄漏
+    startMemoryMonitor()
+  }
+  
+  // 内存监控和优化函数
+  function startMemoryMonitor() {
+    // 先清除可能存在的定时器
+    if (memoryMonitorInterval) {
+      clearInterval(memoryMonitorInterval)
+    }
+    
+    memoryMonitorInterval = setInterval(() => {
+      // 执行内存优化操作
+      optimizeMemory()
+    }, 60000) // 每分钟执行一次
+  }
+  
+  // 内存优化函数
+  function optimizeMemory() {
+    try {
+      // 1. 清理长时间未更新的传感器
+      const now = Date.now()
+      const oldThreshold = 300000 // 5分钟未更新则清理
+      
+      const oldSensors = sensorList.value.filter(sensor => 
+        !sensor.lastUpdated || (now - sensor.lastUpdated) > oldThreshold)
+      
+      oldSensors.forEach(sensor => {
+        // 只清理非可见传感器的数据点以节省内存
+        if (!visibleSensors.value.has(sensor.mac)) {
+          // 清空数据点但保留传感器记录
+          sensor.points = []
+        }
+      })
+      
+      // 2. 对非活跃传感器应用轨迹限制策略
+      // 注意：不进行采样压缩，保留全部轨迹点
+      if (limitTraceEnabled.value) {
+        sensorList.value.forEach(sensor => {
+          // 如果是非可见传感器且轨迹限制开启，则只保留轨迹限制数量的点
+          if (!visibleSensors.value.has(sensor.mac) && sensor.points && 
+              sensor.points.length > traceLimit.value) {
+            // 仅保留最新的traceLimit个点
+            sensor.points = sensor.points.slice(-traceLimit.value)
+          }
+        })
+      }
+      
+      // 3. 清理坐标转换缓存
+      if (coordinateCache.value.size > CACHE_SIZE * 0.8) {
+        coordinateCache.value.clear()
+      }
+    } catch (e) {
+      console.error('内存优化过程中出错:', e)
+    }
   }
   
   // 清理资源
@@ -794,8 +891,25 @@ export const useTrackingStore = defineStore('tracking', () => {
       processingTimer = null
     }
     
+    // 停止标签轮询
+    stopTagsPolling()
+    
+    // 停止内存监控
+    if (memoryMonitorInterval) {
+      clearInterval(memoryMonitorInterval)
+      memoryMonitorInterval = null
+    }
+    
     // 断开WebSocket连接
     stopAutoConnect()
+    
+    // 释放大型数据结构
+    sensorList.value = []
+    dataBuffer.value = []
+    coordinateCache.value.clear()
+    sensorMap.value.clear()
+    visibleSensors.value.clear()
+    geofenceCache.value.clear()
   }
   
   // 监听选中地图的变化
@@ -864,6 +978,8 @@ export const useTrackingStore = defineStore('tracking', () => {
     disconnect,
     startAutoConnect,
     stopAutoConnect,
+    startTagsPolling,
+    stopTagsPolling,
     getSensorColor,
     clearAllTraces,
     toggleVisibility,
