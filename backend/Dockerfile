@@ -1,4 +1,4 @@
-From maven:3.8.4-openjdk-8 AS builder
+From maven:3-amazoncorretto-8 AS builder
 
 WORKDIR /app
 
@@ -7,8 +7,7 @@ COPY ./src /app/src
 
 RUN mvn clean package -DskipTests
 
-# 使用支持多架构(包括ARM64)的Amazon Corretto JDK 8
-FROM amazoncorretto:8-alpine-jdk
+FROM amazoncorretto:8-alpine-jre
 
 WORKDIR /app
 
