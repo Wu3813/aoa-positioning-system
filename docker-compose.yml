@@ -1,82 +1,77 @@
-version: '3.8'
-
 services:
   # MySQL服务
   mysql:
+    # TODO: switch to mariaDB
     image: mysql:8.0
-    container_name: aoa-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: aoa
-      LANG: C.UTF-8
-      LC_ALL: C.UTF-8
-    ports:
-      - "3306:3306"
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=aoa
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    # ports:
+    #   - "3306:3306"
     volumes:
-      - /var/lib/mysql-data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
+      - ./init_sql:/docker-entrypoint-initdb.d
     command: 
       - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --init-connect='SET NAMES utf8mb4'
       - --innodb-flush-log-at-trx-commit=0
-    networks:
-      - aoa-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   # Redis服务
   redis:
     image: redis:latest
-    container_name: aoa-redis
     restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - aoa-network
-  
+    # ports:
+    #   - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   # 后端服务
   backend:
+    image: "polymatrix/aoa-mvp-backend"
     build: 
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: aoa-backend
     restart: always
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
-      - ./uploads:/app/uploads
-    ports:
-      - "8080:8080"
+      - ./data/uploads:/app/uploads
+    # ports:
+    #   - "8080:8080"
     environment:
+      - TZ=Asia/Shanghai
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_REDIS_HOST=redis
-    networks:
-      - aoa-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-  
+
   # 前端服务
   frontend:
+    image: "polymatrix/aoa-mvp-frontend"
     build:
       context: ./front
       dockerfile: Dockerfile
-    container_name: aoa-frontend
     restart: always
     depends_on:
       - backend
     ports:
       - "8081:80"
-    networks:
-      - aoa-network
-
-networks:
-  aoa-network:
-    driver: bridge 
