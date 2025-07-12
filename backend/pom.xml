@@ -4,19 +4,28 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.wu</groupId>
+    <parent>
+        <groupId>com.wu</groupId>
+        <artifactId>aoa-positioning-system</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>AOA_monitor</artifactId>
     <version>1.0-SNAPSHOT</version>
 
 
     <!-- 使用Spring Boot 2.x最后一个支持Java 8的版本 -->
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version> <!-- 2023年发布的最终Java8支持版 -->
-
-
-    </parent>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.7.18</version> <!-- 2023年发布的最终Java8支持版 -->
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <properties>
         <java.version>1.8</java.version> <!-- 必须使用1.8 -->
@@ -73,11 +82,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.15.2</version> <!-- 版本需与Spring Boot兼容 -->
-        </dependency>
+        
         <!-- Spring WebSocket -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -89,11 +94,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
-
-
-
     </dependencies>
+    
     <build>
         <plugins>
             <plugin>

@@ -13,7 +13,7 @@ import { useTrackingStore } from './stores/tracking'
 
 // 设置基础URL
 // 开发环境中，设置为本地开发服务器地址
-axios.defaults.baseURL = ''
+axios.defaults.baseURL = 'http://localhost:8080'
 
 const app = createApp(App)
 const pinia = createPinia()

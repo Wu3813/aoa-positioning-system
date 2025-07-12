@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="backend run" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="AOA_monitor" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.wu.monitor.Application" />
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component> 
