@@ -135,7 +135,7 @@
 
 <script setup>
 import { useMapStore } from '@/stores/map'
-import { useTrackingStore } from '@/stores/tracking'
+import { useTrackingStore } from '@/stores/trackingStore'
 import { ref, onMounted, computed, watch, reactive, onUnmounted, nextTick } from 'vue'
 import { Search, Refresh, Plus, Delete, Edit, Setting, Picture } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'

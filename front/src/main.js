@@ -9,7 +9,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import router from './router'
 import axios from 'axios'
-import { useTrackingStore } from './stores/tracking'
+import { useTrackingStore } from './stores/trackingStore'
 
 // 设置基础URL
 // 开发环境中，设置为本地开发服务器地址
