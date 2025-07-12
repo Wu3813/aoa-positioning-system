@@ -33,7 +33,7 @@
                 AND t.name LIKE CONCAT('%', #{name}, '%')
             </if>
             <if test="macAddress != null and macAddress != ''">
-                AND t.mac_address LIKE CONCAT('%', #{macAddress}, '%')
+                AND LOWER(t.mac_address) LIKE CONCAT('%', LOWER(#{macAddress}), '%')
             </if>
             <if test="status != null">
                 AND t.status = #{status}
@@ -51,7 +51,7 @@
     <select id="selectTagByMacAddress" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM tag t
-        WHERE t.mac_address = #{macAddress}
+        WHERE LOWER(t.mac_address) = LOWER(#{macAddress})
     </select>
     
     <select id="selectTagsByMapId" resultMap="BaseResultMap">
@@ -127,7 +127,7 @@
             battery_level = #{batteryLevel},
             map_id = #{mapId},
             last_seen = #{lastSeen}
-        WHERE mac_address = #{macAddress}
+        WHERE LOWER(mac_address) = LOWER(#{macAddress})
     </update>
     
     <update id="updateOfflineTagsByTime">

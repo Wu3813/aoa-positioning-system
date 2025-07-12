@@ -42,7 +42,7 @@ public class TrackingData {
     
     // 设置设备ID（兼容DTO输入）
     public void setMac(String mac) {
-        this.deviceId = mac;
+        this.deviceId = mac != null ? mac.toLowerCase() : null;
     }
     
     // 获取时间戳
@@ -53,5 +53,10 @@ public class TrackingData {
     // 设置时间戳
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+    
+    // 重写setDeviceId方法，确保MAC地址统一为小写
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId != null ? deviceId.toLowerCase() : null;
     }
 } 

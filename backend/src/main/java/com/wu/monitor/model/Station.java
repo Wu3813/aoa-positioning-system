@@ -32,4 +32,9 @@ public class Station {
     
     // 关联的地图名称（非数据库字段，用于前端显示）
     private String mapName;
+    
+    // 自定义setter，确保MAC地址统一为小写
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress != null ? macAddress.toLowerCase() : null;
+    }
 } 

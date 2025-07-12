@@ -153,10 +153,9 @@
                 v-model="tagForm.macAddress" 
                 placeholder="请输入12位十六进制字符，不要包含冒号或连字符"
                 maxlength="12"
-                style="text-transform: uppercase;"
               >
                 <template #suffix>
-                  <el-tooltip content="输入格式如：84FD27EEE603（12位十六进制，不含分隔符）" placement="top">
+                  <el-tooltip content="输入格式如：84fd27eee603（12位十六进制，不含分隔符）" placement="top">
                     <el-icon style="color: #909399; cursor: help;"><QuestionFilled /></el-icon>
                   </el-tooltip>
                 </template>
@@ -241,7 +240,7 @@ const rules = {
   ],
   macAddress: [
     { required: true, message: '请输入MAC地址', trigger: 'blur' },
-    { pattern: /^[0-9A-Fa-f]{12}$/, message: 'MAC地址格式不正确，请输入12位十六进制字符（如：84FD27EEE603），不要包含冒号或连字符', trigger: 'blur' }
+    { pattern: /^[0-9A-Fa-f]{12}$/, message: 'MAC地址格式不正确，请输入12位十六进制字符（如：84fd27eee603），不要包含冒号或连字符', trigger: 'blur' }
   ],
   model: [
     { required: true, message: '请输入标签型号', trigger: 'blur' }
@@ -286,14 +285,16 @@ const formatDateTime = (dateTimeStr) => {
   }
 }
 
-// 格式化MAC地址显示（添加冒号）
+// 格式化MAC地址显示（添加冒号，保持小写）
 const formatMacAddress = (macAddress) => {
   if (!macAddress) return '-';
-  if (macAddress.length === 12) {
-    // 将12位连续格式转换为标准格式 (例: 84FD27EEE603 -> 84:FD:27:EE:E6:03)
-    return macAddress.replace(/(.{2})/g, '$1:').slice(0, -1);
+  // 先转换为小写
+  const macLower = macAddress.toLowerCase();
+  if (macLower.length === 12) {
+    // 将12位连续格式转换为标准格式 (例: 84fd27eee603 -> 84:fd:27:ee:e6:03)
+    return macLower.replace(/(.{2})/g, '$1:').slice(0, -1);
   }
-  return macAddress; // 如果已经是标准格式或其他格式，直接返回
+  return macLower; // 如果已经是标准格式或其他格式，直接返回小写版本
 }
 
 // 适应窗口大小调整表格高度
@@ -420,8 +421,8 @@ const getMapNameById = (mapId) => {
 // MAC地址输入格式化
 const formatMacInput = (value) => {
   if (!value) return '';
-  // 移除所有非十六进制字符，并转换为大写
-  return value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase().substring(0, 12);
+  // 移除所有非十六进制字符，并转换为小写
+  return value.replace(/[^0-9A-Fa-f]/g, '').toLowerCase().substring(0, 12);
 };
 
 // 监听MAC地址输入变化
@@ -506,13 +507,17 @@ const handleSubmit = async () => {
     if (valid) {
       submitLoading.value = true;
       try {
-        // 只需要提交mapId，后端不再存储mapName
+        // 确保MAC地址保存为小写
+        const submitData = { ...tagForm };
+        if (submitData.macAddress) {
+          submitData.macAddress = submitData.macAddress.toLowerCase();
+        }
         
         if (dialogType.value === 'add') {
-          await axios.post('/api/tags', tagForm);
+          await axios.post('/api/tags', submitData);
           ElMessage.success('添加成功');
         } else {
-          await axios.put(`/api/tags/${tagForm.id}`, tagForm);
+          await axios.put(`/api/tags/${submitData.id}`, submitData);
           ElMessage.success('更新成功');
         }
         dialogVisible.value = false;
@@ -578,9 +583,9 @@ const filteredTagList = computed(() => {
       
       // 特殊处理MAC地址
       if (prop === 'macAddress') {
-        // 移除冒号或连字符，统一比较
-        valueA = valueA ? valueA.replace(/[:-]/g, '') : '';
-        valueB = valueB ? valueB.replace(/[:-]/g, '') : '';
+        // 移除冒号或连字符，统一比较，转为小写不区分大小写
+        valueA = valueA ? valueA.replace(/[:-]/g, '').toLowerCase() : '';
+        valueB = valueB ? valueB.replace(/[:-]/g, '').toLowerCase() : '';
       }
       
       // 处理可能为空的值

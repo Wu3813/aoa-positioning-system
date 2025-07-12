@@ -181,7 +181,7 @@ const filteredSensorList = computed(() => {
   const lowerFilter = sensorFilter.value.toLowerCase()
   return trackingStore.sensorList.filter(sensor => 
     (sensor.name && sensor.name.toLowerCase().includes(lowerFilter)) ||
-    sensor.mac.toLowerCase().includes(lowerFilter)
+    (sensor.mac && sensor.mac.toLowerCase().includes(lowerFilter))
   )
 })
 

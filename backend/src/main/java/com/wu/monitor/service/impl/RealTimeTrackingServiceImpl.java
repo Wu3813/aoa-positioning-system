@@ -152,6 +152,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     @Override
     public TrackingData getLatestPosition(String deviceId) {
         try {
+            // 确保MAC地址统一为小写
+            if (deviceId != null) {
+                deviceId = deviceId.toLowerCase();
+            }
+            
             return (TrackingData) redisTemplate.opsForValue().get(DEVICE_LATEST_PREFIX + deviceId);
         } catch (ClassCastException e) {
             log.error("类型转换异常: {}", e.getMessage());
@@ -164,6 +169,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     
     @Override
     public List<TrackingData> getDeviceHistory(String deviceId, int limit) {
+        // 确保MAC地址统一为小写
+        if (deviceId != null) {
+            deviceId = deviceId.toLowerCase();
+        }
+        
         List<Object> history = redisTemplate.opsForList().range(
             DEVICE_HISTORY_PREFIX + deviceId,
             0,
@@ -195,6 +205,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     
     @Override
     public void cleanExpiredData(String deviceId) {
+        // 确保MAC地址统一为小写
+        if (deviceId != null) {
+            deviceId = deviceId.toLowerCase();
+        }
+        
         redisTemplate.delete(DEVICE_LATEST_PREFIX + deviceId);
         redisTemplate.delete(DEVICE_HISTORY_PREFIX + deviceId);
         redisTemplate.opsForSet().remove(ACTIVE_DEVICES_KEY, deviceId);
@@ -207,6 +222,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
      */
     private boolean isTagRegistered(String macAddress) {
         try {
+            // 确保MAC地址统一为小写
+            if (macAddress != null) {
+                macAddress = macAddress.toLowerCase();
+            }
+            
             // 通过TagMapper直接查询数据库
             return tagMapper.selectTagByMacAddress(macAddress) != null;
         } catch (Exception e) {
@@ -222,6 +242,11 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     private void updateTagFromTrackingData(TrackingData trackingData) {
         try {
             String macAddress = trackingData.getDeviceId(); // deviceId即为MAC地址
+            // 确保MAC地址统一为小写
+            if (macAddress != null) {
+                macAddress = macAddress.toLowerCase();
+            }
+            
             Double positionX = trackingData.getX();
             Double positionY = trackingData.getY();
             Double positionZ = 0.0; // 默认Z坐标为0，如果需要可以扩展

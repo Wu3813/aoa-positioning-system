@@ -48,6 +48,7 @@ public class StationServiceImpl implements StationService {
         
         // 如果有MAC地址则检查重复
         if (station.getMacAddress() != null && !station.getMacAddress().trim().isEmpty()) {
+            // MAC地址已经在setter中转为小写，这里直接使用
             Station existingByMac = stationMapper.selectStationByMacAddress(station.getMacAddress());
             if (existingByMac != null) {
                 throw new RuntimeException("MAC地址已存在");
@@ -463,41 +464,38 @@ public class StationServiceImpl implements StationService {
     @Override
     public Map<String, Object> testUdpConnection(String ipAddress) {
         Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            result.put("message", "IP地址不能为空");
+            return result;
+        }
         
         try {
-            // 获取基站基本信息
+            // 获取基站信息
             UdpStationInfoUtil.StationInfo stationInfo = udpStationInfoUtil.getStationInfo(ipAddress);
-            if (stationInfo == null) {
-                throw new RuntimeException("无法通过UDP获取基站信息，请检查IP地址或网络连接");
-            }
             
-            // 设置基站基本信息
-            result.put("macAddress", stationInfo.getMacAddress());
-            result.put("model", stationInfo.getModel());
-            result.put("firmwareVersion", stationInfo.getFirmwareVersion());
-            result.put("scanEnabled", stationInfo.isScanEnabled());
-            
-            // 获取加速度信息
-            UdpStationInfoUtil.AccelerationInfo accelerationInfo = udpStationInfoUtil.getAccelerationInfo(ipAddress);
-            if (accelerationInfo != null) {
-                Map<String, String> accelerationData = new HashMap<>();
-                accelerationData.put("accelerationX", accelerationInfo.getAccelerationX());
-                accelerationData.put("accelerationY", accelerationInfo.getAccelerationY());
-                accelerationData.put("accelerationZ", accelerationInfo.getAccelerationZ());
-                result.put("accelerationInfo", accelerationData);
+            if (stationInfo != null) {
+                // 确保MAC地址为小写
+                if (stationInfo.getMacAddress() != null) {
+                    stationInfo.setMacAddress(stationInfo.getMacAddress().toLowerCase());
+                }
                 
-                log.info("UDP测试连接成功 - IP: {}, 型号: {}, MAC: {}, 固件: {}, 扫描: {}, 加速度: X={}, Y={}, Z={}", 
-                        ipAddress, stationInfo.getModel(), stationInfo.getMacAddress(), 
-                        stationInfo.getFirmwareVersion(), stationInfo.isScanEnabled(),
-                        accelerationInfo.getAccelerationX(), accelerationInfo.getAccelerationY(), 
-                        accelerationInfo.getAccelerationZ());
+                result.put("success", true);
+                result.put("message", "UDP连接测试成功");
+                result.put("data", stationInfo);
+                
+                // 获取加速度数据
+                UdpStationInfoUtil.AccelerationInfo accelerationInfo = udpStationInfoUtil.getAccelerationInfo(ipAddress);
+                if (accelerationInfo != null) {
+                    result.put("accelerationInfo", accelerationInfo);
+                }
             } else {
-                log.warn("UDP测试连接 - 基站信息获取成功，但加速度数据获取失败，IP: {}", ipAddress);
+                result.put("message", "UDP连接测试失败，无法获取基站信息");
             }
-            
         } catch (Exception e) {
-            log.error("UDP测试连接失败 - IP: {}, 错误: {}", ipAddress, e.getMessage());
-            throw new RuntimeException("UDP连接测试失败: " + e.getMessage());
+            result.put("message", "UDP连接测试异常: " + e.getMessage());
+            log.error("UDP连接测试异常", e);
         }
         
         return result;

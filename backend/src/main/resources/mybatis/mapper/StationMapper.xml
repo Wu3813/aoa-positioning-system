@@ -64,7 +64,7 @@
         SELECT <include refid="Base_Column_List" />, m.name as map_name
         FROM station s
         LEFT JOIN map m ON s.map_id = m.map_id
-        WHERE s.mac_address = #{macAddress}
+        WHERE LOWER(s.mac_address) = LOWER(#{macAddress})
     </select>
     
     <select id="selectStationByCode" resultMap="BaseResultMap">

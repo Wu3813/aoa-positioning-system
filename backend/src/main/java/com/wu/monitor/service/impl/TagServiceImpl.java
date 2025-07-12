@@ -37,6 +37,11 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional
     public Tag createTag(Tag tag) {
+        // 确保MAC地址统一为小写
+        if (tag.getMacAddress() != null) {
+            tag.setMacAddress(tag.getMacAddress().toLowerCase());
+        }
+        
         // 检查MAC地址是否已存在
         if (tagMapper.selectTagByMacAddress(tag.getMacAddress()) != null) {
             throw new IllegalArgumentException("MAC地址已存在");
@@ -62,6 +67,11 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional
     public Tag updateTag(Long id, Tag tag) {
+        // 确保MAC地址统一为小写
+        if (tag.getMacAddress() != null) {
+            tag.setMacAddress(tag.getMacAddress().toLowerCase());
+        }
+        
         // 检查标签是否存在
         Tag existingTag = tagMapper.selectTagById(id);
         if (existingTag == null) {
@@ -130,6 +140,11 @@ public class TagServiceImpl implements TagService {
     public boolean updateTagStatusByMac(String macAddress, Integer rssi, Double positionX, 
                                        Double positionY, Double positionZ, Integer batteryLevel, Integer mapId) {
         try {
+            // 确保MAC地址统一为小写
+            if (macAddress != null) {
+                macAddress = macAddress.toLowerCase();
+            }
+            
             // 检查标签是否存在
             Tag existingTag = tagMapper.selectTagByMacAddress(macAddress);
             if (existingTag == null) {

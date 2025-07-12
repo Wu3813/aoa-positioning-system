@@ -126,6 +126,11 @@ public class UdpStationInfoUtil {
         private String macAddress;      // MAC地址
         private String firmwareVersion; // 固件版本
         private boolean scanEnabled;    // 扫描功能是否开启
+        
+        // 自定义setter，确保MAC地址统一为小写
+        public void setMacAddress(String macAddress) {
+            this.macAddress = macAddress != null ? macAddress.toLowerCase() : null;
+        }
     }
     
     /**
@@ -257,7 +262,7 @@ public class UdpStationInfoUtil {
                 if (macBuilder.length() > 0) {
                     macBuilder.append(":");
                 }
-                macBuilder.append(String.format("%02X", data[i] & 0xFF));
+                macBuilder.append(String.format("%02x", data[i] & 0xFF));
             }
             info.setMacAddress(macBuilder.toString());
             

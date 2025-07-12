@@ -69,6 +69,11 @@ public class RealTimeTrackingController {
     @GetMapping("/device/{deviceId}/latest")
     public ResponseEntity<TrackingData> getLatestPosition(@PathVariable String deviceId) {
         try {
+            // 确保MAC地址统一为小写
+            if (deviceId != null) {
+                deviceId = deviceId.toLowerCase();
+            }
+            
             TrackingData latest = trackingService.getLatestPosition(deviceId);
             if (latest != null) {
                 return ResponseEntity.ok(latest);
@@ -89,6 +94,11 @@ public class RealTimeTrackingController {
             @PathVariable String deviceId,
             @RequestParam(defaultValue = "100") int limit) {
         try {
+            // 确保MAC地址统一为小写
+            if (deviceId != null) {
+                deviceId = deviceId.toLowerCase();
+            }
+            
             List<TrackingData> history = trackingService.getDeviceHistory(deviceId, limit);
             return ResponseEntity.ok(history);
         } catch (Exception e) {

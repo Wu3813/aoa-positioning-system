@@ -37,15 +37,18 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   
   // 获取传感器颜色，确保同一MAC地址始终使用相同颜色
   function getSensorColor(mac) {
+    // 将MAC地址转为小写，确保不区分大小写
+    const macLower = mac.toLowerCase()
+    
     // 如果已经有分配的颜色，直接返回
-    if (sensorColors.value[mac]) {
-      return sensorColors.value[mac]
+    if (sensorColors.value[macLower]) {
+      return sensorColors.value[macLower]
     }
     
     // 使用MAC地址作为种子计算固定的颜色索引
     let hashCode = 0
-    for (let i = 0; i < mac.length; i++) {
-      hashCode = ((hashCode << 5) - hashCode) + mac.charCodeAt(i)
+    for (let i = 0; i < macLower.length; i++) {
+      hashCode = ((hashCode << 5) - hashCode) + macLower.charCodeAt(i)
       hashCode = hashCode & hashCode // 转换为32位整数
     }
     
@@ -54,13 +57,13 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     const colorIndex = hashCode % colorUtils.COLORS.length
     
     // 存储映射关系
-    sensorColors.value[mac] = colorUtils.COLORS[colorIndex]
+    sensorColors.value[macLower] = colorUtils.COLORS[colorIndex]
     
     // 仅在页面不忙时再写入localStorage
     requestIdleCallback(() => {
       try {
         const storedColors = JSON.parse(localStorage.getItem('sensorColors') || '{}')
-        storedColors[mac] = colorUtils.COLORS[colorIndex]
+        storedColors[macLower] = colorUtils.COLORS[colorIndex]
         localStorage.setItem('sensorColors', JSON.stringify(storedColors))
       } catch (e) {
         console.error('无法存储传感器颜色到localStorage:', e)
@@ -149,11 +152,12 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   function toggleVisibility(sensor) {
     sensor.visible = !sensor.visible
     
-    // 更新可见传感器集合
+    // 更新可见传感器集合 - 确保使用小写MAC
+    const macLower = sensor.mac.toLowerCase()
     if (sensor.visible) {
-      visibleSensors.value.add(sensor.mac)
+      visibleSensors.value.add(macLower)
     } else {
-      visibleSensors.value.delete(sensor.mac)
+      visibleSensors.value.delete(macLower)
     }
   }
   
@@ -161,10 +165,12 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   function toggleAllVisible(visible) {
     sensorList.value.forEach(sensor => {
       sensor.visible = visible
+      // 确保使用小写MAC
+      const macLower = sensor.mac.toLowerCase()
       if (visible) {
-        visibleSensors.value.add(sensor.mac)
+        visibleSensors.value.add(macLower)
       } else {
-        visibleSensors.value.delete(sensor.mac)
+        visibleSensors.value.delete(macLower)
       }
     })
   }
@@ -173,51 +179,58 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   function processTrackingData(data) {
     // 验证和筛选逻辑已经在enqueueData中完成，这里不再重复
     
+    // 将MAC地址转为小写，确保不区分大小写
+    const macLower = data.mac.toLowerCase()
+    
     // 使用sensorMap快速查找
-    let sensor = sensorMap.value.get(data.mac)
+    let sensor = sensorMap.value.get(macLower)
     
     // 清除之前的超时定时器
-    if (sensorTimeouts.value[data.mac]) {
-      clearTimeout(sensorTimeouts.value[data.mac])
+    if (sensorTimeouts.value[macLower]) {
+      clearTimeout(sensorTimeouts.value[macLower])
     }
     
     // 设置新的超时定时器
-    sensorTimeouts.value[data.mac] = setTimeout(() => {
+    sensorTimeouts.value[macLower] = setTimeout(() => {
       // 使用Map直接获取传感器索引，而不是再次遍历数组
-      if (sensorMap.value.has(data.mac)) {
+      if (sensorMap.value.has(macLower)) {
         // 标记为待删除
-        const sensorToRemove = sensorMap.value.get(data.mac)
+        const sensorToRemove = sensorMap.value.get(macLower)
         const index = sensorList.value.indexOf(sensorToRemove)
         
         if (index !== -1) {
           // 移除前清理围栏告警
-          geofenceManager.clearAlertsForTag(data.mac)
+          geofenceManager.clearAlertsForTag(macLower)
           
           // 移除传感器
           sensorList.value.splice(index, 1)
-          visibleSensors.value.delete(data.mac)
-          sensorMap.value.delete(data.mac)
+          visibleSensors.value.delete(macLower)
+          sensorMap.value.delete(macLower)
         }
       }
-      delete sensorTimeouts.value[data.mac]
+      delete sensorTimeouts.value[macLower]
     }, SENSOR_TIMEOUT)
     
     // 如果是新传感器，创建并添加
     if (!sensor) {
-      const tagInfo = registeredTags.value.get(data.mac)
+      // 使用小写MAC地址查找标签信息
+      const tagInfo = Array.from(registeredTags.value.entries()).find(
+        ([key, _]) => key.toLowerCase() === macLower
+      )?.[1]
+      
       sensor = {
-        mac: data.mac,
-        name: tagInfo?.name || data.mac,
+        mac: macLower, // 存储小写MAC地址
+        name: tagInfo?.name || data.mac, // 名称保留原始显示
         visible: true,
         showTrace: true,
-        color: getSensorColor(data.mac),
+        color: getSensorColor(macLower),
         points: [],
         mapId: data.map_id, // 记录标签来自的地图ID
         lastUpdated: Date.now() // 添加最后更新时间
       }
       sensorList.value.push(sensor)
-      sensorMap.value.set(data.mac, sensor)
-      visibleSensors.value.add(data.mac)
+      sensorMap.value.set(macLower, sensor)
+      visibleSensors.value.add(macLower)
     } else {
       // 更新标签的mapId
       sensor.mapId = data.map_id

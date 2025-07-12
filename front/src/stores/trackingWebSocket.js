@@ -79,8 +79,14 @@ export function createWebSocketManager(mapStore, sensorManager) {
       return
     }
 
-    // 预先检查标签是否已经注册
-    if (!sensorManager.registeredTags.value.has(data.mac)) {
+    // 将MAC地址转为小写进行比较
+    const macLower = data.mac.toLowerCase()
+    
+    // 预先检查标签是否已经注册（不区分大小写）
+    const isRegistered = Array.from(sensorManager.registeredTags.value.keys())
+      .some(key => key.toLowerCase() === macLower)
+    
+    if (!isRegistered) {
       return
     }
     
@@ -111,13 +117,14 @@ export function createWebSocketManager(mapStore, sensorManager) {
     // 按MAC分组处理，减少对同一传感器的反复操作
     const groupedData = Object.create(null) // 使用Object而非Map减少内存开销
     
-    // 将数据按MAC地址分组，使用对象属性访问比Map快
+    // 将数据按MAC地址分组（转为小写），使用对象属性访问比Map快
     for (let i = 0; i < currentBatch.length; i++) {
       const data = currentBatch[i]
-      if (!groupedData[data.mac]) {
-        groupedData[data.mac] = []
+      const macLower = data.mac.toLowerCase()
+      if (!groupedData[macLower]) {
+        groupedData[macLower] = []
       }
-      groupedData[data.mac].push(data)
+      groupedData[macLower].push(data)
     }
     
     // 释放原始数据引用，帮助GC回收

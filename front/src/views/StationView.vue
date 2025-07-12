@@ -79,7 +79,11 @@
             </template>
           </el-table-column>
           <el-table-column prop="name" label="基站名称" width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="macAddress" label="MAC地址" width="150" show-overflow-tooltip sortable="custom">
+            <template #default="scope">
+              {{ scope.row.macAddress ? scope.row.macAddress.toLowerCase() : '-' }}
+            </template>
+          </el-table-column>
           <el-table-column prop="ipAddress" label="IP地址" width="130" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="model" label="基站型号" width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="firmwareVersion" label="固件版本" width="120" show-overflow-tooltip sortable="custom" />
@@ -263,7 +267,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="MAC地址">
-              <el-input v-model="stationForm.macAddress" placeholder="自动获取" readonly disabled />
+              <el-input v-model="stationForm.macAddress" placeholder="自动获取" readonly disabled :formatter="val => val ? val.toLowerCase() : ''" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -872,7 +876,7 @@ const handleTestConnection = async () => {
       // 自动填充获取到的信息
       const data = response.data.data;
       if (data) {
-        if (data.macAddress) stationForm.macAddress = data.macAddress;
+        if (data.macAddress) stationForm.macAddress = data.macAddress.toLowerCase();
         if (data.model) stationForm.model = data.model;
         if (data.firmwareVersion) stationForm.firmwareVersion = data.firmwareVersion;
         if (data.scanEnabled !== undefined) stationForm.scanEnabled = data.scanEnabled;
@@ -907,6 +911,11 @@ const handleSubmit = async () => {
       try {
         // 为空的硬件信息字段填充占位数据
         const submitData = { ...stationForm };
+        
+        // 确保MAC地址为小写
+        if (submitData.macAddress) {
+          submitData.macAddress = submitData.macAddress.toLowerCase();
+        }
         
         // 判断是否获取到硬件信息，如果没有则设置为初始化状态
         const hasHardwareInfo = submitData.macAddress && 
