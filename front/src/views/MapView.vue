@@ -210,7 +210,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updateOriginMarker"
                         :disabled="!isSettingOrigin || !previewImageUrl"
                       />
@@ -223,7 +223,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updateOriginMarker"
                         :disabled="!isSettingOrigin || !previewImageUrl"
                       />
@@ -285,7 +285,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updatePointFromInput(0)"
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
@@ -298,7 +298,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updatePointFromInput(0)"
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
@@ -314,7 +314,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updatePointFromInput(1)"
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
@@ -327,7 +327,7 @@
                         :min="0"
                         controls-position="right" 
                         size="small"
-                        style="width: 100%"
+                        style="width: 80px"
                         @change="updatePointFromInput(1)"
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
@@ -1686,6 +1686,8 @@ watch(
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: nowrap;
+  width: auto;
 }
 
 .measure-point-row span {
@@ -1747,8 +1749,8 @@ watch(
 }
 
 .half-width {
-  flex: 1;
   margin-bottom: 10px;
+  width: auto;
 }
 
 .coordinate-info {
