@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.wu.monitor.model.TaskConfig;
 
 /**
  * 轨迹数据存储定时任务
@@ -22,13 +23,21 @@ public class TrajectoryStorageTask {
     
     /**
      * 定时处理轨迹数据存储
-     * 该任务始终开启，间隔时间可配置
+     * 该任务可以启用或禁用，间隔时间可配置
      */
     @Scheduled(fixedDelay = 5000) // 默认5秒，实际会从配置中读取
     public void storeTrajectoryData() {
         try {
-            // 获取配置的执行间隔
-            long intervalMs = taskConfigService.getStorageTaskConfig().getIntervalMs();
+            // 获取配置
+            TaskConfig.StorageTask config = taskConfigService.getStorageTaskConfig();
+            long intervalMs = config.getIntervalMs();
+            
+            // 检查任务是否启用
+            if (!config.isEnabled()) {
+                log.debug("轨迹数据存储任务已禁用");
+                return;
+            }
+            
             long currentTime = System.currentTimeMillis();
             
             // 检查是否到达执行时间

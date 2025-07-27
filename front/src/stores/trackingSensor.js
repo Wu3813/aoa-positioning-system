@@ -257,11 +257,6 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     
     // 更新最后数据处理时间戳
     lastUpdateTimestamp.value = Date.now();
-    
-    // 如果传感器可见，检查围栏入侵
-    if (sensor.visible && geofenceManager.geofenceList.value.length > 0) {
-      geofenceManager.checkGeofenceIntrusion(sensor.mac, point)
-    }
   }
   
   // 加载已登记的标签列表

@@ -1,7 +1,7 @@
 package com.wu.monitor.service.impl;
 
 import com.wu.monitor.mapper.MapMapper;
-import com.wu.monitor.model.Map;
+import com.wu.monitor.model.MapEntity;
 import com.wu.monitor.service.MapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,24 +24,24 @@ public class MapServiceImpl implements MapService {
     private MapMapper mapMapper;
     
     @Override
-    public List<Map> getAllMaps(String name) {
+    public List<MapEntity> getAllMaps(String name) {
         return mapMapper.selectAllMaps(name);
     }
     
     @Override
-    public Map getMapByMapId(Long mapId) {
+    public MapEntity getMapByMapId(Long mapId) {
         return mapMapper.selectMapByMapId(mapId);
     }
     
     @Override
-    public Map createMap(Map map, MultipartFile file) {
+    public MapEntity createMap(MapEntity map, MultipartFile file) {
         // 检查 mapId 是否为空
         if (map.getMapId() == null) {
             throw new RuntimeException("地图ID不能为空");
         }
         
         // 检查 mapId 是否已存在
-        Map existingMap = mapMapper.selectMapByMapId(map.getMapId());
+        MapEntity existingMap = mapMapper.selectMapByMapId(map.getMapId());
         if (existingMap != null) {
             throw new RuntimeException("地图ID已存在");
         }
@@ -68,8 +68,8 @@ public class MapServiceImpl implements MapService {
     }
     
     @Override
-    public Map updateMap(Long mapId, Map map, MultipartFile file) {
-        Map existingMap = mapMapper.selectMapByMapId(mapId);
+    public MapEntity updateMap(Long mapId, MapEntity map, MultipartFile file) {
+        MapEntity existingMap = mapMapper.selectMapByMapId(mapId);
         if (existingMap == null) {
             throw new RuntimeException("地图不存在");
         }
@@ -110,7 +110,7 @@ public class MapServiceImpl implements MapService {
     
     @Override
     public void deleteMapByMapId(Long mapId) {
-        Map map = mapMapper.selectMapByMapId(mapId);
+        MapEntity map = mapMapper.selectMapByMapId(mapId);
         if (map != null && map.getImagePath() != null) {
             // 删除文件
             new File(Paths.get(uploadPath, map.getImagePath()).toString()).delete();
@@ -122,7 +122,7 @@ public class MapServiceImpl implements MapService {
     public void batchDeleteMapsByMapIds(List<Long> mapIds) {
         // 删除文件
         for (Long mapId : mapIds) {
-            Map map = mapMapper.selectMapByMapId(mapId);
+            MapEntity map = mapMapper.selectMapByMapId(mapId);
             if (map != null && map.getImagePath() != null) {
                 new File(Paths.get(uploadPath, map.getImagePath()).toString()).delete();
             }

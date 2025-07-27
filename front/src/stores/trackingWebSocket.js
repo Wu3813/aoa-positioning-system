@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { Client } from '@stomp/stompjs'
 
-export function createWebSocketManager(mapStore, sensorManager) {
+export function createWebSocketManager(mapStore, sensorManager, geofenceManager) {
   // WebSocket连接状态和客户端
   const wsConnected = ref(false)
   const stompClient = ref(null)
@@ -53,6 +53,12 @@ export function createWebSocketManager(mapStore, sensorManager) {
             console.error('处理WebSocket数据时出错:', error)
           }
         })
+        
+        // 订阅围栏告警通知
+        if (geofenceManager) {
+          // 注册围栏告警监听器
+          geofenceManager.registerAlarmNotificationListener(stompClient.value)
+        }
       },
       onStompError: (frame) => {
         console.error('WebSocket连接错误:', frame)
@@ -205,6 +211,7 @@ export function createWebSocketManager(mapStore, sensorManager) {
     disconnect,
     startAutoConnect,
     stopAutoConnect,
-    cleanup
+    cleanup,
+    stompClient // 导出stompClient以便其他组件可以使用
   }
 } 

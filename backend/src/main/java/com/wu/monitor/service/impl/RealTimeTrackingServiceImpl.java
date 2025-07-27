@@ -2,6 +2,7 @@ package com.wu.monitor.service.impl;
 
 import com.wu.monitor.model.TrackingData;
 import com.wu.monitor.mapper.TagMapper;
+import com.wu.monitor.service.AlarmService;
 import com.wu.monitor.service.RealTimeTrackingService;
 import com.wu.monitor.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final TagService tagService;
     private final TagMapper tagMapper;
+    private final AlarmService alarmService; // 添加AlarmService依赖
     
     // Redis key 前缀
     private static final String DEVICE_LATEST_PREFIX = "device:latest:";
@@ -91,6 +93,12 @@ public class RealTimeTrackingServiceImpl implements RealTimeTrackingService {
                 
                 // 根据MAC地址更新标签状态和位置信息
                 updateTagFromTrackingData(trackingData);
+                
+                // 检查围栏告警 - 添加围栏检测逻辑
+                if (trackingData.getMapId() != null) {
+                    // 不再需要额外的同步，AlarmServiceImpl内部已经有锁机制
+                    alarmService.checkGeofenceIntrusion(trackingData);
+                }
                 
             } catch (Exception e) {
                 log.error("异步处理存储操作异常: {}", e.getMessage(), e);

@@ -63,6 +63,15 @@
         WHERE map_id = #{mapId} AND enabled = 1
         ORDER BY create_time DESC
     </select>
+    
+    <!-- 根据地图ID和启用状态查询电子围栏 -->
+    <select id="selectByMapIdAndEnabled" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List_With_Map"/>
+        FROM geofence g
+        LEFT JOIN map m ON g.map_id = m.map_id
+        WHERE g.map_id = #{mapId} AND g.enabled = #{enabled}
+        ORDER BY g.create_time DESC
+    </select>
 
     <!-- 根据名称查询电子围栏（用于检查重名） -->
     <select id="selectGeofenceByName" resultMap="BaseResultMap">

@@ -69,6 +69,7 @@ public class TaskConfig {
      */
     public static class StorageTask {
         private long intervalMs = 5000;     // 存储间隔（毫秒），默认5秒
+        private boolean enabled = true;     // 是否启用，默认启用
 
         public long getIntervalMs() {
             return intervalMs;
@@ -78,9 +79,12 @@ public class TaskConfig {
             this.intervalMs = intervalMs;
         }
         
-        // 该任务始终启用，不提供禁用选项
         public boolean isEnabled() {
-            return true;
+            return enabled;
+        }
+        
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
     }
     

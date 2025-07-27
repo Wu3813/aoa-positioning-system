@@ -6,13 +6,13 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
   // 围栏列表
   const geofenceList = ref([])
   
-  // 围栏多边形点的预计算缓存
+  // 围栏多边形点的预计算缓存 - 保留用于显示围栏
   const geofenceCache = ref(new Map()) // geofenceId -> 预处理后的数据
   
   // 活跃的围栏告警
   const activeGeofenceAlerts = ref({}) // 格式: {mac+geofenceId: notificationInstance}
   
-  // 点在多边形内部检测（射线法）- 优化版
+  // 点在多边形内部检测（射线法）- 优化版 - 仅保留用于前端可能的可视化需求
   const isPointInPolygon = (point, polygon) => {
     const x = point.x
     const y = point.y
@@ -31,7 +31,7 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     return inside
   }
   
-  // 预计算围栏边界和包围盒，用于快速排除
+  // 预计算围栏边界和包围盒 - 保留用于围栏显示
   function precomputeGeofenceData() {
     geofenceCache.value.clear()
     
@@ -59,87 +59,65 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     })
   }
   
-  // 优化的围栏检查函数
-  const checkGeofenceIntrusion = (sensorMac, point) => {
-    // 将传感器的米制坐标转换为图片像素坐标进行比较
-    const pixelX = coordinateUtils.cachedMeterToPixelX(point.x)
-    const pixelY = coordinateUtils.cachedMeterToPixelY(point.y)
-    
-    const pixelPoint = { x: pixelX, y: pixelY }
-    
-    // 使用geofenceCache进行检查
-    for (const [geofenceId, geofenceData] of geofenceCache.value.entries()) {
-      const alertKey = `${sensorMac}-${geofenceId}`
-      const { bounds, points } = geofenceData
+  // 处理后端发来的告警通知
+  const handleWebSocketAlarmNotification = (notification) => {
+    if (notification.type === 'geofenceAlarm') {
+      // 创建新的告警通知
+      const alarmTag = notification.alarmTag
+      const geofenceId = notification.geofenceId
+      const alertKey = `${alarmTag}-${geofenceId}`
       
-      // 快速边界框检查
-      if (pixelPoint.x < bounds.minX || pixelPoint.x > bounds.maxX || 
-          pixelPoint.y < bounds.minY || pixelPoint.y > bounds.maxY) {
-        // 点在边界框外，肯定不在多边形内
-        if (!activeGeofenceAlerts.value[alertKey]) {
-          handleGeofenceAlert(sensorMac, geofenceId, point)
-        }
-        continue
+      // 避免重复通知
+      if (activeGeofenceAlerts.value[alertKey]) {
+        activeGeofenceAlerts.value[alertKey].close()
       }
       
-      // 如果通过了边界框检查，再进行精确的多边形检查
-      if (!isPointInPolygon(pixelPoint, points)) {
-        // 不在围栏内
-        if (!activeGeofenceAlerts.value[alertKey]) {
-          handleGeofenceAlert(sensorMac, geofenceId, point)
-        }
-      } else {
-        // 在围栏内，关闭已有告警
-        if (activeGeofenceAlerts.value[alertKey]) {
-          activeGeofenceAlerts.value[alertKey].close()
+      // 创建通知
+      const uiNotification = ElNotification({
+        title: notification.title,
+        message: notification.message,
+        type: 'warning',
+        duration: 0, // 不自动关闭
+        position: 'bottom-right',
+        showClose: true,
+        onClose: () => {
+          // 当手动关闭时清除引用
           delete activeGeofenceAlerts.value[alertKey]
         }
-      }
+      })
+      
+      // 保存通知引用以便后续关闭
+      activeGeofenceAlerts.value[alertKey] = uiNotification
+      
+    } else if (notification.type === 'geofenceAlarmClose') {
+      // 关闭指定的告警通知
+      const alarmId = notification.alarmId
+      
+      // 查找并关闭对应的通知
+      Object.keys(activeGeofenceAlerts.value).forEach(key => {
+        // 遍历所有活跃通知，找到匹配的告警ID
+        // 这里简化处理，实际应该有更精确的匹配
+        const notification = activeGeofenceAlerts.value[key]
+        if (notification) {
+          notification.close()
+        }
+      })
     }
   }
   
-  // 封装告警创建逻辑
-  const handleGeofenceAlert = (sensorMac, geofenceId, point, sensorName = null) => {
-    // 找到对应的围栏
-    const geofence = geofenceList.value.find(g => g.id === geofenceId)
-    if (!geofence) return
-    
-    // 使用传入的传感器名称或MAC地址
-    const tagName = sensorName || sensorMac
-    
-    const alertKey = `${sensorMac}-${geofenceId}`
-    
-    // 创建通知
-    const notification = ElNotification({
-      title: '围栏告警',
-      message: `标签 ${tagName} 位于围栏 ${geofence.name} 外部`,
-      type: 'warning',
-      duration: 0, // 不自动关闭
-      position: 'bottom-right',
-      showClose: true,
-      onClose: () => {
-        // 当手动关闭时清除引用
-        delete activeGeofenceAlerts.value[alertKey]
-      }
-    })
-    
-    // 保存通知引用以便后续关闭
-    activeGeofenceAlerts.value[alertKey] = notification
-    
-    // 使用Web Workers或requestIdleCallback延迟非关键操作
-    requestIdleCallback(() => {
-      // 将报警数据发送到后端
-      saveAlarmToBackend({
-        time: point.timestamp, // 直接传递原始时间戳，由后端处理
-        geofenceId: geofence.id,
-        geofenceName: geofence.name,
-        mapId: mapStore.selectedMap?.mapId,
-        mapName: mapStore.selectedMap?.name,
-        alarmTag: sensorMac,
-        x: point.x,  // 保存米制坐标，与前端显示一致
-        y: point.y
+  // 注册WebSocket消息监听 - 需要在WebSocket连接建立后调用
+  function registerAlarmNotificationListener(stompClient) {
+    if (stompClient) {
+      stompClient.subscribe('/topic/alarmNotification', (message) => {
+        try {
+          const notification = JSON.parse(message.body)
+          handleWebSocketAlarmNotification(notification)
+        } catch (error) {
+          console.error('处理告警通知失败:', error)
+        }
       })
-    })
+      console.log('已注册围栏告警通知监听')
+    }
   }
   
   // 加载围栏列表
@@ -168,22 +146,6 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     } catch (error) {
       console.error('获取围栏列表错误:', error)
       geofenceList.value = []
-    }
-  }
-  
-  // 将报警数据保存到后端
-  async function saveAlarmToBackend(alarmData) {
-    try {
-      // 确保使用mapId而不是id
-      alarmData.mapId = mapStore.selectedMap?.mapId;
-      alarmData.mapName = mapStore.selectedMap?.name;
-      
-      const response = await axios.post('/api/alarms', alarmData)
-      if (!response.data.success) {
-        console.error('保存报警数据失败:', response.data.message || '未知错误')
-      }
-    } catch (error) {
-      console.error('保存报警数据时出错:', error)
     }
   }
   
@@ -216,10 +178,11 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     geofenceCache,
     activeGeofenceAlerts,
     isPointInPolygon,
-    checkGeofenceIntrusion,
     fetchGeofences,
     precomputeGeofenceData,
     clearAlertsForTag,
-    clearAllAlerts
+    clearAllAlerts,
+    registerAlarmNotificationListener,
+    handleWebSocketAlarmNotification
   }
 } 

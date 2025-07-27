@@ -1,18 +1,12 @@
 package com.wu.monitor.controller;
-
-import com.wu.monitor.model.Alarm;
 import com.wu.monitor.service.AlarmService;
-import com.wu.monitor.util.TimestampUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,17 +20,6 @@ public class AlarmController {
 
     @Autowired
     private AlarmService alarmService;
-
-    /**
-     * 添加报警记录
-     * @param alarm 报警对象
-     * @return 操作结果
-     */
-    @PostMapping
-    public Map<String, Object> addAlarm(@RequestBody Map<String, Object> alarmData) {
-        logger.info("接收到报警数据: {}", alarmData);
-        return alarmService.processAndAddAlarm(alarmData);
-    }
 
     /**
      * 获取报警记录列表（可根据条件筛选）

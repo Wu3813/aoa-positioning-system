@@ -1,13 +1,12 @@
 <template>
   <el-container class="layout-container">
-    <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
+    <el-aside width="140px" class="aside">
       <div class="logo">
-        <h3>{{ isCollapse ? 'AoA' : 'AoA定位MVP系统' }}</h3>
+        <h3>AoA定位MVP系统</h3>
       </div>
       <el-menu
         :default-active="route.path"
         class="el-menu-vertical"
-        :collapse="isCollapse"
         router
         background-color="#fff"
         text-color="var(--text-primary)"
@@ -64,7 +63,7 @@
         <!-- 添加报警管理菜单项 -->
         <el-menu-item v-if="userInfo.role === 'admin'" index="/home/alarms">
           <el-icon><Bell /></el-icon>
-          <span>报警管理</span>
+          <span>报警记录</span>
         </el-menu-item>
         
         <!-- 添加后台管理菜单项 -->
@@ -78,9 +77,7 @@
     <el-container class="main-container">
       <el-header class="header">
         <div class="header-left">
-          <el-icon class="toggle-icon" @click="toggleSidebar">
-            <component :is="isCollapse ? 'Expand' : 'Fold'" />
-          </el-icon>
+          <!-- 移除了折叠按钮 -->
         </div>
         <div class="header-right">
           <el-dropdown>
@@ -110,12 +107,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Location, Fold, Expand, CaretBottom, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
+import { Monitor, User, Location, CaretBottom, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
-const isCollapse = ref(false)
 const userInfo = ref({
   username: '',
   role: ''
@@ -137,9 +133,7 @@ onMounted(() => {
   }
 })
 
-const toggleSidebar = () => {
-  isCollapse.value = !isCollapse.value
-}
+// 移除了toggleSidebar函数
 
 const handleLogout = () => {
   ElMessageBox.confirm('确认退出登录？', '提示', {
@@ -169,40 +163,33 @@ const handleLogout = () => {
   line-height: 60px;
   text-align: center;
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   background-color: #fff;
-  /* border-bottom: 1px solid var(--border-color); */ /* 移除底部边框 */
-  /* box-shadow: var(--box-shadow); */ /* 移除阴影 */
 }
 
 .aside {
   height: 100vh;
-  transition: width 0.3s;
   overflow: hidden;
   background-color: #fff;
   position: fixed;
   left: 0;
   top: 0;
-  /* border-right: 1px solid rgba(0, 0, 0, 0.05); */ /* 移除右侧边框 */
 }
 
 .header {
   position: fixed;
   top: 0;
   right: 0;
-  left: 220px;
+  left: 140px;
   z-index: 100;
   background: #fff;
-  /* border-bottom: 1px solid rgba(0, 0, 0, 0.05); */ /* 移除底部边框 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
   height: 60px;
-  /* box-shadow: var(--box-shadow); */ /* 移除阴影 */
-  transition: left 0.3s;
 }
 
 .user-info {
@@ -242,27 +229,16 @@ const handleLogout = () => {
   background-color: #fff !important;
 }
 
-:deep(.el-menu--collapse) {
-  width: 64px;
-}
-
-.toggle-icon {
-  font-size: 20px;
-  cursor: pointer;
-  color: var(--primary-color);
-}
-
 .main-container {
   min-height: 100vh;
-  margin-left: 220px;
-  transition: margin-left 0.3s;
+  margin-left: 140px;
 }
 
 .header {
   position: fixed; /* 固定在页面顶部 */
   top: 0;          /* 距离顶部 0px */
   right: 0;        /* 距离右侧 0px */
-  left: 220px;     /* 初始状态下距离左侧 220px */
+  left: 140px;     /* 初始状态下距离左侧 140px */
   z-index: 100;    /* 确保在其他内容之上 */
   background: #fff; /* 设置背景色为白色 */
   display: flex;   /* 使用 flex 布局排列内部元素 */
@@ -270,7 +246,6 @@ const handleLogout = () => {
   align-items: center; /* 垂直居中对齐内部元素 */
   padding: 0 20px; /* 左右内边距 */
   height: 61px;    /* 控制框体的高度 */
-  transition: left 0.3s; /* 使左边距变化时有动画效果 */
 }
 
 .main {
@@ -279,16 +254,5 @@ const handleLogout = () => {
   margin-top: 60px;  
   min-height: calc(100vh - 60px);
   overflow-y: auto;
-}
-
-/* 处理侧边栏折叠时的布局调整 */
-.layout-container:has(.aside.is-collapse) {
-  .main-container {
-    margin-left: 64px;
-  }
-  
-  .header {
-    left: 64px; /* 侧边栏折叠时，距离左侧变为 64px */
-  }
 }
 </style>

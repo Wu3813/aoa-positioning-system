@@ -12,6 +12,7 @@
         <result column="trajectory_pause_ms" property="trajectoryTask.pauseMs" />
         <!-- 存储任务配置 -->
         <result column="storage_interval_ms" property="storageTask.intervalMs" />
+        <result column="storage_enabled" property="storageTask.enabled" />
     </resultMap>
     
     <select id="selectTaskConfig" resultMap="TaskConfigResultMap">
@@ -22,7 +23,8 @@
             trajectory_enabled, 
             trajectory_send_interval_ms, 
             trajectory_pause_ms, 
-            storage_interval_ms
+            storage_interval_ms,
+            storage_enabled
         FROM task_config
         LIMIT 1
     </select>
@@ -34,29 +36,32 @@
             trajectory_enabled,
             trajectory_send_interval_ms,
             trajectory_pause_ms,
-            storage_interval_ms
+            storage_interval_ms,
+            storage_enabled
         ) VALUES (
             #{stationTask.intervalMs},
             #{stationTask.enabled},
             #{trajectoryTask.enabled},
             #{trajectoryTask.sendIntervalMs},
             #{trajectoryTask.pauseMs},
-            #{storageTask.intervalMs}
+            #{storageTask.intervalMs},
+            #{storageTask.enabled}
         )
     </insert>
     
+    <select id="countTaskConfig" resultType="int">
+        SELECT COUNT(*) FROM task_config
+    </select>
+    
     <update id="updateTaskConfig" parameterType="com.wu.monitor.model.TaskConfig">
-        UPDATE task_config
-        SET
+        UPDATE task_config SET
             station_interval_ms = #{stationTask.intervalMs},
             station_enabled = #{stationTask.enabled},
             trajectory_enabled = #{trajectoryTask.enabled},
             trajectory_send_interval_ms = #{trajectoryTask.sendIntervalMs},
             trajectory_pause_ms = #{trajectoryTask.pauseMs},
-            storage_interval_ms = #{storageTask.intervalMs}
+            storage_interval_ms = #{storageTask.intervalMs},
+            storage_enabled = #{storageTask.enabled}
+        WHERE id = #{id}
     </update>
-    
-    <select id="countTaskConfig" resultType="java.lang.Integer">
-        SELECT COUNT(*) FROM task_config
-    </select>
 </mapper> 

@@ -73,12 +73,12 @@
               :max-height="'100%'"
             >
               <el-table-column prop="name" label="标签名称" width="110" show-overflow-tooltip />
-              <el-table-column label="颜色" width="50">
+              <el-table-column label="颜色" width="120" align="center">
                 <template #default="scope">
                   <div class="color-block" :style="{ backgroundColor: scope.row.color }"></div>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="90">
+              <el-table-column label="操作" width="100">
                 <template #default="scope">
                   <el-button
                     size="small"
@@ -661,7 +661,7 @@ onUnmounted(() => {
 }
 
 .sensor-list-container {
-  width: 320px;
+  width: 350px;
   display: flex;
   flex-direction: column;
   height: 100%;

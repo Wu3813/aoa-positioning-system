@@ -1,6 +1,7 @@
 package com.wu.monitor.service;
 
 import com.wu.monitor.model.Alarm;
+import com.wu.monitor.model.TrackingData;
 
 import java.util.Date;
 import java.util.List;
@@ -10,13 +11,6 @@ import java.util.Map;
  * 报警服务接口
  */
 public interface AlarmService {
-
-    /**
-     * 处理并添加报警记录
-     * @param alarmData 前端发送的报警数据
-     * @return 添加结果
-     */
-    Map<String, Object> processAndAddAlarm(Map<String, Object> alarmData);
     
     /**
      * 添加报警记录
@@ -56,4 +50,11 @@ public interface AlarmService {
      * @return 删除结果
      */
     Map<String, Object> deleteAlarm(Long id);
+    
+    /**
+     * 检查位置数据是否在围栏内，并处理围栏告警
+     * @param trackingData 跟踪数据
+     * @return 如果生成告警则返回告警对象，否则返回null
+     */
+    Alarm checkGeofenceIntrusion(TrackingData trackingData);
 } 

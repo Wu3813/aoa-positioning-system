@@ -1,10 +1,6 @@
 package com.wu.monitor.model;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import java.time.Instant;
-import java.time.ZoneId;
 
 @Data
 public class TrackingData {

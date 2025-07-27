@@ -25,7 +25,7 @@ export const useTrackingStore = defineStore('tracking', () => {
   const sensorManager = createSensorManager(mapStore, { COLORS }, geofenceManager)
   
   // 创建WebSocket管理器
-  const wsManager = createWebSocketManager(mapStore, sensorManager)
+  const wsManager = createWebSocketManager(mapStore, sensorManager, geofenceManager)
   
   // 内存监控
   let memoryMonitorInterval = null
@@ -91,6 +91,7 @@ export const useTrackingStore = defineStore('tracking', () => {
     disconnect: wsManager.disconnect,
     startAutoConnect: wsManager.startAutoConnect,
     stopAutoConnect: wsManager.stopAutoConnect,
+    stompClient: wsManager.stompClient, // 导出stompClient供组件使用
     
     // 从传感器管理器导出
     sensorList: sensorManager.sensorList,

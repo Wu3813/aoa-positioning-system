@@ -3,16 +3,16 @@
     <!-- 1. 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>报警管理</h2>
+        <h2>报警记录</h2>
         <!-- 搜索/过滤栏 -->
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch" class="search-form">
             <div class="form-row">
               <el-form-item label="围栏名称">
-                <el-input v-model="searchForm.name" placeholder="请输入围栏名称" clearable />
+                <el-input v-model="searchForm.name" placeholder="请输入围栏名称" clearable style="width: 150px;" />
               </el-form-item>
               <el-form-item label="所属地图">
-                <el-select v-model="searchForm.mapId" placeholder="请选择地图" clearable style="width: 200px;">
+                <el-select v-model="searchForm.mapId" placeholder="请选择地图" clearable style="width: 150px;">
                   <el-option 
                     v-for="map in mapList" 
                     :key="map.mapId"
@@ -44,11 +44,8 @@
             </div>
           </el-form>
         </div>
-        <!-- 操作栏 -->
+        <!-- 操作栏 - 移除批量删除按钮 -->
         <div class="action-bar">
-          <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <el-icon><Delete /></el-icon> 批量删除
-          </el-button>
         </div>
       </div>
     </div>
@@ -66,7 +63,6 @@
           stripe
           class="alarm-table"
           @sort-change="handleSortChange"
-          @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="40" fixed="left" />
           <el-table-column prop="time" label="时间" min-width="180" show-overflow-tooltip sortable="custom">
@@ -87,17 +83,6 @@
               <div>Y: {{ formatCoordinate(scope.row.y) }} m</div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right" width="100">
-            <template #default="scope">
-              <div class="operation-buttons">
-                <el-button-group class="operation-row">
-                  <el-button type="default" size="small" @click="handleDelete(scope.row)">
-                    删除
-                  </el-button>
-                </el-button-group>
-              </div>
-            </template>
-          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -106,15 +91,14 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Search, Refresh } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 // 响应式数据
 const loading = ref(false)
 const alarmList = ref([])
 const mapList = ref([])
-const multipleSelection = ref([])
 const tagList = ref([]) // 存储标签信息
 
 // 搜索表单
@@ -307,69 +291,6 @@ const formatDateTime = (dateTime) => {
   return new Date(dateTime).toLocaleString('zh-CN')
 }
 
-// 行选择变化处理
-const handleSelectionChange = (selection) => {
-  multipleSelection.value = selection
-}
-
-// 删除单条报警记录
-const handleDelete = async (row) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除该报警记录吗？此操作不可恢复！`,
-      '确认删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    const response = await axios.delete(`/api/alarms/${row.id}`)
-    if (response.data.success) {
-      ElMessage.success('删除成功')
-      fetchAlarms()
-    } else {
-      ElMessage.error(response.data.message || '删除失败')
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除报警记录错误:', error)
-      ElMessage.error('删除失败: ' + (error.response?.data?.message || error.message))
-    }
-  }
-}
-
-// 批量删除报警记录
-const handleBatchDelete = async () => {
-  if (multipleSelection.value.length === 0) return
-  
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除选中的 ${multipleSelection.value.length} 条报警记录吗？此操作不可恢复！`,
-      '确认批量删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    const promises = multipleSelection.value.map(item => 
-      axios.delete(`/api/alarms/${item.id}`)
-    )
-    
-    await Promise.all(promises)
-    ElMessage.success('批量删除成功')
-    fetchAlarms()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('批量删除错误:', error)
-      ElMessage.error('批量删除失败')
-    }
-  }
-}
-
 // 生命周期
 onMounted(async () => {
   await Promise.all([
@@ -446,30 +367,10 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.operation-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-width: 130px;
-}
-
-.operation-row {
-  display: flex;
-  width: 100%;
-}
-
-.operation-buttons .el-button {
-  flex: 1;
-  font-size: 10px;
-  padding: 3px 1px;
-  height: 22px;
-  min-width: 0;
-}
-
 .form-row {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   width: 100%;
 }
 

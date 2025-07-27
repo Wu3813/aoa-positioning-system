@@ -41,6 +41,14 @@ public interface GeofenceMapper {
     List<Geofence> selectEnabledGeofencesByMapId(@Param("mapId") Long mapId);
     
     /**
+     * 根据地图ID和启用状态查询电子围栏
+     * @param mapId 地图ID
+     * @param enabled 是否启用
+     * @return 围栏列表
+     */
+    List<Geofence> selectByMapIdAndEnabled(@Param("mapId") Long mapId, @Param("enabled") Boolean enabled);
+    
+    /**
      * 插入电子围栏
      * @param geofence 围栏信息
      * @return 影响行数

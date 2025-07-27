@@ -1,6 +1,6 @@
 package com.wu.monitor.controller;
 
-import com.wu.monitor.model.Map;
+import com.wu.monitor.model.MapEntity;
 import com.wu.monitor.service.MapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -25,28 +25,28 @@ public class MapController {
     private Long currentMapId;
 
     @GetMapping
-    public List<Map> getAllMaps(@RequestParam(required = false) String name) {
+    public List<MapEntity> getAllMaps(@RequestParam(required = false) String name) {
         return mapService.getAllMaps(name);
     }
 
     @GetMapping("/{mapId}")
-    public ResponseEntity<Map> getMapByMapId(@PathVariable Long mapId) {
-        Map map = mapService.getMapByMapId(mapId);
+    public ResponseEntity<MapEntity> getMapByMapId(@PathVariable Long mapId) {
+        MapEntity map = mapService.getMapByMapId(mapId);
         return map != null ? ResponseEntity.ok(map) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/current")
-    public ResponseEntity<Map> getCurrentMap() {
+    public ResponseEntity<MapEntity> getCurrentMap() {
         if (currentMapId == null) {
             return ResponseEntity.notFound().build();
         }
-        Map map = mapService.getMapByMapId(currentMapId);
+        MapEntity map = mapService.getMapByMapId(currentMapId);
         return map != null ? ResponseEntity.ok(map) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/current/{mapId}")
-    public ResponseEntity<Map> setCurrentMap(@PathVariable Long mapId) {
-        Map map = mapService.getMapByMapId(mapId);
+    public ResponseEntity<MapEntity> setCurrentMap(@PathVariable Long mapId) {
+        MapEntity map = mapService.getMapByMapId(mapId);
         if (map != null) {
             currentMapId = mapId;
             return ResponseEntity.ok(map);
@@ -55,7 +55,7 @@ public class MapController {
     }
 
     @PostMapping
-    public Map createMap(
+    public MapEntity createMap(
             @RequestParam(value = "mapId", required = false) Long mapId,
             @RequestParam("name") String name,
             @RequestParam(value = "width", required = false) Integer width,
@@ -70,7 +70,7 @@ public class MapController {
             @RequestParam(value = "realDistance", required = false) Double realDistance,
             @RequestParam("file") MultipartFile file
     ) {
-        Map map = new Map();
+        MapEntity map = new MapEntity();
         map.setMapId(mapId);
         map.setName(name);
         map.setWidth(width);
@@ -87,7 +87,7 @@ public class MapController {
     }
 
     @PutMapping("/{mapId}")
-    public Map updateMap(
+    public MapEntity updateMap(
             @PathVariable Long mapId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer width,
@@ -102,7 +102,7 @@ public class MapController {
             @RequestParam(required = false) Double realDistance,
             @RequestParam(required = false) MultipartFile file
     ) {
-        Map map = new Map();
+        MapEntity map = new MapEntity();
         map.setMapId(mapId);
         map.setName(name);
         map.setWidth(width);
@@ -126,7 +126,7 @@ public class MapController {
     @GetMapping("/{mapId}/image")
     public ResponseEntity<Resource> getMapImage(@PathVariable Long mapId) {
         try {
-            Map map = mapService.getMapByMapId(mapId);
+            MapEntity map = mapService.getMapByMapId(mapId);
             if (map != null && map.getImagePath() != null) {
                 Path imagePath = Paths.get(System.getProperty("user.dir"), "uploads", "maps", map.getImagePath());
                 Resource resource = new UrlResource(imagePath.toUri());

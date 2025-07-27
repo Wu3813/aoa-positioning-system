@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class Map {
+public class MapEntity {
     private Long id;
     private Long mapId;
     private String name;

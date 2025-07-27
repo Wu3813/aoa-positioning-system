@@ -47,7 +47,7 @@
                 end-placeholder="结束时间"
                 format="YYYY-MM-DD HH:mm:ss"
                 clearable
-                style="width: 320px;"
+                style="width: 360px;"
               />
             </el-form-item>
             <el-form-item>
