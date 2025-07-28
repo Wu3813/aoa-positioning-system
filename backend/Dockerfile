@@ -3,7 +3,7 @@ From maven:3-amazoncorretto-8 AS builder
 WORKDIR /app
 
 COPY ./pom.xml /app/
-COPY ./src /app/src
+COPY ./backend /app/backend
 
 RUN mvn clean package -DskipTests
 
@@ -15,7 +15,7 @@ WORKDIR /app
 RUN apk add --no-cache tzdata
 
 # 添加JAR文件
-COPY --from=builder /app/target/AOA_monitor-1.0-SNAPSHOT.jar app.jar
+COPY --from=builder /app/backend/target/AOA_monitor-1.0-SNAPSHOT.jar app.jar
 
 # 创建上传目录
 RUN mkdir -p /app/uploads/maps
