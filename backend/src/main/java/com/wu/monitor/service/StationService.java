@@ -188,6 +188,13 @@ public interface StationService {
     boolean updateTarget(Long id, String targetIp, Integer targetPort);
     
     /**
+     * 批量更新基站坐标和方位角
+     * @param stations 基站信息列表（包含id、coordinateX、coordinateY、coordinateZ、orientation）
+     * @return 成功更新的基站数量
+     */
+    int batchUpdateCoordinates(List<Map<String, Object>> stations);
+    
+    /**
      * 刷新结果统计类
      */
     class RefreshResult {

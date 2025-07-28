@@ -880,6 +880,52 @@ public class StationServiceImpl implements StationService {
         }
     }
     
+    @Override
+    @Transactional
+    public int batchUpdateCoordinates(List<Map<String, Object>> stations) {
+        if (stations == null || stations.isEmpty()) {
+            return 0;
+        }
+        
+        int successCount = 0;
+        
+        for (Map<String, Object> stationData : stations) {
+            try {
+                // 从Map中获取数据
+                Long id = Long.parseLong(stationData.get("id").toString());
+                Station existingStation = stationMapper.selectStationById(id);
+                
+                if (existingStation != null) {
+                    Station updateStation = new Station();
+                    updateStation.setId(id);
+                    
+                    // 设置坐标和方位角
+                    if (stationData.containsKey("coordinateX")) {
+                        updateStation.setCoordinateX(Double.parseDouble(stationData.get("coordinateX").toString()));
+                    }
+                    if (stationData.containsKey("coordinateY")) {
+                        updateStation.setCoordinateY(Double.parseDouble(stationData.get("coordinateY").toString()));
+                    }
+                    if (stationData.containsKey("coordinateZ")) {
+                        updateStation.setCoordinateZ(Double.parseDouble(stationData.get("coordinateZ").toString()));
+                    }
+                    if (stationData.containsKey("orientation")) {
+                        updateStation.setOrientation(Double.parseDouble(stationData.get("orientation").toString()));
+                    }
+                    
+                    // 仅更新坐标和方位角，其他信息保持不变
+                    stationMapper.updateStation(updateStation);
+                    successCount++;
+                }
+            } catch (Exception e) {
+                log.error("更新基站坐标失败，基站ID: " + stationData.get("id"), e);
+                // 继续处理下一个基站，不影响整体流程
+            }
+        }
+        
+        return successCount;
+    }
+
     /**
      * 验证IP地址格式
      * @param ip IP地址字符串

@@ -64,7 +64,6 @@
           class="alarm-table"
           @sort-change="handleSortChange"
         >
-          <el-table-column type="selection" width="40" fixed="left" />
           <el-table-column prop="time" label="时间" min-width="180" show-overflow-tooltip sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.time) }}

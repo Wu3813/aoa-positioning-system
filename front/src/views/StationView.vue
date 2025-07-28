@@ -44,6 +44,16 @@
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
             <el-icon><Delete /></el-icon> 批量删除
           </el-button>
+          <el-button type="primary" @click="handleImportCoordinates">
+            <el-icon><Upload /></el-icon> 批量导入坐标及方位角
+          </el-button>
+          <input
+            type="file"
+            ref="fileInput"
+            style="display: none"
+            accept=".json"
+            @change="handleFileChange"
+          />
         </div>
       </div>
     </div>
@@ -471,7 +481,7 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Delete, Edit, Connection } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Edit, Connection, Upload } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const stationList = ref([])
@@ -500,6 +510,7 @@ const configRSSILoading = ref(false)
 const configTargetLoading = ref(false)
 const targetIp = ref('')
 const targetPort = ref(null)
+const fileInput = ref(null) // 添加文件输入引用
 
 // 搜索表单
 const searchForm = reactive({
@@ -779,6 +790,125 @@ const handleBatchDelete = () => {
   }).catch(() => {
     // 取消删除，不做处理
   });
+}
+
+// 批量导入坐标
+const handleImportCoordinates = () => {
+  // 触发隐藏的文件输入点击
+  fileInput.value.click();
+}
+
+// 处理文件选择
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // 检查文件类型
+  if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+    ElMessage.error('请上传JSON格式文件');
+    event.target.value = null; // 清空选择
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      // 解析JSON内容
+      const content = JSON.parse(e.target.result);
+      
+      // 确保JSON格式正确
+      if (!content.detected_base_station || !Array.isArray(content.detected_base_station)) {
+        ElMessage.error('JSON格式不正确，缺少detected_base_station数组');
+        return;
+      }
+      
+      // 过滤出有效的基站配置
+      const validStations = content.detected_base_station.filter(station => 
+        station.base_mac && station.x !== undefined && 
+        station.y !== undefined && station.z !== undefined && 
+        station.orientation_deg !== undefined
+      );
+      
+      if (validStations.length === 0) {
+        ElMessage.error('没有找到有效的基站配置信息');
+        return;
+      }
+      
+      // 构建MAC地址与基站的映射
+      const macToStationMap = {};
+      stationList.value.forEach(station => {
+        if (station.macAddress) {
+          // 移除所有分隔符并转为大写，以便进行比较
+          const normalizedMac = station.macAddress.replace(/[:-]/g, '').toUpperCase();
+          macToStationMap[normalizedMac] = station;
+        }
+      });
+      
+      // 收集要更新的基站数据
+      const stationsToUpdate = [];
+      const skippedStations = [];
+      
+      validStations.forEach(jsonStation => {
+        // 标准化MAC地址
+        const normalizedMac = jsonStation.base_mac.replace(/[:-]/g, '').toUpperCase();
+        
+        if (macToStationMap[normalizedMac]) {
+          const station = macToStationMap[normalizedMac];
+          stationsToUpdate.push({
+            id: station.id,
+            coordinateX: jsonStation.x,
+            coordinateY: jsonStation.y,
+            coordinateZ: jsonStation.z,
+            orientation: jsonStation.orientation_deg
+          });
+        } else {
+          skippedStations.push(normalizedMac);
+        }
+      });
+      
+      if (stationsToUpdate.length === 0) {
+        ElMessage.warning('没有匹配到任何基站，请检查MAC地址');
+        return;
+      }
+      
+      // 提示确认
+      ElMessageBox.confirm(
+        `发现${stationsToUpdate.length}个基站需要更新坐标，${skippedStations.length}个基站未匹配。是否继续？`,
+        '批量导入坐标',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(async () => {
+        // 发送批量更新请求
+        try {
+          const response = await axios.post('/api/stations/batch/update-coordinates', stationsToUpdate);
+          
+          if (response.data.success) {
+            ElMessage.success(`成功更新了${stationsToUpdate.length}个基站的坐标数据`);
+            // 重新加载基站列表
+            fetchStations();
+          } else {
+            ElMessage.warning(response.data.message || '部分基站更新失败');
+          }
+        } catch (error) {
+          console.error('批量更新基站坐标错误:', error);
+          ElMessage.error('批量更新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+        }
+      }).catch(() => {
+        // 用户取消操作
+      });
+      
+    } catch (error) {
+      console.error('处理JSON文件错误:', error);
+      ElMessage.error('解析JSON文件失败: ' + error.message);
+    } finally {
+      event.target.value = null; // 清空文件选择
+    }
+  };
+  
+  reader.readAsText(file);
 }
 
 // 添加基站

@@ -518,4 +518,24 @@ public class StationController {
             return ResponseEntity.ok(response);
         }
     }
+
+    /**
+     * 批量更新基站坐标和方位角
+     * @param stations 基站信息列表（包含id、coordinateX、coordinateY、coordinateZ、orientation）
+     * @return 更新结果
+     */
+    @PostMapping("/batch/update-coordinates")
+    public ResponseEntity<Map<String, Object>> batchUpdateCoordinates(@RequestBody List<Map<String, Object>> stations) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int successCount = stationService.batchUpdateCoordinates(stations);
+            response.put("success", true);
+            response.put("message", "成功更新了 " + successCount + " 个基站的坐标信息");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "批量更新坐标失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 } 
