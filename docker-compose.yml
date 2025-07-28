@@ -1,8 +1,8 @@
 services:
-  # MySQL服务
-  mysql:
-    # TODO: switch to mariaDB
-    image: mysql:8.0
+  # MariaDB服务
+  mariadb:
+    # Switched to MariaDB
+    image: mariadb:11
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=123456
@@ -12,7 +12,7 @@ services:
     # ports:
     #   - "3306:3306"
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ./data/mariadb:/var/lib/mysql
       - ./init_sql:/docker-entrypoint-initdb.d
     command:
       - --default-authentication-plugin=mysql_native_password
@@ -21,7 +21,7 @@ services:
       - --init-connect='SET NAMES utf8mb4'
       - --innodb-flush-log-at-trx-commit=0
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=123456"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "--password=123456"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       dockerfile: backend/Dockerfile
     restart: always
     depends_on:
-      mysql:
+      mariadb:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -59,7 +59,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mariadb:3306/aoa?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_REDIS_HOST=redis
