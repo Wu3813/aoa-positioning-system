@@ -3,7 +3,7 @@
     <!-- 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>系统管理</h2>
+        <h2>后台管理</h2>
       </div>
     </div>
 

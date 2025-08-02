@@ -23,6 +23,6 @@ INSERT INTO task_config (
   storage_interval_ms,
   storage_enabled
 ) 
-SELECT 60000, true, false, 300, 20000, 5000, true
+SELECT 60000, false, false, 300, 20000, 5000, true
 FROM DUAL
 WHERE NOT EXISTS (SELECT * FROM task_config LIMIT 1); 
