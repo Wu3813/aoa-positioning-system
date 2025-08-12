@@ -41,7 +41,7 @@
           style="width: 100%"
           @selection-change="handleSelectionChange"
           v-loading="loading"
-          height="calc(100vh - 320px)"
+          height="100%"
           border
           stripe
           class="user-table"
@@ -356,7 +356,6 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -365,6 +364,7 @@ onMounted(() => {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
+  flex-shrink: 0;
 }
 
 .control-wrapper {
@@ -377,36 +377,40 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
+  display: flex;
   padding: 0 20px;
   overflow: hidden;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .user-table-wrapper {
   background: #fff;
-  padding: 16px 16px 20px 16px;
+  padding: 16px;
   border-radius: 4px;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .user-table {
   width: 100%;
-  flex: 1;
+  height: 100%;
+  overflow: auto;
 }
 
 .search-bar {
   margin-top: 15px;
+  flex-shrink: 0;
 }
 
 .action-bar {
   margin-top: 15px;
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .dialog-footer {

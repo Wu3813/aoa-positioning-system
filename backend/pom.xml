@@ -11,8 +11,8 @@
     </parent>
 
     <artifactId>AOA_monitor</artifactId>
-    <name>AOA监控系统</name>
-    <description>AOA定位系统后端监控模块</description>
+    <name>AOA定位系统</name>
+    <description>AOA定位系统后端模块</description>
 
     <properties>
         <mysql.version>8.0.22</mysql.version>

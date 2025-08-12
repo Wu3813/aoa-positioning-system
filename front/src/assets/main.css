@@ -42,3 +42,9 @@ body {
   width: 100%;
   overflow: hidden;
 }
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+}

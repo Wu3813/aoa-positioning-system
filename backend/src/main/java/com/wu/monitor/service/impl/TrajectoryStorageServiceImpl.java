@@ -97,26 +97,72 @@ public class TrajectoryStorageServiceImpl implements TrajectoryStorageService {
      */
     private TrajectoryRecord convertToTrajectoryRecord(String deviceId, TrackingData data) {
         if (data.getTimestamp() == null) {
+            log.warn("设备 {} 的时间戳为空，丢弃该条轨迹数据", deviceId);
             return null;
-            }
+        }
+        
+        // 校验时间戳格式
+        if (!isValidTimestampFormat(data.getTimestamp())) {
+            log.error("设备 {} 的时间戳格式不正确: {}，丢弃该条轨迹数据", deviceId, data.getTimestamp());
+            return null;
+        }
             
-            try {
-                LocalDateTime timestamp = TimestampUtils.parseTimestamp(data.getTimestamp());
-                TrajectoryRecord record = new TrajectoryRecord();
-                record.setDeviceId(deviceId);
-                record.setMapId(data.getMapId());
-                record.setTimestamp(timestamp);
-                record.setX(data.getX());
-                record.setY(data.getY());
-                record.setRssi(data.getRssi());
-                record.setBattery(data.getBattery());
-                record.setPointCount(1); // 每条记录只包含一个点
-                
+        try {
+            LocalDateTime timestamp = TimestampUtils.parseTimestamp(data.getTimestamp());
+            TrajectoryRecord record = new TrajectoryRecord();
+            record.setDeviceId(deviceId);
+            record.setMapId(data.getMapId());
+            record.setTimestamp(timestamp);
+            record.setX(data.getX());
+            record.setY(data.getY());
+            record.setRssi(data.getRssi());
+            record.setBattery(data.getBattery());
+            record.setPointCount(1); // 每条记录只包含一个点
+            
             return record;
                 
-            } catch (Exception e) {
-                log.error("转换轨迹数据异常: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("转换轨迹数据异常: {}", e.getMessage(), e);
             return null;
+        }
+    }
+    
+    /**
+     * 校验时间戳格式是否正确
+     * @param timestamp 时间戳字符串
+     * @return 如果格式正确返回true，否则返回false
+     */
+    private boolean isValidTimestampFormat(String timestamp) {
+        if (timestamp == null || timestamp.trim().isEmpty()) {
+            return false;
+        }
+        
+        try {
+            // 检查是否为纯数字（Unix时间戳）
+            if (timestamp.matches("^\\d+(\\.\\d+)?$")) {
+                // 验证时间戳是否在合理范围内（1970年到2100年）
+                String[] parts = timestamp.split("\\.");
+                long seconds = Long.parseLong(parts[0]);
+                
+                // 1970年1月1日到2100年12月31日的时间范围
+                long minSeconds = 0L; // 1970-01-01 00:00:00
+                long maxSeconds = 4102444800L; // 2100-01-01 00:00:00
+                
+                if (seconds < minSeconds || seconds > maxSeconds) {
+                    log.warn("时间戳 {} 超出合理范围 ({} - {})", timestamp, minSeconds, maxSeconds);
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // 如果不是纯数字格式，记录警告并返回false
+            log.warn("时间戳 {} 不是有效的Unix时间戳格式", timestamp);
+            return false;
+            
+        } catch (Exception e) {
+            log.error("校验时间戳格式时发生异常: {}", e.getMessage(), e);
+            return false;
         }
     }
     

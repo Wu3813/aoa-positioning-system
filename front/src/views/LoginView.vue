@@ -5,10 +5,24 @@
         <img src="@/assets/login-bg.jpg" alt="登录背景" class="login-image" />
       </div>
       <div class="login-right">
-        <el-card class="login-box">
+        <!-- 语言切换器 -->
+        <div class="language-switcher">
+          <el-select 
+            v-model="currentLocale" 
+            @change="changeLocale" 
+            size="small" 
+            style="width: 100px;"
+          >
+            <el-option label="简体中文" value="zh-CN" />
+            <el-option label="繁體中文" value="zh-TW" />
+            <el-option label="English" value="en-US" />
+          </el-select>
+        </div>
+        
+        <div class="login-content-wrapper">
           <div class="login-header">
-            <h2>AoA 定位MVP系统</h2>
-            <p>欢迎</p>
+            <h2>{{ $t('login.title') }}</h2>
+            <p>{{ $t('login.welcome') }}</p>
           </div>
           
           <el-form
@@ -20,8 +34,9 @@
             <el-form-item prop="username">
               <el-input
                 v-model="loginForm.username"
-                placeholder="请输入用户名"
+                :placeholder="$t('login.usernamePlaceholder')"
                 :prefix-icon="User"
+                size="large"
               />
             </el-form-item>
             
@@ -29,9 +44,10 @@
               <el-input
                 v-model="loginForm.password"
                 type="password"
-                placeholder="请输入密码"
+                :placeholder="$t('login.passwordPlaceholder')"
                 :prefix-icon="Lock"
                 show-password
+                size="large"
               />
             </el-form-item>
             
@@ -41,12 +57,13 @@
                 :loading="loading"
                 class="login-button"
                 @click="handleLogin"
+                size="large"
               >
-                登录
+                {{ $t('login.loginButton') }}
               </el-button>
             </el-form-item>
           </el-form>
-        </el-card>
+        </div>
       </div>
     </div>
   </div>
@@ -54,14 +71,17 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { User, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
 const router = useRouter()
+const { t, locale } = useI18n()
 const loginFormRef = ref(null)
 const loading = ref(false)
+const currentLocale = ref(locale.value)
 
 const loginForm = reactive({
   username: '',
@@ -71,11 +91,19 @@ const loginForm = reactive({
 // 添加表单验证规则
 const loginRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
+    { required: true, message: t('login.usernamePlaceholder'), trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' }
+    { required: true, message: t('login.passwordPlaceholder'), trigger: 'blur' }
   ]
+}
+
+// 语言切换函数
+const changeLocale = (newLocale) => {
+  locale.value = newLocale
+  localStorage.setItem('locale', newLocale)
+  // 重新加载页面以应用新的语言设置
+  window.location.reload()
 }
 
 const handleLogin = async () => {
@@ -87,15 +115,15 @@ const handleLogin = async () => {
     
     const response = await axios.post('/api/users/login', loginForm)
     
-    ElMessage.success('登录成功')
+    ElMessage.success(t('login.loginSuccess'))
     // 可以保存用户信息到 localStorage 或 vuex
     localStorage.setItem('user', JSON.stringify(response.data))
     router.push('/home')
   } catch (error) {
     if (error.response?.status === 401) {
-      ElMessage.error('用户名或密码错误')
+      ElMessage.error(t('login.invalidCredentials'))
     } else {
-      ElMessage.error('登录失败，请稍后重试')
+      ElMessage.error(t('login.loginFailed'))
     }
   } finally {
     loading.value = false
@@ -138,33 +166,77 @@ const handleLogin = async () => {
 .login-right {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   background: #fff;
-  padding: 40px;
-  min-width: 400px;  /* 设置最小宽度 */
+  position: relative;
+  min-width: 500px;
+  width: auto;
 }
 
-.login-box {
-  width: 320px;
-  box-shadow: none;
-  background: transparent;
-  border: none;
+.language-switcher {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  z-index: 10;
+}
+
+.login-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
+  width: 100%;
 }
 
 .login-header h2 {
-  font-size: 28px;
+  font-size: 32px;
   color: var(--text-primary);
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .login-header p {
   color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  min-width: 350px;
+}
+
+.login-form .el-form-item {
+  margin-bottom: 25px;
+}
+
+.login-form .el-input {
+  --el-input-height: 50px;
+  width: 100%;
+}
+
+.login-form .el-form-item {
+  width: 100%;
+}
+
+.login-button {
+  width: 100%;
+  height: 50px;
   font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
 }
 </style>
