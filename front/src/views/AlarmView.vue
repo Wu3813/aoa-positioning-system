@@ -44,7 +44,7 @@
             </div>
           </el-form>
         </div>
-        <!-- 操作栏 - 移除批量删除按钮 -->
+        <!-- 操作栏 -->
         <div class="action-bar">
         </div>
       </div>
@@ -53,7 +53,7 @@
     <!-- 2. 主要内容区域 -->
     <div class="main-content">
       <!-- 表格 -->
-              <div class="alarm-table-wrapper">
+      <div class="alarm-table-wrapper">
         <el-table 
           :data="filteredAlarmList" 
           style="width: 100%" 
@@ -89,335 +89,38 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { onMounted } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
-import axios from 'axios'
+import { useAlarmData } from './alarmview-js/index.js'
 
-// 响应式数据
-const loading = ref(false)
-const alarmList = ref([])
-const mapList = ref([])
-const tagList = ref([]) // 存储标签信息
-
-// 搜索表单
-const searchForm = reactive({
-  name: '',
-  mapId: null,
-  timeRange: null,
-})
-
-
-
-// 排序
-const sortConfig = ref({
-  prop: 'time',  // 默认按时间排序
-  order: 'descending'  // 默认降序，最新的在前面
-})
-
-// 日期快捷选项
-const dateShortcuts = [
-  {
-    text: '最近一天',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setTime(start.getTime() - 3600 * 1000 * 24)
-      return [start, end]
-    }
-  },
-  {
-    text: '最近一周',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-      return [start, end]
-    }
-  },
-  {
-    text: '最近一个月',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setMonth(start.getMonth() - 1)
-      return [start, end]
-    }
-  }
-]
-
-// 计算属性 - 过滤后的报警列表
-const filteredAlarmList = computed(() => {
-  let list = [...alarmList.value]
-  
-  // 应用排序
-  if (sortConfig.value.prop) {
-    list.sort((a, b) => {
-      const aVal = a[sortConfig.value.prop]
-      const bVal = b[sortConfig.value.prop]
-      
-      if (aVal === null || aVal === undefined) return 1
-      if (bVal === null || bVal === undefined) return -1
-      
-      let result = 0
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        result = aVal.localeCompare(bVal)
-      } else {
-        result = aVal < bVal ? -1 : aVal > bVal ? 1 : 0
-      }
-      
-      return sortConfig.value.order === 'ascending' ? result : -result
-    })
-  }
-  
-  return list
-})
-
-// 方法
-const fetchAlarms = async () => {
-  loading.value = true
-  try {
-    const params = {}
-    
-    if (searchForm.name) params.geofenceName = searchForm.name
-    if (searchForm.mapId) params.mapId = searchForm.mapId
-    
-    if (searchForm.timeRange && searchForm.timeRange.length === 2) {
-      params.startTime = searchForm.timeRange[0]
-      params.endTime = searchForm.timeRange[1]
-    }
-    
-    if (sortConfig.value.prop) {
-      params.sort = `${sortConfig.value.prop},${sortConfig.value.order === 'descending' ? 'desc' : 'asc'}`
-    }
-    
-    const response = await axios.get('/api/alarms', { params })
-    
-    if (response.data && response.data.content) {
-      alarmList.value = response.data.content
-    } else if (response.data && Array.isArray(response.data)) {
-      alarmList.value = response.data
-    } else if (response.data && response.data.success && response.data.data) {
-      alarmList.value = Array.isArray(response.data.data) ? response.data.data : []
-    } else {
-      alarmList.value = []
-    }
-
-    console.log('报警列表获取成功:', alarmList.value)
-  } catch (error) {
-    console.error('获取报警列表错误:', error)
-    ElMessage.error('获取报警列表失败: ' + (error.response?.data?.message || error.message))
-    alarmList.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-const fetchMaps = async () => {
-  try {
-    const response = await axios.get('/api/maps')
-    // 兼容多种数据结构
-    if (Array.isArray(response.data)) {
-      mapList.value = response.data
-    } else if (response.data && Array.isArray(response.data.content)) {
-      mapList.value = response.data.content
-    } else if (response.data && response.data.success && response.data.data) {
-      mapList.value = Array.isArray(response.data.data) ? response.data.data : []
-    } else {
-      mapList.value = []
-    }
-    console.log('地图列表获取成功:', mapList.value)
-  } catch (error) {
-    console.error('获取地图列表错误:', error)
-    ElMessage.error('获取地图列表失败')
-    mapList.value = []
-  }
-}
-
-// 获取所有标签
-const fetchTags = async () => {
-  try {
-    const response = await axios.get('/api/tags')
-    if (Array.isArray(response.data)) {
-      tagList.value = response.data
-    } else if (response.data && Array.isArray(response.data.content)) {
-      tagList.value = response.data.content
-    } else if (response.data && response.data.success && response.data.data) {
-      tagList.value = Array.isArray(response.data.data) ? response.data.data : []
-    } else {
-      tagList.value = []
-    }
-    console.log('标签列表获取成功:', tagList.value)
-  } catch (error) {
-    console.error('获取标签列表错误:', error)
-    ElMessage.error('获取标签列表失败')
-    tagList.value = []
-  }
-}
-
-// 根据MAC地址获取标签名称
-const getTagNameByMac = (mac) => {
-  if (!mac) return '-'
-  const tag = tagList.value.find(t => t.macAddress === mac)
-  return tag ? tag.name : mac
-}
-
-const handleSearch = () => {
-  fetchAlarms()
-}
-
-const handleResetSearch = () => {
-  searchForm.name = ''
-  searchForm.mapId = null
-  searchForm.timeRange = null
-  fetchAlarms()
-}
-
-const handleSortChange = ({ prop, order }) => {
-  sortConfig.value.prop = prop
-  sortConfig.value.order = order
-  fetchAlarms()
-}
-
-// 格式化坐标数据
-const formatCoordinate = (value) => {
-  if (value === null || value === undefined) return '-';
-  return parseFloat(value).toFixed(3);
-}
-
-const formatDateTime = (dateTime) => {
-  if (!dateTime) return '-'
-  return new Date(dateTime).toLocaleString('zh-CN')
-}
+// 使用报警数据管理
+const {
+  loading,
+  alarmList,
+  mapList,
+  tagList,
+  searchForm,
+  sortConfig,
+  dateShortcuts,
+  filteredAlarmList,
+  getAlarms,
+  getMaps,
+  getTags,
+  getTagNameByMac,
+  handleSearch,
+  handleResetSearch,
+  handleSortChange,
+  formatCoordinate,
+  formatDateTime,
+  initData
+} = useAlarmData()
 
 // 生命周期
 onMounted(async () => {
-  await Promise.all([
-    fetchMaps(),     // 获取地图数据
-    fetchTags()      // 获取标签数据
-  ])
-  fetchAlarms()      // 再获取报警数据
+  await initData()
 })
 </script>
 
 <style scoped>
-.alarm-view-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.control-panel {
-  padding: 0 20px;
-  margin: 15px 0;
-  display: flex;
-  flex-shrink: 0;
-}
-
-.control-wrapper {
-  border-radius: 4px;
-  padding: 16px;
-  background-color: #fff;
-  flex: 1;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  padding: 0 20px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-.alarm-table-wrapper {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.alarm-table {
-  width: 100%;
-  flex: 1;
-  overflow: auto;
-}
-
-.search-bar {
-  margin-top: 15px;
-  flex-shrink: 0;
-}
-
-.search-form {
-  width: 100%;
-}
-
-.action-bar {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.button-item {
-  margin-right: 0;
-  margin-left: auto;
-  white-space: nowrap;
-}
-</style>
-
-<style>
-/* 确保Element表格内部滚动正常工作 */
-.el-table__body-wrapper {
-  overflow-x: auto !important;
-}
-
-/* 确保表格底部边框显示正常 */
-.el-table::before,
-.el-table::after {
-  display: none;
-}
-
-.el-table {
-  border-bottom: 1px solid #ebeef5;
-}
-
-/* 美化表格内部滚动条 */
-.el-table__body-wrapper::-webkit-scrollbar {
-  height: 12px !important;
-  display: block !important;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 6px;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-thumb {
-  background: #909399;
-  border-radius: 6px;
-  border: 2px solid #f1f1f1;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #606266;
-}
-
-.el-select {
-  width: 100%;
-}
+@import '../assets/styles/alarm-view.css';
 </style> 

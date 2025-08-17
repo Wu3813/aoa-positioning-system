@@ -3,19 +3,19 @@
     <!-- 1. 控制面板 (类似 UserView) -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>地图管理</h2>
+        <h2>{{ $t('maps.title') }}</h2>
         <!-- 搜索/过滤栏 -->
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
-            <el-form-item label="地图名称">
-              <el-input v-model="searchForm.mapName" placeholder="请输入地图名称" clearable />
+            <el-form-item :label="$t('maps.searchMapName')">
+              <el-input v-model="searchForm.mapName" :placeholder="$t('maps.searchMapNamePlaceholder')" clearable />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="handleSearch">
-                <el-icon><Search /></el-icon> 查询
+                <el-icon><Search /></el-icon> {{ $t('maps.query') }}
               </el-button>
               <el-button @click="handleResetSearch">
-                 <el-icon><Refresh /></el-icon> 重置
+                 <el-icon><Refresh /></el-icon> {{ $t('maps.reset') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -23,10 +23,10 @@
         <!-- 操作栏 -->
         <div class="action-bar">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon> 新增
+            <el-icon><Plus /></el-icon> {{ $t('maps.add') }}
           </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <el-icon><Delete /></el-icon> 批量删除
+            <el-icon><Delete /></el-icon> {{ $t('maps.batchDelete') }}
           </el-button>
         </div>
       </div>
@@ -48,14 +48,14 @@
           @sort-change="handleSortChange"
         >
           <el-table-column type="selection" width="40" fixed="left" />
-          <el-table-column label="序号" width="60" align="center" fixed="left">
+          <el-table-column :label="$t('maps.serialNumber')" width="60" align="center" fixed="left">
             <template #default="scope">
               {{ scope.$index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column prop="mapId" label="地图ID" min-width="100" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="name" label="地图名称" min-width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column label="地图图片" width="110">
+          <el-table-column prop="mapId" :label="$t('maps.mapId')" min-width="120" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="name" :label="$t('maps.mapName')" min-width="180" show-overflow-tooltip sortable="custom" />
+          <el-table-column :label="$t('maps.mapImage')" width="120">
             <template #default="scope">
               <div v-if="scope.row.mapId" class="image-container">
                 <el-image 
@@ -81,7 +81,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="图片尺寸" min-width="130" show-overflow-tooltip>
+          <el-table-column :label="$t('maps.imageSize')" min-width="150" show-overflow-tooltip>
             <template #default="scope">
               <span v-if="scope.row.width && scope.row.height">
                 {{ scope.row.width || 0 }} × {{ scope.row.height || 0 }} px
@@ -89,7 +89,7 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="原点坐标" min-width="120" show-overflow-tooltip>
+          <el-table-column :label="$t('maps.originCoordinates')" min-width="140" show-overflow-tooltip>
             <template #default="scope">
               <span v-if="scope.row.originX !== undefined && scope.row.originY !== undefined">
                 ({{ scope.row.originX || 0 }} px, {{ scope.row.originY || 0 }} px)
@@ -97,7 +97,7 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="比例尺" min-width="120" show-overflow-tooltip>
+          <el-table-column :label="$t('maps.scale')" min-width="140" show-overflow-tooltip>
             <template #default="scope">
               <span v-if="scope.row.scale">
                 1 m = {{ scope.row.scale || 0 }} px
@@ -105,20 +105,20 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" min-width="160" show-overflow-tooltip sortable="custom">
+          <el-table-column prop="createTime" :label="$t('maps.createTime')" min-width="180" show-overflow-tooltip sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right" width="140">
+          <el-table-column :label="$t('maps.operation')" fixed="right" width="160">
             <template #default="scope">
               <div class="operation-buttons">
                 <el-button-group class="operation-row">
                   <el-button type="default" size="small" @click="handleEdit(scope.row)">
-                    修改
+                    {{ $t('maps.edit') }}
                   </el-button>
                   <el-button type="default" size="small" @click="handleDelete(scope.row)">
-                    删除
+                    {{ $t('maps.delete') }}
                   </el-button>
                 </el-button-group>
               </div>
@@ -131,7 +131,7 @@
     <!-- 添加/编辑对话框 (修改) -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'add' ? '添加地图' : '编辑地图'"
+      :title="dialogType === 'add' ? $t('maps.addMap') : $t('maps.editMap')"
       width="90%"
       @close="resetForm"
       :fullscreen="false"
@@ -142,7 +142,9 @@
         ref="mapFormRef"
         :model="mapForm"
         :rules="rules"
-        label-width="80px"
+        label-width="120px"
+        label-position="left"
+        :hide-required-asterisk="true"
         class="map-form"
       >
         <el-row :gutter="20">
@@ -150,14 +152,20 @@
             <div class="left-panel">
               <!-- 基本信息 -->
               <div class="form-section">
-                <h3>基本信息</h3>
-                <el-form-item label="地图ID" prop="mapId">
-                  <el-input v-model="mapForm.mapId" placeholder="请输入地图ID" />
+                <h3>{{ $t('maps.basicInfo') }}</h3>
+                <el-form-item :label="$t('maps.mapId')" prop="mapId" label-width="120px">
+                  <template #label>
+                    {{ $t('maps.mapId') }} <span class="required-mark-right">*</span>
+                  </template>
+                  <el-input v-model="mapForm.mapId" :placeholder="$t('maps.searchMapNamePlaceholder')" />
                 </el-form-item>
-                <el-form-item label="地图名称" prop="name">
-                  <el-input v-model="mapForm.name" placeholder="请输入地图名称" />
+                <el-form-item :label="$t('maps.mapName')" prop="name" label-width="120px">
+                  <template #label>
+                    {{ $t('maps.mapName') }} <span class="required-mark-right">*</span>
+                  </template>
+                  <el-input v-model="mapForm.name" :placeholder="$t('maps.searchMapNamePlaceholder')" />
                 </el-form-item>
-                <el-form-item label="地图文件" prop="file">
+                <el-form-item :label="$t('maps.mapFile')" prop="file" label-width="120px">
                   <el-upload
                     class="map-upload"
                     ref="uploadRef"
@@ -170,39 +178,39 @@
                     :on-remove="handleFileRemove"
                     accept=".jpg,.jpeg,.png"
                   >
-                    <el-button type="primary" size="small">选择文件</el-button>
+                    <el-button type="primary" size="small">{{ $t('maps.selectFile') }}</el-button>
                     <template #tip>
                       <div class="el-upload__tip">
-                        只能上传 jpg/png 文件，大小不超过 10MB
+                        {{ $t('maps.uploadTip') }}
                       </div>
                     </template>
                   </el-upload>
                 </el-form-item>
-                <el-form-item label="图片尺寸" v-if="imageInfo.width && imageInfo.height">
+                <el-form-item :label="$t('maps.imageSize')" v-if="imageInfo.width && imageInfo.height" label-width="120px">
                   <div class="size-info">{{ imageInfo.width || 0 }} × {{ imageInfo.height || 0 }} 像素</div>
                 </el-form-item>
               </div>
               
               <!-- 原点坐标设置 -->
               <div class="form-section">
-                <h3>原点坐标</h3>
+                <h3>{{ $t('maps.originCoordinateSetting') }}</h3>
                 <div class="action-buttons">
                   <el-button size="small" type="primary" @click="setOriginMode" v-if="!isSettingOrigin && !isMeasuring" :disabled="!previewImageUrl">
-                    点击设置原点
+                    {{ $t('maps.clickSetOrigin') }}
                   </el-button>
                   <template v-if="isSettingOrigin">
                     <el-button size="small" type="success" @click="completeOriginSetting">
-                      完成
+                      {{ $t('maps.complete') }}
                     </el-button>
                     <el-button size="small" @click="cancelOriginSetting">
-                      取消
+                      {{ $t('maps.cancel') }}
                     </el-button>
                   </template>
                 </div>
                 <div class="coordinate-inputs">
                   <div class="measure-point-row">
-                    <span>原点:</span>
-                    <el-form-item label="X (px)" class="half-width no-bottom-margin">
+                    <span class="coordinate-label">{{ $t('maps.origin') }}:</span>
+                    <el-form-item label="X (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="mapForm.originX" 
                         :precision="0" 
@@ -215,7 +223,7 @@
                         :disabled="!isSettingOrigin || !previewImageUrl"
                       />
                     </el-form-item>
-                    <el-form-item label="Y (px)" class="half-width no-bottom-margin">
+                    <el-form-item label="Y (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="mapForm.originY" 
                         :precision="0" 
@@ -234,28 +242,28 @@
               
               <!-- 比例尺计算区域 -->
               <div class="form-section">
-                <h3>比例尺计算 <span class="required-mark" v-if="dialogType === 'add'">*</span></h3>
+                <h3>{{ $t('maps.scaleCalculation') }} <span class="required-mark" v-if="dialogType === 'add'">*</span></h3>
                 <div class="action-buttons">
                   <el-button size="small" type="primary" @click="setMeasureMode" v-if="!isMeasuring && !hasCompletedScale && !isSettingOrigin" :disabled="!previewImageUrl">
-                    点击设置测量点
+                    {{ $t('maps.clickSetMeasurePoints') }}
                   </el-button>
                   <template v-if="isMeasuring">
                     <el-button size="small" type="success" @click="completeMeasuring" :disabled="scaleForm.points.length < 2">
-                      完成
+                      {{ $t('maps.complete') }}
                     </el-button>
                     <el-button size="small" @click="cancelMeasuring">
-                      取消
+                      {{ $t('maps.cancel') }}
                     </el-button>
                   </template>
                   <template v-if="hasCompletedScale && !isSettingOrigin">
                     <el-button size="small" type="primary" @click="resetScaleMeasurement">
-                      点击设置测量点
+                      {{ $t('maps.clickSetMeasurePoints') }}
                     </el-button>
                   </template>
                 </div>
                 <div class="scale-calculator">
                   <div class="scale-input-group">
-                    <span>实际距离(m):</span>
+                    <span class="scale-label">{{ $t('maps.realDistance') }}:</span>
                     <el-input-number 
                       v-model="scaleForm.realDistance" 
                       :precision="2" 
@@ -268,16 +276,16 @@
                     />
                   </div>
                   <div class="scale-result" v-if="scaleForm.pixelDistance > 0">
-                    <p>像素距离: {{ scaleForm.pixelDistance.toFixed(2) }} px</p>
-                    <p>比例尺: {{ calculateScale() }}</p>
+                    <p>{{ $t('maps.pixelDistance') }}: {{ scaleForm.pixelDistance.toFixed(2) }} px</p>
+                    <p>{{ $t('maps.scaleResult') }}: {{ calculateScale() }}</p>
                   </div>
                 </div>
 
                 <!-- 添加两点坐标手动输入 -->
                 <div class="point-inputs">
                   <div class="measure-point-row">
-                    <span>点1:</span>
-                    <el-form-item label="X (px)" class="half-width no-bottom-margin">
+                    <span class="point-label">{{ $t('maps.point1') }}:</span>
+                    <el-form-item label="X (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="scaleForm.pointInputs[0].x" 
                         :precision="0" 
@@ -290,7 +298,7 @@
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
                     </el-form-item>
-                    <el-form-item label="Y (px)" class="half-width no-bottom-margin">
+                    <el-form-item label="Y (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="scaleForm.pointInputs[0].y" 
                         :precision="0" 
@@ -305,8 +313,8 @@
                     </el-form-item>
                   </div>
                   <div class="measure-point-row">
-                    <span>点2:</span>
-                    <el-form-item label="X (px)" class="half-width no-bottom-margin">
+                    <span class="point-label">{{ $t('maps.point2') }}:</span>
+                    <el-form-item label="X (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="scaleForm.pointInputs[1].x" 
                         :precision="0" 
@@ -319,7 +327,7 @@
                         :disabled="!isMeasuring || !previewImageUrl || hasCompletedScale || isSettingOrigin"
                       />
                     </el-form-item>
-                    <el-form-item label="Y (px)" class="half-width no-bottom-margin">
+                    <el-form-item label="Y (px)" class="half-width no-bottom-margin" label-width="60px">
                       <el-input-number 
                         v-model="scaleForm.pointInputs[1].y" 
                         :precision="0" 
@@ -341,7 +349,7 @@
           <el-col :span="16">
             <!-- 地图缩略图 -->
             <div class="form-section map-preview-section">
-              <h3>地图预览</h3>
+              <h3>{{ $t('maps.mapPreview') }}</h3>
               <div class="map-preview-container" ref="previewContainer">
                 <div 
                   class="map-preview" 
@@ -358,7 +366,7 @@
                   />
                   <div v-else class="no-image">
                     <el-icon :size="40"><Picture /></el-icon>
-                    <p>请上传地图图片</p>
+                    <p>{{ $t('maps.uploadMapImage') }}</p>
                   </div>
                   
                   <!-- 原点标记 -->
@@ -404,11 +412,11 @@
                 
                 <div class="preview-instructions" v-if="previewImageUrl">
                   <p>
-                    <template v-if="isSettingOrigin">点击图片设置原点位置，完成后点击"完成"按钮</template>
-                    <template v-else-if="isMeasuring">点击图片设置测量点 ({{ scaleForm.points.length }}/2)，完成后点击"完成"按钮</template>
-                    <template v-else>选择"点击设置原点"或"点击设置测量点"开始</template>
+                    <template v-if="isSettingOrigin">{{ $t('maps.clickImageSetOrigin') }}</template>
+                    <template v-else-if="isMeasuring">{{ $t('maps.clickImageSetMeasurePoints', { count: scaleForm.points.length }) }}</template>
+                    <template v-else>{{ $t('maps.selectOriginOrMeasure') }}</template>
                   </p>
-                  <el-button size="small" type="danger" @click="clearMarkers" v-if="!isSettingOrigin && !isMeasuring && scaleForm.points.length > 0">清除标记点</el-button>
+                  <el-button size="small" type="danger" @click="clearMarkers" v-if="!isSettingOrigin && !isMeasuring && scaleForm.points.length > 0">{{ $t('maps.clearMarkers') }}</el-button>
                 </div>
               </div>
             </div>
@@ -418,8 +426,8 @@
       
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
+          <el-button @click="dialogVisible = false">{{ $t('maps.cancel') }}</el-button>
+          <el-button type="primary" @click="handleSubmit">{{ $t('maps.confirm') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -429,6 +437,8 @@
 <script setup>
 import { useMapView } from './mapview-js'
 import { Search, Refresh, Plus, Delete, Edit, Picture } from '@element-plus/icons-vue'
+// 恢复CSS导入，因为已经修复了选择器避免样式污染
+import '@/assets/styles/map-view.css'
 
 // 使用组合式函数获取所有响应式数据和方法
 const {
@@ -497,5 +507,344 @@ const {
 </script>
 
 <style scoped>
-@import '@/assets/styles/map-view.css';
+/* MapView 组件样式 - 使用scoped避免全局污染 */
+
+.map-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.control-panel {
+  padding: 0 20px;
+  margin: 15px 0;
+  display: flex;
+}
+
+.control-wrapper {
+  border-radius: 4px;
+  padding: 16px;
+  background-color: #fff;
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content {
+  flex: 1;
+  padding: 0 20px;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.map-table-wrapper {
+  background: #fff;
+  padding: 16px 16px 20px 16px;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.map-table {
+  width: 100%;
+  flex: 1;
+}
+
+.search-bar {
+  margin-top: 15px;
+}
+
+.action-bar {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.image-container {
+  width: 80px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-slot {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  color: #909399;
+}
+
+:deep(.el-icon) {
+  font-size: 20px;
+}
+
+.operation-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 160px;
+  width: 100%;
+}
+
+.operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.operation-buttons :deep(.el-button) {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* 对话框样式 */
+.map-dialog {
+  max-height: 90vh;
+}
+
+.map-form {
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+.left-panel {
+  padding-right: 20px;
+}
+
+.form-section {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #e4e7ed;
+}
+
+.form-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 10px;
+}
+
+.required-mark {
+  color: #f56c6c;
+  margin-left: 4px;
+}
+
+.required-mark-right {
+  color: #f56c6c;
+  margin-left: 4px;
+}
+
+/* 必填标记样式 - 使用深度选择器 */
+:deep(.el-form-item__label .required-mark),
+:deep(.el-form-item__label .required-mark-right) {
+  color: #f56c6c;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.action-buttons :deep(.el-button) {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.coordinate-inputs {
+  margin-top: 15px;
+}
+
+.measure-point-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.coordinate-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 60px;
+}
+
+.point-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 60px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.no-bottom-margin {
+  margin-bottom: 0;
+}
+
+.scale-calculator {
+  margin-top: 15px;
+}
+
+.scale-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.scale-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 80px;
+}
+
+.scale-result {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.scale-result p {
+  margin: 5px 0;
+  color: #0369a1;
+  font-size: 13px;
+}
+
+.point-inputs {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.map-preview-section {
+  height: 100%;
+}
+
+.map-preview-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-preview {
+  flex: 1;
+  position: relative;
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  cursor: crosshair;
+  overflow: hidden;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.no-image {
+  text-align: center;
+  color: #909399;
+}
+
+.no-image p {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+}
+
+.origin-marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f56c6c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.line-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.preview-instructions {
+  margin-top: 10px;
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
+}
+
+.preview-instructions p {
+  margin: 5px 0;
+}
+
+.map-upload {
+  width: 100%;
+}
+
+.size-info {
+  color: #606266;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+}
 </style>

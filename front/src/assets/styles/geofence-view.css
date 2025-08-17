@@ -1,0 +1,445 @@
+/* GeofenceView 样式 */
+
+.geofence-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.geofence-view-container .control-panel {
+  padding: 0 20px;
+  margin: 15px 0;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.geofence-view-container .control-wrapper {
+  border-radius: 4px;
+  padding: 16px;
+  background-color: #fff;
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.geofence-view-container .main-content {
+  flex: 1;
+  display: flex;
+  padding: 0 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.geofence-view-container .geofence-table-wrapper {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.geofence-view-container .geofence-table {
+  width: 100%;
+  height: 100%;
+}
+
+.geofence-view-container .search-bar {
+  margin-top: 15px;
+  flex-shrink: 0;
+}
+
+/* 自适应语言宽度的搜索表单标签 */
+.geofence-view-container .search-bar .el-form-item__label {
+  min-width: fit-content; /* 自适应内容宽度 */
+  white-space: nowrap;
+  padding-right: 8px; /* 增加标签和输入框之间的间距 */
+}
+
+/* 自适应语言宽度的搜索表单输入框 */
+.geofence-view-container .search-bar .el-input {
+  min-width: 180px; /* 保持最小宽度 */
+  width: auto; /* 允许自动调整宽度 */
+}
+
+.geofence-view-container .search-bar .el-select {
+  min-width: 200px; /* 保持最小宽度 */
+  width: auto; /* 允许自动调整宽度 */
+}
+
+.geofence-view-container .action-bar {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* 自适应语言宽度的操作按钮 */
+.geofence-view-container .action-bar .el-button {
+  min-width: fit-content; /* 自适应内容宽度 */
+  white-space: nowrap;
+  padding: 8px 16px; /* 增加内边距，确保按钮有足够空间 */
+}
+
+.geofence-view-container .operation-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: fit-content; /* 自适应内容宽度 */
+  max-width: none; /* 移除最大宽度限制 */
+}
+
+.geofence-view-container .operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.geofence-view-container .operation-buttons .el-button {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: fit-content; /* 自适应内容宽度 */
+  white-space: nowrap;
+}
+
+/* 确保Element表格内部滚动正常工作 */
+.geofence-view-container .el-table__body-wrapper {
+  overflow-x: auto !important;
+}
+
+/* 确保表格底部边框显示正常 */
+.geofence-view-container .el-table::before,
+.geofence-view-container .el-table::after {
+  display: none;
+}
+
+.geofence-view-container .el-table {
+  border-bottom: 1px solid #ebeef5;
+}
+
+/* 美化表格内部滚动条 */
+.geofence-view-container .el-table__body-wrapper::-webkit-scrollbar {
+  height: 12px !important;
+  display: block !important;
+}
+
+.geofence-view-container .el-table__body-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.geofence-view-container .el-table__body-wrapper::-webkit-scrollbar-thumb {
+  background: #909399;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.geofence-view-container .el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #606266;
+}
+
+.geofence-view-container .el-select {
+  width: 100%;
+}
+
+/* 对话框样式 */
+.geofence-view-container .geofence-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.geofence-view-container .geofence-form {
+  height: 100%;
+  overflow: hidden;
+}
+
+.geofence-view-container .left-panel {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.geofence-view-container .form-section {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #e4e7ed;
+}
+
+.geofence-view-container .form-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 10px;
+}
+
+.geofence-view-container .required-mark {
+  color: #f56c6c;
+  margin-left: 4px;
+}
+
+.geofence-view-container .required-mark-right {
+  color: #f56c6c;
+  margin-left: 4px;
+}
+
+/* 修复必填字段星号在不同语言下的显示问题 - 使用简单布局 */
+.geofence-view-container .el-form-item__label .required-mark,
+.geofence-view-container .el-form-item__label .required-mark-right {
+  color: #f56c6c;
+  font-weight: normal;
+  margin-left: 4px; /* 与MapView保持一致，星号紧跟在标签后面 */
+}
+
+/* 标签容器布局 - 使用简单布局，让星号紧跟在标签后面 */
+.geofence-view-container .el-form-item__label {
+  position: relative;
+  display: inline; /* 使用inline布局，不使用flex */
+  min-height: 20px;
+}
+
+/* 标签文本样式 */
+.geofence-view-container .label-text {
+  display: inline; /* 使用inline布局 */
+}
+
+.geofence-view-container .action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap; /* 允许按钮换行 */
+}
+
+/* 调整表单按钮的宽度，适应英文文本 */
+.geofence-view-container .action-buttons .el-button {
+  min-width: 120px; /* 增加最小宽度 */
+  white-space: nowrap;
+}
+
+.geofence-view-container .points-list {
+  margin-top: 15px;
+}
+
+.geofence-view-container .point-count {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.geofence-view-container .point-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  min-height: 32px; /* 确保有足够的高度 */
+}
+
+.geofence-view-container .point-item:last-child {
+  border-bottom: none;
+}
+
+/* 调整点信息的显示，适应英文文本 */
+.geofence-view-container .point-item span {
+  flex: 1;
+  margin-right: 10px;
+  word-break: break-all; /* 允许长文本换行 */
+}
+
+.geofence-view-container .point-item .el-button {
+  flex-shrink: 0;
+  min-width: 60px; /* 确保删除按钮有足够宽度 */
+}
+
+.geofence-view-container .tip-text {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #909399;
+  background: #f5f7fa;
+  padding: 8px;
+  border-radius: 4px;
+  line-height: 1.4; /* 增加行高，改善英文文本可读性 */
+}
+
+.geofence-view-container .tip-warning {
+  color: #e6a23c;
+  background-color: #fdf6ec;
+  border-left: 3px solid #e6a23c;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.geofence-view-container .map-preview-section {
+  height: 100%;
+  margin-bottom: 0;
+  padding: 15px;
+  overflow: visible;
+}
+
+.geofence-view-container .map-preview-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.geofence-view-container .map-preview {
+  width: 100%;
+  height: 700px;
+  position: relative;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.geofence-view-container .preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.geofence-view-container .no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.geofence-view-container .marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  position: absolute;
+  background-color: #409EFF;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.geofence-view-container .geofence-marker {
+  background-color: #409EFF;
+  border: 2px solid #fff;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.geofence-view-container .polygon-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.geofence-view-container .dialog-footer {
+  text-align: right;
+}
+
+/* 响应式设计，适应不同屏幕尺寸 */
+@media (max-width: 1200px) {
+  .geofence-view-container .search-bar .el-form-item {
+    margin-bottom: 10px;
+  }
+  
+  .geofence-view-container .search-bar .el-input,
+  .geofence-view-container .search-bar .el-select {
+    min-width: 160px;
+  }
+  
+  .geofence-view-container .action-bar .el-button {
+    min-width: 90px;
+  }
+}
+
+@media (max-width: 768px) {
+  .geofence-view-container .control-panel {
+    padding: 0 10px;
+  }
+  
+  .geofence-view-container .main-content {
+    padding: 0 10px;
+  }
+  
+  .geofence-view-container .search-bar .el-form-item {
+    display: block;
+    margin-bottom: 15px;
+  }
+  
+  .geofence-view-container .search-bar .el-input,
+  .geofence-view-container .search-bar .el-select {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .geofence-view-container .action-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .geofence-view-container .action-bar .el-button {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .geofence-view-container .operation-buttons {
+    min-width: 160px;
+    max-width: 180px;
+  }
+}
+
+/* 确保表格列有足够的宽度显示英文文本 */
+.geofence-view-container .el-table .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 调整表格列的最小宽度，适应英文文本 */
+.geofence-view-container .el-table-column--selection {
+  min-width: 50px !important;
+}
+
+/* 状态列需要更多空间显示英文文本 */
+.geofence-view-container .el-table-column[prop="enabled"] {
+  min-width: 100px !important;
+}
+
+/* 操作列需要更多空间显示英文按钮 */
+.geofence-view-container .el-table-column[label*="操作"],
+.geofence-view-container .el-table-column[label*="Operation"] {
+  min-width: 200px !important;
+}

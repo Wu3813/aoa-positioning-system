@@ -9,13 +9,13 @@
   overflow: hidden;
 }
 
-.control-panel {
+.map-view-container .control-panel {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
 }
 
-.control-wrapper {
+.map-view-container .control-wrapper {
   border-radius: 4px;
   padding: 16px;
   background-color: #fff;
@@ -23,14 +23,14 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-.main-content {
+.map-view-container .main-content {
   flex: 1;
   padding: 0 20px;
   overflow: hidden;
   margin-bottom: 30px;
 }
 
-.map-table-wrapper {
+.map-view-container .map-table-wrapper {
   background: #fff;
   padding: 16px 16px 20px 16px;
   border-radius: 4px;
@@ -42,28 +42,28 @@
   flex-direction: column;
 }
 
-.map-table {
+.map-view-container .map-table {
   width: 100%;
   flex: 1;
 }
 
-.search-bar {
+.map-view-container .search-bar {
   margin-top: 15px;
 }
 
-.action-bar {
+.map-view-container .action-bar {
   margin-top: 15px;
   display: flex;
   gap: 10px;
 }
 
-.dialog-footer {
+.map-view-container .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-.image-container {
+.map-view-container .image-container {
   width: 80px;
   height: 60px;
   display: flex;
@@ -71,7 +71,7 @@
   justify-content: center;
 }
 
-.image-slot {
+.map-view-container .image-slot {
   width: 100%;
   height: 100%;
   display: flex;
@@ -81,46 +81,48 @@
   color: #909399;
 }
 
-.el-icon {
+.map-view-container .el-icon {
   font-size: 20px;
 }
 
-.operation-buttons {
+.map-view-container .operation-buttons {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-width: 130px;
+  max-width: 160px; /* 增加操作列宽度 */
+  width: 100%;
 }
 
-.operation-row {
+.map-view-container .operation-row {
   display: flex;
   width: 100%;
 }
 
-.operation-buttons .el-button {
+.map-view-container .operation-buttons .el-button {
   flex: 1;
-  font-size: 10px;
-  padding: 3px 1px;
-  height: 22px;
+  font-size: 11px; /* 稍微增加字体大小 */
+  padding: 4px 2px; /* 增加内边距 */
+  height: 24px; /* 增加按钮高度 */
   min-width: 0;
+  white-space: nowrap; /* 防止文本换行 */
 }
 
 /* 响应式布局适配 */
 @media screen and (max-width: 768px) {
-  .control-panel {
+  .map-view-container .control-panel {
     padding: 0 10px;
     margin: 10px 0;
   }
   
-  .main-content {
+  .map-view-container .main-content {
     padding: 0 10px;
   }
   
-  .map-table-wrapper {
+  .map-view-container .map-table-wrapper {
     padding: 10px;
   }
   
-  .el-form-item {
+  .map-view-container .el-form-item {
     margin-bottom: 12px;
   }
 }
@@ -135,6 +137,12 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  flex-wrap: wrap; /* 允许换行 */
+}
+
+.scale-input-group span {
+  white-space: nowrap; /* 防止标签换行 */
+  min-width: fit-content; /* 确保标签不被压缩 */
 }
 
 .scale-result {
@@ -148,6 +156,7 @@
 
 .scale-result p {
   margin: 5px 0;
+  white-space: nowrap; /* 防止结果文本换行 */
 }
 
 .map-preview-container {
@@ -202,6 +211,12 @@
   text-align: center;
 }
 
+.preview-instructions p {
+  white-space: normal; /* 允许说明文本换行 */
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
 .marker {
   width: 16px;
   height: 16px;
@@ -240,14 +255,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: nowrap;
-  width: auto;
+  flex-wrap: wrap; /* 允许换行 */
+  width: 100%;
 }
 
 .measure-point-row span {
-  width: 40px;
+  width: auto; /* 改为自适应宽度 */
+  min-width: fit-content; /* 确保最小宽度 */
   display: inline-block;
   line-height: 32px;
+  white-space: nowrap; /* 防止标签换行 */
 }
 
 .no-bottom-margin {
@@ -287,6 +304,7 @@
   color: #303133;
   border-bottom: 1px solid #e4e7ed;
   padding-bottom: 10px;
+  white-space: nowrap; /* 防止标题换行 */
 }
 
 .form-section h4 {
@@ -300,11 +318,13 @@
 .coordinate-inputs {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap; /* 允许换行 */
 }
 
 .half-width {
   margin-bottom: 10px;
   width: auto;
+  min-width: fit-content; /* 确保最小宽度 */
 }
 
 .coordinate-info {
@@ -324,6 +344,7 @@
   line-height: 1.2;
   font-size: 12px;
   margin-top: 5px;
+  white-space: normal; /* 允许提示文本换行 */
 }
 
 .origin-marker {
@@ -348,16 +369,42 @@
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
+  flex-wrap: wrap; /* 允许按钮换行 */
+}
+
+.action-buttons .el-button {
+  white-space: nowrap; /* 防止按钮文本换行 */
+  min-width: fit-content; /* 确保按钮不被压缩 */
 }
 
 .size-info {
   line-height: 32px;
   color: #606266;
+  white-space: nowrap; /* 防止尺寸信息换行 */
 }
 
 .required-mark {
   color: #f56c6c;
   font-weight: normal;
+}
+
+/* 必填标记样式 - 右侧显示 */
+.required-mark-right {
+  color: #f56c6c;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* 必填标记位置调整 - 将*号从左侧移动到右侧 */
+.map-form .el-form-item.is-required .el-form-item__label::before {
+  content: '';
+  display: none;
+}
+
+.map-form .el-form-item.is-required .el-form-item__label::after {
+  content: ' *';
+  color: #f56c6c;
+  margin-left: 4px;
 }
 
 /* 确保Element表格内部滚动正常工作 */
@@ -398,4 +445,117 @@
 
 .el-select {
   width: 100%;
+}
+
+/* 表格列宽度优化 - 防止英文文本换行 */
+.el-table .el-table__cell {
+  white-space: nowrap; /* 防止单元格内容换行 */
+}
+
+/* 表格列标题优化 */
+.el-table .el-table__header .el-table__cell {
+  white-space: nowrap; /* 防止表头换行 */
+}
+
+/* 搜索栏和操作栏优化 */
+.search-bar .el-form-item {
+  margin-bottom: 10px;
+}
+
+.search-bar .el-form-item__label {
+  white-space: nowrap; /* 防止标签换行 */
+}
+
+/* 对话框内容优化 */
+.map-dialog .el-dialog__body {
+  padding: 20px;
+}
+
+/* 表单标签优化 */
+.map-form .el-form-item__label {
+  white-space: nowrap; /* 防止表单标签换行 */
+  min-width: fit-content; /* 确保标签不被压缩 */
+  text-align: left; /* 标签左对齐 */
+}
+
+/* 基本信息区域样式优化 */
+.form-section .el-form-item {
+  margin-bottom: 18px;
+}
+
+.form-section .el-form-item__label {
+  text-align: left; /* 标签左对齐 */
+  font-weight: 500; /* 稍微加粗标签 */
+  color: #303133; /* 标签颜色 */
+}
+
+.form-section .el-form-item__content {
+  text-align: left; /* 内容左对齐 */
+}
+
+/* 输入框样式优化 */
+.form-section .el-input,
+.form-section .el-input-number {
+  width: 100%;
+}
+
+.form-section .el-input__inner {
+  text-align: left; /* 输入框内容左对齐 */
+}
+
+/* 上传组件样式优化 */
+.map-upload {
+  width: 100%;
+}
+
+.map-upload .el-upload {
+  width: 100%;
+}
+
+.map-upload .el-upload-dragger {
+  width: 100%;
+  text-align: left; /* 上传区域内容左对齐 */
+}
+
+/* 坐标输入区域样式 */
+.coordinate-inputs .el-form-item {
+  margin-bottom: 10px;
+}
+
+.coordinate-inputs .el-form-item__label {
+  text-align: left; /* 坐标标签左对齐 */
+  min-width: 60px; /* 确保标签有足够宽度 */
+}
+
+/* 测量点输入区域样式 */
+.point-inputs .el-form-item {
+  margin-bottom: 8px;
+}
+
+.point-inputs .el-form-item__label {
+  text-align: left; /* 测量点标签左对齐 */
+  min-width: 60px; /* 确保标签有足够宽度 */
+}
+
+/* 比例尺计算区域样式 */
+.scale-calculator .el-form-item {
+  margin-bottom: 15px;
+}
+
+.scale-calculator .el-form-item__label {
+  text-align: left; /* 比例尺标签左对齐 */
+}
+
+/* 尺寸信息显示样式 */
+.size-info {
+  line-height: 32px;
+  color: #606266;
+  white-space: nowrap; /* 防止尺寸信息换行 */
+  text-align: left; /* 尺寸信息左对齐 */
+  padding-left: 0; /* 移除左内边距 */
+}
+
+/* 按钮组优化 */
+.el-button-group .el-button {
+  white-space: nowrap; /* 防止按钮组内按钮文本换行 */
 }
