@@ -1,7 +1,10 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export function createUserAPI(data) {
+  const { t } = useI18n()
+  
   // 获取用户列表
   const fetchUsers = async () => {
     data.loading.value = true
@@ -21,7 +24,7 @@ export function createUserAPI(data) {
         data.userList.value = Array.isArray(response.data) ? response.data : []
       }
     } catch (error) {
-      ElMessage.error('获取用户列表失败')
+      ElMessage.error(t('users.fetchUsersFailed'))
       console.error('获取用户列表错误:', error)
       data.userList.value = [] // 出错时设置为空数组
     } finally {
@@ -33,10 +36,10 @@ export function createUserAPI(data) {
   const addUser = async (userData) => {
     try {
       await axios.post('/api/users', userData)
-      ElMessage.success('添加成功')
+      ElMessage.success(t('users.addSuccess'))
       return true
     } catch (error) {
-      ElMessage.error('添加失败')
+      ElMessage.error(t('users.addFailed'))
       console.error('添加用户错误:', error)
       return false
     }
@@ -51,10 +54,10 @@ export function createUserAPI(data) {
         delete updateData.password
       }
       await axios.put(`/api/users/${id}`, updateData)
-      ElMessage.success('编辑成功')
+      ElMessage.success(t('users.updateSuccess'))
       return true
     } catch (error) {
-      ElMessage.error('编辑失败')
+      ElMessage.error(t('users.updateFailed'))
       console.error('更新用户错误:', error)
       return false
     }
@@ -64,10 +67,10 @@ export function createUserAPI(data) {
   const deleteUser = async (id) => {
     try {
       await axios.delete(`/api/users/${id}`)
-      ElMessage.success('删除成功')
+      ElMessage.success(t('users.deleteSuccess'))
       return true
     } catch (error) {
-      ElMessage.error('删除失败')
+      ElMessage.error(t('users.deleteFailed'))
       console.error('删除用户错误:', error)
       return false
     }
@@ -77,10 +80,10 @@ export function createUserAPI(data) {
   const batchDeleteUsers = async (ids) => {
     try {
       await axios.delete('/api/users/batch', { data: ids })
-      ElMessage.success('批量删除成功')
+      ElMessage.success(t('users.batchDeleteSuccess'))
       return true
     } catch (error) {
-      ElMessage.error('批量删除失败')
+      ElMessage.error(t('users.batchDeleteFailed'))
       console.error('批量删除用户错误:', error)
       return false
     }

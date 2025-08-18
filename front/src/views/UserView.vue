@@ -3,19 +3,19 @@
     <!-- 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>用户管理</h2>
+        <h2>{{ $t('users.title') }}</h2>
         <!-- 搜索/过滤栏 -->
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
-            <el-form-item label="用户名">
-              <el-input v-model="searchForm.username" placeholder="请输入用户名" clearable />
+            <el-form-item :label="$t('users.searchUsername')">
+              <el-input v-model="searchForm.username" :placeholder="$t('users.searchUsernamePlaceholder')" clearable />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="handleSearch">
-                <el-icon><Search /></el-icon> 查询
+                <el-icon><Search /></el-icon> {{ $t('users.query') }}
               </el-button>
               <el-button @click="handleResetSearch">
-                <el-icon><Refresh /></el-icon> 重置
+                <el-icon><Refresh /></el-icon> {{ $t('users.reset') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -23,10 +23,10 @@
         <!-- 操作栏 -->
         <div class="action-bar">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon> 新增
+            <el-icon><Plus /></el-icon> {{ $t('users.add') }}
           </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <el-icon><Delete /></el-icon> 批量删除
+            <el-icon><Delete /></el-icon> {{ $t('users.batchDelete') }}
           </el-button>
         </div>
       </div>
@@ -47,28 +47,28 @@
           class="user-table"
         >
           <el-table-column type="selection" width="40" fixed="left" />
-          <el-table-column prop="username" label="用户名" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="role" label="角色" min-width="120">
+          <el-table-column prop="username" :label="$t('users.username')" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="role" :label="$t('users.role')" min-width="120">
             <template #default="scope">
               <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'info'">
-                {{ scope.row.role === 'admin' ? '管理员' : '普通用户' }}
+                {{ scope.row.role === 'admin' ? $t('users.admin') : $t('users.user') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" min-width="160" show-overflow-tooltip>
+          <el-table-column prop="createTime" :label="$t('users.createTime')" min-width="160" show-overflow-tooltip>
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right" width="140">
+          <el-table-column :label="$t('users.operation')" fixed="right" width="140">
             <template #default="scope">
               <div class="operation-buttons">
                 <el-button-group class="operation-row">
                   <el-button type="default" size="small" @click="handleEdit(scope.row)">
-                    修改
+                    {{ $t('users.edit') }}
                   </el-button>
                   <el-button type="default" size="small" @click="handleDelete(scope.row)">
-                    删除
+                    {{ $t('users.delete') }}
                   </el-button>
                 </el-button-group>
               </div>
@@ -81,7 +81,7 @@
     <!-- 添加/编辑用户对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'add' ? '添加用户' : '编辑用户'"
+      :title="dialogType === 'add' ? $t('users.addUser') : $t('users.editUser')"
       width="500px"
       @close="resetForm"
     >
@@ -91,23 +91,23 @@
         ref="userFormRef"
         label-width="100px"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" placeholder="请输入用户名" />
+        <el-form-item :label="$t('users.username')" prop="username">
+          <el-input v-model="userForm.username" :placeholder="$t('users.usernamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" />
+        <el-form-item :label="$t('users.password')" prop="password">
+          <el-input v-model="userForm.password" type="password" :placeholder="$t('users.passwordPlaceholder')" />
         </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="userForm.role" style="width: 100%" placeholder="请选择角色">
-            <el-option label="管理员" value="admin" />
-            <el-option label="普通用户" value="user" />
+        <el-form-item :label="$t('users.role')" prop="role">
+          <el-select v-model="userForm.role" style="width: 100%" :placeholder="$t('users.rolePlaceholder')">
+            <el-option :label="$t('users.admin')" value="admin" />
+            <el-option :label="$t('users.user')" value="user" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
+          <el-button @click="dialogVisible = false">{{ $t('users.cancel') }}</el-button>
+          <el-button type="primary" @click="handleSubmit">{{ $t('users.confirm') }}</el-button>
         </div>
       </template>
     </el-dialog>

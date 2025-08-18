@@ -3,7 +3,7 @@
     <!-- 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>后台管理</h2>
+        <h2>{{ $t('admin.title') }}</h2>
       </div>
     </div>
 
@@ -17,18 +17,18 @@
               <div class="card-header">
                 <div class="header-left">
                   <el-icon><Monitor /></el-icon>
-                  <span>轨迹存储任务</span>
+                  <span>{{ $t('admin.trajectoryStorageTask') }}</span>
                 </div>
                 <el-switch 
                   v-model="taskConfig.storageTask.enabled"
-                  active-text="启用" 
-                  inactive-text="禁用" />
+                  :active-text="$t('admin.enabled')" 
+                  :inactive-text="$t('admin.disabled')" />
               </div>
             </template>
             
             <div class="card-content">
               <el-form label-position="left" label-width="100px">
-                <el-form-item label="存储间隔:">
+                <el-form-item :label="$t('admin.storageInterval')">
                   <el-input-number 
                     v-model="taskConfig.storageTask.intervalMs"
                     :min="1000"
@@ -36,11 +36,11 @@
                     :step="1000"
                     controls-position="right"
                     style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">毫秒</span>
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
                 </el-form-item>
               </el-form>
               <el-alert
-                title="注意: 此任务负责将实时轨迹数据存储到数据库中，禁用后系统将不再记录历史轨迹"
+                :title="$t('admin.storageTaskWarning')"
                 type="warning"
                 show-icon
                 :closable="false"
@@ -54,18 +54,18 @@
               <div class="card-header">
                 <div class="header-left">
                   <el-icon><Monitor /></el-icon>
-                  <span>基站状态自动刷新</span>
+                  <span>{{ $t('admin.stationRefreshTask') }}</span>
                 </div>
                 <el-switch 
                   v-model="taskConfig.stationTask.enabled"
-                  active-text="启用" 
-                  inactive-text="禁用" />
+                  :active-text="$t('admin.enabled')" 
+                  :inactive-text="$t('admin.disabled')" />
               </div>
             </template>
             
             <div class="card-content">
               <el-form label-position="left" label-width="100px">
-                <el-form-item label="刷新间隔:">
+                <el-form-item :label="$t('admin.refreshInterval')">
                   <el-input-number 
                     v-model="taskConfig.stationTask.intervalMs"
                     :min="1000"
@@ -73,7 +73,7 @@
                     :step="1000"
                     controls-position="right"
                     style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">毫秒</span>
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
                 </el-form-item>
               </el-form>
             </div>
@@ -85,18 +85,18 @@
               <div class="card-header">
                 <div class="header-left">
                   <el-icon><Position /></el-icon>
-                  <span>发送演示轨迹</span>
+                  <span>{{ $t('admin.trajectorySendTask') }}</span>
                 </div>
                 <el-switch 
                   v-model="taskConfig.trajectoryTask.enabled"
-                  active-text="启用" 
-                  inactive-text="禁用" />
+                  :active-text="$t('admin.enabled')" 
+                  :inactive-text="$t('admin.disabled')" />
               </div>
             </template>
             
             <div class="card-content">
               <el-form label-position="left" label-width="100px">
-                <el-form-item label="发送间隔:">
+                <el-form-item :label="$t('admin.sendInterval')">
                   <el-input-number 
                     v-model="taskConfig.trajectoryTask.sendIntervalMs"
                     :min="100"
@@ -104,9 +104,9 @@
                     :step="100"
                     controls-position="right"
                     style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">毫秒</span>
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
                 </el-form-item>
-                <el-form-item label="暂停时间:">
+                <el-form-item :label="$t('admin.pauseTime')">
                   <el-input-number 
                     v-model="taskConfig.trajectoryTask.pauseMs"
                     :min="5000"
@@ -114,15 +114,15 @@
                     :step="1000"
                     controls-position="right"
                     style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">毫秒</span>
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
                 </el-form-item>
               </el-form>
             </div>
           </el-card>
 
           <div class="actions">
-            <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">保存配置</el-button>
-            <el-button @click="handleResetTaskConfig">重置配置</el-button>
+            <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">{{ $t('admin.saveConfig') }}</el-button>
+            <el-button @click="handleResetTaskConfig">{{ $t('admin.resetConfig') }}</el-button>
           </div>
         </el-scrollbar>
       </div>
@@ -132,8 +132,12 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Monitor, Position } from '@element-plus/icons-vue'
 import { useAdminView } from './adminview-js'
+
+// 获取国际化函数
+const { t } = useI18n()
 
 // 使用管理页面逻辑
 const {
@@ -142,7 +146,7 @@ const {
   onMountedHandler,
   handleSaveWithValidation,
   handleResetTaskConfig
-} = useAdminView()
+} = useAdminView(t)
 
 // 生命周期钩子
 onMounted(() => {

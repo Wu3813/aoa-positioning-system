@@ -3,15 +3,15 @@ import { createAdminData } from './data'
 import { createAdminAPI } from './api'
 import { createAdminUI } from './ui'
 
-export function useAdminView() {
+export function useAdminView(t) {
   // 创建数据管理
   const data = createAdminData()
   
   // 创建API操作
-  const api = createAdminAPI(data)
+  const api = createAdminAPI(data, t)
   
   // 创建UI交互
-  const ui = createAdminUI(data, api)
+  const ui = createAdminUI(data, api, t)
 
   // 生命周期处理
   const onMountedHandler = async () => {

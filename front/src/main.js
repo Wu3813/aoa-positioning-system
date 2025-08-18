@@ -26,6 +26,14 @@ app.use(ElementPlus, {
   locale: i18n.global.locale.value === 'zh-CN' ? zhCn : en,
 })
 
+// 确保在应用启动时就设置根节点语言，配合 base.css 中的 :lang 选择器统一字体回退
+try {
+  const savedLocale = localStorage.getItem('locale') || i18n.global.locale.value
+  document.documentElement.setAttribute('lang', savedLocale)
+} catch (e) {
+  // 忽略环境不支持的情况
+}
+
 // 初始化轨迹追踪系统
 const trackingStore = useTrackingStore()
 trackingStore.init()

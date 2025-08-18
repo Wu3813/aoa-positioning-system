@@ -54,10 +54,24 @@
 /* 调整搜索栏内联表单样式 */
 .search-form-inline .el-form-item {
   margin-bottom: 0; /* 移除内联表单项的下边距 */
-  margin-right: 10px; /* 调整右边距 */
+  margin-right: 15px; /* 增加右边距，为英文文本留出空间 */
 }
+
+.search-form-inline .search-item {
+  flex-shrink: 0; /* 防止搜索项被压缩 */
+}
+
 .search-form-inline .search-buttons {
   margin-right: 0; /* 按钮组不需要右边距 */
+  flex-shrink: 0; /* 防止按钮被压缩 */
+}
+
+/* 确保搜索表单在一行内显示 */
+.search-form-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap; /* 防止换行 */
+  gap: 10px;
 }
 
 .action-bar {
@@ -100,6 +114,16 @@
 }
 
 /* 响应式布局适配 */
+@media screen and (max-width: 1200px) {
+  .search-form-inline {
+    flex-wrap: wrap; /* 中等屏幕允许换行 */
+  }
+  
+  .search-form-inline .el-form-item {
+    margin-bottom: 10px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .control-panel {
     padding: 0 10px;
@@ -117,9 +141,21 @@
   .el-form-item {
     margin-bottom: 12px;
   }
-  /* 响应式时允许搜索项换行 */
+  
+  /* 小屏幕时搜索表单垂直排列 */
+  .search-form-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
   .search-form-inline .el-form-item {
+    margin-right: 0;
     margin-bottom: 12px;
+  }
+  
+  .search-form-inline .search-buttons {
+    display: flex;
+    gap: 10px;
   }
 }
 
@@ -147,6 +183,20 @@
 
 .el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
   background: #606266;
+}
+
+/* 确保表格列标题在不同语言下都能正常显示 */
+.el-table .el-table__header th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 优化表格内容显示 */
+.el-table .el-table__body td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .el-select {

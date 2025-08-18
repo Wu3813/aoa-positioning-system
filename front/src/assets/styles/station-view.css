@@ -296,15 +296,4 @@
   margin-left: 148px;
 }
 
-/* 繁体中文语言特殊样式 */
-.station-view-container[lang="zh-TW"] .search-form-item .el-form-item__label {
-  min-width: 110px;
-}
-
-.station-view-container[lang="zh-TW"] .item-label {
-  min-width: 130px;
-}
-
-.station-view-container[lang="zh-TW"] .config-hint-inline {
-  margin-left: 138px;
-}
+/* 繁体中文语言沿用默认样式，确保与简体一致 */

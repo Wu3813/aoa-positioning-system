@@ -3,16 +3,16 @@
     <!-- 1. 控制面板 -->
     <div class="control-panel">
       <div class="control-wrapper">
-        <h2>报警记录</h2>
+        <h2>{{ $t('alarms.title') }}</h2>
         <!-- 搜索/过滤栏 -->
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch" class="search-form">
             <div class="form-row">
-              <el-form-item label="围栏名称">
-                <el-input v-model="searchForm.name" placeholder="请输入围栏名称" clearable style="width: 150px;" />
+              <el-form-item :label="$t('alarms.searchName')">
+                <el-input v-model="searchForm.name" :placeholder="$t('alarms.searchNamePlaceholder')" clearable style="width: 150px;" />
               </el-form-item>
-              <el-form-item label="所属地图">
-                <el-select v-model="searchForm.mapId" placeholder="请选择地图" clearable style="width: 150px;">
+              <el-form-item :label="$t('alarms.searchMap')">
+                <el-select v-model="searchForm.mapId" :placeholder="$t('alarms.searchMapPlaceholder')" clearable style="width: 150px;">
                   <el-option 
                     v-for="map in mapList" 
                     :key="map.mapId"
@@ -21,24 +21,23 @@
                   />
                 </el-select>
               </el-form-item>
-              <el-form-item label="时间">
+              <el-form-item :label="$t('alarms.timeRange')">
                 <el-date-picker
                   v-model="searchForm.timeRange"
                   type="datetimerange"
                   range-separator="-"
-                  start-placeholder="开始时间"
-                  end-placeholder="结束时间"
-                  :shortcuts="dateShortcuts"
+                  :start-placeholder="$t('alarms.startTime')"
+                  :end-placeholder="$t('alarms.endTime')"
                   value-format="YYYY-MM-DD HH:mm:ss"
                   style="width: 380px;"
                 />
               </el-form-item>
               <el-form-item class="button-item">
                 <el-button type="primary" @click="handleSearch">
-                  <el-icon><Search /></el-icon> 查询
+                  <el-icon><Search /></el-icon> {{ $t('alarms.query') }}
                 </el-button>
                 <el-button @click="handleResetSearch">
-                  <el-icon><Refresh /></el-icon> 重置
+                  <el-icon><Refresh /></el-icon> {{ $t('alarms.reset') }}
                 </el-button>
               </el-form-item>
             </div>
@@ -64,19 +63,19 @@
           class="alarm-table"
           @sort-change="handleSortChange"
         >
-          <el-table-column prop="time" label="时间" min-width="180" show-overflow-tooltip sortable="custom">
+          <el-table-column prop="time" :label="$t('alarms.time')" min-width="180" show-overflow-tooltip sortable="custom">
             <template #default="scope">
               {{ formatDateTime(scope.row.time) }}
             </template>
           </el-table-column>
-          <el-table-column prop="geofenceName" label="围栏名称" min-width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column prop="mapName" label="地图名称" min-width="150" show-overflow-tooltip sortable="custom" />
-          <el-table-column label="报警标签" min-width="120" show-overflow-tooltip>
+          <el-table-column prop="geofenceName" :label="$t('alarms.geofenceName')" min-width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column prop="mapName" :label="$t('alarms.mapName')" min-width="150" show-overflow-tooltip sortable="custom" />
+          <el-table-column :label="$t('alarms.alarmTag')" min-width="120" show-overflow-tooltip>
             <template #default="scope">
               {{ getTagNameByMac(scope.row.alarmTag) }}
             </template>
           </el-table-column>
-          <el-table-column label="报警坐标" width="150">
+          <el-table-column :label="$t('alarms.alarmCoordinates')" width="150">
             <template #default="scope">
               <div>X: {{ formatCoordinate(scope.row.x) }} m</div>
               <div>Y: {{ formatCoordinate(scope.row.y) }} m</div>
@@ -101,7 +100,6 @@ const {
   tagList,
   searchForm,
   sortConfig,
-  dateShortcuts,
   filteredAlarmList,
   getAlarms,
   getMaps,

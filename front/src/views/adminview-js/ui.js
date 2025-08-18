@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus'
 
-export function createAdminUI(data, api) {
+export function createAdminUI(data, api, t) {
   // 保存任务配置
   const handleSaveTaskConfig = async () => {
     const success = await api.saveTaskConfig()
@@ -13,7 +13,7 @@ export function createAdminUI(data, api) {
   // 重置任务配置
   const handleResetTaskConfig = () => {
     data.resetTaskConfig()
-    ElMessage.info('已重置为默认配置')
+    ElMessage.info(t('admin.resetToDefault'))
   }
 
   // 验证任务配置
@@ -22,25 +22,25 @@ export function createAdminUI(data, api) {
     
     // 验证基站任务配置
     if (stationTask.enabled && stationTask.intervalMs < 1000) {
-      ElMessage.warning('基站刷新间隔不能少于1000毫秒')
+      ElMessage.warning(t('admin.stationIntervalWarning'))
       return false
     }
     
     // 验证轨迹任务配置
     if (trajectoryTask.enabled) {
       if (trajectoryTask.sendIntervalMs < 100) {
-        ElMessage.warning('轨迹发送间隔不能少于100毫秒')
+        ElMessage.warning(t('admin.trajectorySendIntervalWarning'))
         return false
       }
       if (trajectoryTask.pauseMs < 5000) {
-        ElMessage.warning('轨迹暂停时间不能少于5000毫秒')
+        ElMessage.warning(t('admin.trajectoryPauseWarning'))
         return false
       }
     }
     
     // 验证存储任务配置
     if (storageTask.enabled && storageTask.intervalMs < 1000) {
-      ElMessage.warning('轨迹存储间隔不能少于1000毫秒')
+      ElMessage.warning(t('admin.storageIntervalWarning'))
       return false
     }
     
@@ -63,3 +63,4 @@ export function createAdminUI(data, api) {
     validateTaskConfig
   }
 }
+

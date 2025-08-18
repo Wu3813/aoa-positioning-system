@@ -1,6 +1,9 @@
 import { ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export function createUserUI(data, api) {
+  const { t } = useI18n()
+  
   // 搜索处理
   const handleSearch = () => {
     api.fetchUsers()
@@ -44,11 +47,11 @@ export function createUserUI(data, api) {
   // 删除用户
   const handleDelete = (row) => {
     ElMessageBox.confirm(
-      `确定要删除用户 ${row.username} 吗？`,
-      '警告',
+      t('users.deleteConfirm', { username: row.username }),
+      t('users.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('users.confirm'),
+        cancelButtonText: t('users.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -64,16 +67,16 @@ export function createUserUI(data, api) {
   // 批量删除用户
   const handleBatchDelete = () => {
     if (data.multipleSelection.value.length === 0) {
-      ElMessageBox.alert('请至少选择一条记录', '提示')
+      ElMessageBox.alert(t('users.selectAtLeastOne'), t('users.tip'))
       return
     }
     
     ElMessageBox.confirm(
-      `确定要删除选中的 ${data.multipleSelection.value.length} 条记录吗？`,
-      '警告',
+      t('users.batchDeleteConfirm', { count: data.multipleSelection.value.length }),
+      t('users.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('users.confirm'),
+        cancelButtonText: t('users.cancel'),
         type: 'warning',
       }
     ).then(async () => {

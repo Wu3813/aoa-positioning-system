@@ -122,6 +122,12 @@ const currentLocale = ref(locale.value)
 
 // 初始化用户信息
 onMounted(() => {
+  // 设置根节点 lang，便于基于语言进行全局样式控制
+  try {
+    document.documentElement.setAttribute('lang', currentLocale.value)
+  } catch (e) {
+    // 忽略环境不支持的情况
+  }
   const userStr = localStorage.getItem('user')
   if (userStr) {
     try {
@@ -139,6 +145,11 @@ onMounted(() => {
 const changeLocale = (newLocale) => {
   locale.value = newLocale
   localStorage.setItem('locale', newLocale)
+  try {
+    document.documentElement.setAttribute('lang', newLocale)
+  } catch (e) {
+    // 忽略环境不支持的情况
+  }
   window.location.reload()
 }
 

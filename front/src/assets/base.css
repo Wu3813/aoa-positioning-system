@@ -70,3 +70,35 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 统一中日韩字体回退顺序，让繁体与简体的呈现尽量一致 */
+html[lang='zh-CN'] body,
+html[lang='zh-TW'] body {
+  font-family:
+    /* 优先系统是否存在的全量 CJK 字体 */
+    'Noto Sans CJK SC',
+    'Noto Sans CJK TC',
+    'Source Han Sans SC',
+    'Source Han Sans TC',
+    /* Windows */
+    'Microsoft YaHei UI',
+    'Microsoft JhengHei UI',
+    'Microsoft YaHei',
+    'Microsoft JhengHei',
+    /* macOS */
+    'PingFang SC',
+    'PingFang TC',
+    /* 通用西文字体与系统栈 */
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+}

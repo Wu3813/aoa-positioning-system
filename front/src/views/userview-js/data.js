@@ -1,6 +1,9 @@
 import { ref, reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function createUserData() {
+  const { t } = useI18n()
+  
   // 响应式数据
   const userList = ref([])
   const loading = ref(false)
@@ -27,20 +30,20 @@ export function createUserData() {
   // 表单校验规则
   const rules = {
     username: [
-      { required: true, message: '请输入用户名', trigger: 'blur' },
-      { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+      { required: true, message: t('users.usernameRequired'), trigger: 'blur' },
+      { min: 3, max: 20, message: t('users.usernameLength'), trigger: 'blur' }
     ],
     password: [
-      { required: true, message: '请输入密码', trigger: 'blur', validator: (rule, value, callback) => {
+      { required: true, message: t('users.passwordRequired'), trigger: 'blur', validator: (rule, value, callback) => {
         if (dialogType.value === 'add' && (!value || value.trim() === '')) {
-          callback(new Error('请输入密码'))
+          callback(new Error(t('users.passwordRequired')))
         } else {
           callback()
         }
       }}
     ],
     role: [
-      { required: true, message: '请选择角色', trigger: 'change' }
+      { required: true, message: t('users.roleRequired'), trigger: 'change' }
     ]
   }
 
@@ -51,7 +54,9 @@ export function createUserData() {
       const date = new Date(dateTimeStr);
       if (isNaN(date.getTime())) return dateTimeStr;
       
-      return new Intl.DateTimeFormat('zh-CN', {
+      // 根据当前语言设置日期格式
+      const locale = localStorage.getItem('locale') || 'zh-CN';
+      const options = {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -59,7 +64,9 @@ export function createUserData() {
         minute: '2-digit',
         second: '2-digit',
         hour12: false
-      }).format(date);
+      };
+      
+      return new Intl.DateTimeFormat(locale, options).format(date);
     } catch (e) {
       return dateTimeStr;
     }

@@ -121,6 +121,14 @@
   align-items: center;
 }
 
+/* 统一监控页顶部两个标签的字体样式，和其它页面的表单标签保持一致 */
+.control-buttons > span,
+.trace-control > span {
+  font-size: 14px;
+  color: #606266;
+  line-height: 32px;
+}
+
 .stats-bar {
   margin-top: 16px;
   display: flex;
