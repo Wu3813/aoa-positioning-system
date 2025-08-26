@@ -1,6 +1,9 @@
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function createTagData() {
+  const { t } = useI18n()
+
   // 响应式数据
   const tagList = ref([])
   const mapCache = ref(new Map()) // 地图缓存
@@ -35,17 +38,17 @@ export function createTagData() {
   // 表单校验规则
   const rules = {
     name: [
-      { required: true, message: '请输入标签名称', trigger: 'blur' }
+      { required: true, message: t('tags.nameRequired'), trigger: 'blur' }
     ],
     macAddress: [
-      { required: true, message: '请输入MAC地址', trigger: 'blur' },
-      { pattern: /^[0-9A-Fa-f]{12}$/, message: 'MAC地址格式不正确，请输入12位十六进制字符（如：84fd27eee603），不要包含冒号或连字符', trigger: 'blur' }
+      { required: true, message: t('tags.macAddressRequired'), trigger: 'blur' },
+      { pattern: /^[0-9A-Fa-f]{12}$/, message: t('tags.macAddressFormatError'), trigger: 'blur' }
     ],
     model: [
-      { required: true, message: '请输入标签型号', trigger: 'blur' }
+      { required: true, message: t('tags.modelRequired'), trigger: 'blur' }
     ],
     firmwareVersion: [
-      { required: true, message: '请输入固件版本', trigger: 'blur' }
+      { required: true, message: t('tags.firmwareVersionRequired'), trigger: 'blur' }
     ]
   }
 
@@ -145,7 +148,7 @@ export function createTagData() {
 
   const getMapNameById = (mapId) => {
     if (!mapId) return '-';
-    return mapCache.value.get(mapId) || '未知地图';
+    return mapCache.value.get(mapId) || t('tags.unknownMap');
   }
 
   const updateTableHeight = () => {

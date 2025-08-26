@@ -1,7 +1,9 @@
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 // 响应式数据
 export const createMapData = () => {
+  const { t } = useI18n()
   const mapList = ref([])
   const loading = ref(false)
   const dialogVisible = ref(false)
@@ -51,14 +53,25 @@ export const createMapData = () => {
     ]
   })
 
-  // 图片信息
+  // 图片信息 - 参考MonitorView的结构
   const imageInfo = reactive({
     width: 0,
     height: 0,
-    scale: { x: 1, y: 1 },
-    originalImage: null,
-    display: null
+    scaleX: 1,
+    scaleY: 1,
+    displayWidth: 0,
+    displayHeight: 0,
+    loaded: false,
+    domInfo: {
+      offsetX: 0,
+      offsetY: 0,
+      displayWidth: 0,
+      displayHeight: 0
+    }
   })
+
+  // 添加一个响应式的图片尺寸标识，用于强制更新
+  const imageSizeVersion = ref(0)
 
   // 预览相关
   const previewContainer = ref(null)
@@ -69,10 +82,10 @@ export const createMapData = () => {
   // 表单校验规则
   const rules = {
     mapId: [
-      { required: true, message: '请输入地图ID', trigger: 'blur' },
-      { pattern: /^[A-Za-z0-9_-]+$/, message: '地图ID只能包含字母、数字、下划线和横线', trigger: 'blur' }
+      { required: true, message: t('maps.enterMapId'), trigger: 'blur' },
+      { pattern: /^[A-Za-z0-9_-]+$/, message: t('maps.mapIdFormatError'), trigger: 'blur' }
     ],
-    name: [{ required: true, message: '请输入地图名称', trigger: 'blur' }],
+    name: [{ required: true, message: t('maps.enterMapName'), trigger: 'blur' }],
   }
 
   // 状态管理
@@ -131,6 +144,7 @@ export const createMapData = () => {
     sortOrder,
     scaleForm,
     imageInfo,
+    imageSizeVersion,
     previewContainer,
     previewImage,
     previewLoading,

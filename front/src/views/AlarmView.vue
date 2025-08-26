@@ -29,6 +29,7 @@
                   :start-placeholder="$t('alarms.startTime')"
                   :end-placeholder="$t('alarms.endTime')"
                   value-format="YYYY-MM-DD HH:mm:ss"
+                  :shortcuts="dateShortcuts"
                   style="width: 380px;"
                 />
               </el-form-item>
@@ -77,8 +78,8 @@
           </el-table-column>
           <el-table-column :label="$t('alarms.alarmCoordinates')" width="150">
             <template #default="scope">
-              <div>X: {{ formatCoordinate(scope.row.x) }} m</div>
-              <div>Y: {{ formatCoordinate(scope.row.y) }} m</div>
+              <div>X: {{ formatCoordinate(scope.row.x) }} {{ $t('common.meter') }}</div>
+              <div>Y: {{ formatCoordinate(scope.row.y) }} {{ $t('common.meter') }}</div>
             </template>
           </el-table-column>
         </el-table>
@@ -100,6 +101,7 @@ const {
   tagList,
   searchForm,
   sortConfig,
+  dateShortcuts,
   filteredAlarmList,
   getAlarms,
   getMaps,

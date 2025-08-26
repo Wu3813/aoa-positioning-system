@@ -120,6 +120,43 @@
             </div>
           </el-card>
 
+          <!-- 超时管理 -->
+          <el-card class="config-card" shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <div class="header-left">
+                  <el-icon><Clock /></el-icon>
+                  <span>{{ $t('admin.timeoutManagement') }}</span>
+                </div>
+                <el-switch 
+                  v-model="taskConfig.timeoutTask.enabled"
+                  :active-text="$t('admin.enabled')" 
+                  :inactive-text="$t('admin.disabled')" />
+              </div>
+            </template>
+            
+            <div class="card-content">
+              <el-form label-position="left" label-width="100px">
+                <el-form-item :label="$t('admin.timeoutInterval')">
+                  <el-input-number 
+                    v-model="taskConfig.timeoutTask.timeoutMs"
+                    :min="1000"
+                    :max="300000"
+                    :step="1000"
+                    controls-position="right"
+                    style="width: 200px" />
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                </el-form-item>
+              </el-form>
+              <el-alert
+                :title="$t('admin.timeoutTaskWarning')"
+                type="warning"
+                show-icon
+                :closable="false"
+              />
+            </div>
+          </el-card>
+
           <div class="actions">
             <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">{{ $t('admin.saveConfig') }}</el-button>
             <el-button @click="handleResetTaskConfig">{{ $t('admin.resetConfig') }}</el-button>
@@ -133,7 +170,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Monitor, Position } from '@element-plus/icons-vue'
+import { Monitor, Position, Clock } from '@element-plus/icons-vue'
 import { useAdminView } from './adminview-js'
 
 // 获取国际化函数

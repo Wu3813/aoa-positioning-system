@@ -75,7 +75,13 @@
                              <el-table-column prop="name" :label="t('monitor.tagName')" width="110" show-overflow-tooltip />
                <el-table-column :label="t('monitor.color')" width="110" align="center">
                 <template #default="scope">
-                  <div class="color-block" :style="{ backgroundColor: scope.row.color }"></div>
+                  <el-color-picker
+                    v-model="scope.row.color"
+                    size="small"
+                    @change="(color) => handleColorChange(scope.row.mac, color)"
+                    :show-alpha="false"
+                    class="sensor-color-picker"
+                  />
                 </template>
               </el-table-column>
                              <el-table-column :label="t('monitor.operation')" width="90">
@@ -164,6 +170,7 @@ const {
   handleMapChange,
   toggleVisibility,
   toggleAllVisible,
+  handleColorChange,
   handleImageLoad,
   
   // lifecycle

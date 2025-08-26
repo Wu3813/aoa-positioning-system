@@ -1,6 +1,8 @@
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function createStationData() {
+  const { t } = useI18n()
   // 响应式数据
   const stationList = ref([])
   const mapList = ref([])
@@ -65,18 +67,18 @@ export function createStationData() {
   // 表单校验规则 - 只校验可编辑字段
   const rules = {
     code: [
-      { required: true, message: '请输入基站编号', trigger: 'blur' },
-      { pattern: /^[A-Za-z0-9_-]+$/, message: '基站编号只能包含字母、数字、下划线和横线', trigger: 'blur' }
+      { required: true, message: t('station.formValidation.codeRequired'), trigger: 'blur' },
+      { pattern: /^[A-Za-z0-9_-]+$/, message: t('station.formValidation.codePattern'), trigger: 'blur' }
     ],
     name: [
-      { required: true, message: '请输入基站名称', trigger: 'blur' }
+      { required: true, message: t('station.formValidation.nameRequired'), trigger: 'blur' }
     ],
     ipAddress: [
-      { required: true, message: '请输入IP地址', trigger: 'blur' },
-      { pattern: /^(\d{1,3}\.){3}\d{1,3}$/, message: 'IP地址格式不正确', trigger: 'blur' }
+      { required: true, message: t('station.formValidation.ipRequired'), trigger: 'blur' },
+      { pattern: /^(\d{1,3}\.){3}\d{1,3}$/, message: t('station.formValidation.ipPattern'), trigger: 'blur' }
     ],
     mapId: [
-      { required: true, message: '请选择所属地图', trigger: 'change' }
+      { required: true, message: t('station.formValidation.mapRequired'), trigger: 'change' }
     ]
   }
 
@@ -142,13 +144,13 @@ export function createStationData() {
       return ''
     }
     if (rssiValue.value < -100) {
-      return 'RSSI值不能小于-100dBm'
+      return t('station.formValidation.rssiTooSmall')
     }
     if (rssiValue.value > -40) {
-      return 'RSSI值不能大于-40dBm'
+      return t('station.formValidation.rssiTooLarge')
     }
     if (!Number.isInteger(rssiValue.value)) {
-      return 'RSSI值必须为整数'
+      return t('station.formValidation.rssiNotInteger')
     }
     return ''
   })
@@ -171,21 +173,21 @@ export function createStationData() {
     }
     
     if (targetIp.value && !isValidIpAddress(targetIp.value)) {
-      return '目标IP地址格式不正确'
+      return t('station.formValidation.targetIpInvalid')
     }
     
     if (targetPort.value !== null && targetPort.value !== undefined) {
       if (targetPort.value < 1) {
-        return '端口不能小于1'
+        return t('station.formValidation.portTooSmall')
       }
       if (targetPort.value > 65535) {
-        return '端口不能大于65535'
+        return t('station.formValidation.portTooLarge')
       }
       if (targetPort.value === 8833) {
-        return '端口不能是8833'
+        return t('station.formValidation.portReserved')
       }
       if (!Number.isInteger(targetPort.value)) {
-        return '端口必须为整数'
+        return t('station.formValidation.portNotInteger')
       }
     }
     

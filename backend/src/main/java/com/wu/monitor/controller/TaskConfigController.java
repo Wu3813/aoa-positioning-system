@@ -90,6 +90,8 @@ public class TaskConfigController {
             status.put("trajectoryTaskPauseTime", config.getTrajectoryTask().getPauseMs());
             status.put("storageTaskEnabled", config.getStorageTask().isEnabled());
             status.put("storageTaskInterval", config.getStorageTask().getIntervalMs());
+            status.put("timeoutTaskEnabled", config.getTimeoutTask().isEnabled());
+            status.put("timeoutTaskInterval", config.getTimeoutTask().getTimeoutMs());
             
             return ResponseEntity.ok(status);
         } catch (Exception e) {

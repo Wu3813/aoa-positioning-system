@@ -3,11 +3,15 @@ export default {
   common: {
     confirm: '确定',
     cancel: '取消',
+    delete: '删除',
     logout: '退出登录',
     admin: '管理员',
     user: '普通用户',
     welcome: '欢迎',
-    to: '至'
+    to: '至',
+    warning: '警告',
+    locale: 'zh-CN',
+    meter: 'm'
   },
   
   // 系统标题
@@ -244,7 +248,49 @@ export default {
     clickImageSetMeasurePoints: '点击图片设置测量点 ({count}/2)，完成后点击"完成"按钮',
     selectOriginOrMeasure: '选择"点击设置原点"或"点击设置测量点"开始',
     clearMarkers: '清除标记点',
-    confirm: '确定'
+    confirm: '确定',
+    // 新增的提示信息翻译
+    fetchMapListFailed: '获取地图列表失败',
+    deleteSuccess: '删除成功',
+    deleteFailed: '删除失败',
+    selectMapToDelete: '请选择要删除的地图',
+    deleteMapConfirm: '确定要删除地图 "{name}" 吗？',
+    batchDeleteConfirm: '确定要删除选中的 {count} 个地图吗？',
+    batchDeleteFailed: '批量删除失败',
+    selectMapFile: '请选择要上传的地图文件',
+    setScaleFirst: '请先设置地图比例尺！请点击"点击设置测量点"完成比例尺设置',
+    addSuccess: '添加成功',
+    editSuccess: '编辑成功',
+    editFailedMapIdLost: '编辑失败，地图 mapId 丢失',
+    addFailed: '添加失败',
+    editFailed: '编辑失败',
+    setCurrentMapSuccess: '已将 "{name}" 设置为当前地图',
+    setCurrentMapFailed: '设置当前地图失败',
+    uploadFormatError: '上传地图图片只能是 JPG/PNG 格式!',
+    uploadSizeError: '上传地图图片大小不能超过 10MB!',
+    reuploadMapWarning: '更换地图后，请重新设置原点坐标和比例尺！',
+    selectOneFileOnly: '只能选择一个地图文件，请先移除当前文件再选择新的文件',
+    completeCurrentOperation: '请先完成当前操作',
+    completeMeasureFirst: '请先完成或取消测量点设置',
+    originUpdated: '原点已更新为 ({x}, {y})，点击"完成"按钮确认',
+    firstMeasurePointSet: '已设置第一个测量点 ({x}, {y})，请继续设置第二个测量点',
+    secondMeasurePointSet: '已设置第二个测量点 ({x}, {y})，请点击"完成"按钮确认设置比例尺',
+    completeMeasureFirst: '请先完成或取消当前的测量点设置',
+    uploadMapFirst: '请先上传地图文件',
+    clickSetOriginHint: '请在图片上点击设置原点位置，完成后点击"完成"按钮',
+    originSettingComplete: '原点设置完成: ({x}, {y})',
+    completeOriginFirst: '请先完成或取消原点设置',
+    clickSetMeasurePointsHint: '请在图片上点击设置测量点，需要设置两个点',
+    setTwoMeasurePoints: '请先设置两个测量点',
+    scaleSettingComplete: '比例尺设置完成: 1 m = {scale} px',
+    measureCancelled: '已取消测量点设置',
+    completeOriginFirst: '请先完成或取消原点设置',
+    clickSetMeasurePointsHint: '请在图片上点击设置测量点，需要设置两个点',
+    notCalculated: '未计算',
+    enterMapId: '请输入地图ID',
+    mapIdFormatError: '地图ID只能包含字母、数字、下划线和横线',
+    enterMapName: '请输入地图名称',
+    pixels: '像素'
   },
 
   // 电子围栏页面
@@ -294,9 +340,44 @@ export default {
     tip: '提示: 点击地图设置围栏点，至少需要3个点形成围栏',
     warning: '注意: 请完成围栏点设置后才能保存围栏',
     mapPreview: '地图预览',
-    selectMapFirst: '请选择地图',
+    selectMapFirst: '请先选择地图',
     noImage: '请选择地图',
-    points: '个点'
+    points: '个点',
+    // 新增的提示信息
+    clickSetPointsHint: '请在地图上点击设置围栏点，至少需要3个点',
+    needThreePoints: '至少需要3个点才能形成围栏',
+    pointSettingComplete: '围栏点设置完成，共{count}个点',
+    allPointsCleared: '已清除所有围栏点',
+    pointDeleted: '已删除第{index}个点',
+    pointAdded: '已添加第{index}个围栏点 ({x}, {y})',
+    completeSettingFirst: '请先点击"完成设置"按钮完成围栏点设置',
+    needThreePointsForSave: '请设置至少3个围栏点',
+    addSuccess: '添加成功',
+    updateSuccess: '更新成功',
+    addFailed: '添加失败',
+    updateFailed: '更新失败',
+    confirmToggle: '确定要{action}围栏"{name}"吗？',
+    toggleSuccess: '{action}成功',
+    toggleFailed: '{action}失败',
+    confirmDelete: '确定要删除围栏"{name}"吗？此操作不可恢复！',
+    deleteSuccess: '删除成功',
+    deleteFailed: '删除失败',
+    confirmBatchEnable: '确定要启用选中的 {count} 个围栏吗？',
+    confirmBatchDisable: '确定要禁用选中的 {count} 个围栏吗？',
+    confirmBatchDelete: '确定要删除选中的 {count} 个围栏吗？此操作不可恢复！',
+    batchEnableSuccess: '批量启用成功',
+    batchDisableSuccess: '批量禁用成功',
+    batchDeleteSuccess: '批量删除成功',
+    batchEnableFailed: '批量启用失败',
+    batchDisableFailed: '批量禁用失败',
+    batchDeleteFailed: '批量删除失败',
+    fetchListFailed: '获取围栏列表失败',
+    fetchMapsFailed: '获取地图列表失败',
+    unknownMap: '未知地图',
+    formValidation: {
+      nameRequired: '请输入围栏名称',
+      mapRequired: '请选择所属地图'
+    }
   },
 
   // 基站管理页面
@@ -397,7 +478,95 @@ export default {
     ipPlaceholder: 'IP地址',
     port: '端口号：',
     portPlaceholder: '端口',
-    portRange: '端口范围：1-65535（不能是8833）'
+    portRange: '端口范围：1-65535（不能是8833）',
+    
+    // 消息提示
+    messages: {
+      // 确认对话框
+      confirmDelete: '确定要删除基站 "{name}" 吗？',
+      confirmBatchDelete: '确定要删除选中的 {count} 条记录吗？',
+      confirmFactoryReset: '确定要恢复基站 "{name}" 的出厂设置吗？此操作不可逆！',
+      confirmRestart: '确定要重启基站 "{name}" 吗？',
+      confirmLocate: '确定要定位基站 "{name}" 吗？基站灯将闪烁100次。',
+      confirmBatchUpdate: '发现{updateCount}个基站需要更新坐标，{skipCount}个基站未匹配。是否继续？',
+      
+      // 成功消息
+      addSuccess: '添加成功',
+      updateSuccess: '更新成功',
+      deleteSuccess: '删除成功',
+      batchDeleteSuccess: '批量删除成功',
+      refreshSuccess: '基站信息刷新成功',
+      statusUpdated: '状态已更新',
+      checkAllSuccess: '检查完成',
+      batchRefreshSuccess: '批量刷新成功',
+      testConnectionSuccess: 'UDP连接测试成功，自动获取基站信息',
+      enableBroadcastSuccess: '标签广播数据上报开启成功',
+      enableScanningSuccess: '扫描开启成功',
+      factoryResetSuccess: '恢复出厂设置成功',
+      restartSuccess: '基站重启成功',
+      locateSuccess: '基站定位成功',
+      applyConfigSuccess: '基站{configName}应用成功',
+      configRSSISuccess: 'RSSI配置成功',
+      configTargetSuccess: '目标IP端口配置成功',
+      batchUpdateSuccess: '成功更新了{count}个基站的坐标数据',
+      
+      // 错误消息
+      fetchStationsFailed: '获取基站列表失败',
+      fetchMapsFailed: '获取地图列表失败',
+      refreshFailed: '刷新失败',
+      checkAllFailed: '检查失败',
+      batchRefreshFailed: '批量刷新失败',
+      batchDeleteFailed: '批量删除失败',
+      testConnectionFailed: 'UDP连接测试失败，请检查IP地址或网络连接',
+      addFailed: '添加失败',
+      updateFailed: '更新失败',
+      deleteFailed: '删除失败',
+      enableBroadcastFailed: '开启标签广播数据上报失败',
+      enableScanningFailed: '开启扫描失败',
+      factoryResetFailed: '恢复出厂设置失败',
+      restartFailed: '基站重启失败',
+      locateFailed: '基站定位失败',
+      applyConfigFailed: '基站{configName}应用失败',
+      configRSSIFailed: '基站配置RSSI失败',
+      configTargetFailed: '基站配置目标IP端口失败',
+      batchUpdateFailed: '部分基站更新失败',
+      
+      // 警告消息
+      selectAtLeastOne: '请至少选择一条记录',
+      selectAtLeastOneStation: '请至少选择一个基站',
+      inputIPFirst: '请先输入IP地址',
+      selectScanConfig: '请选择一个扫描配置',
+      inputValidRSSI: '请输入有效的RSSI值（-100到-40dBm的整数）',
+      inputValidTarget: '请输入有效的目标IP地址和端口',
+      uploadJSONFile: '请上传JSON格式文件',
+      invalidJSONFormat: 'JSON格式不正确，缺少detected_base_station数组',
+      noValidStationConfig: '没有找到有效的基站配置信息',
+      noMatchingStations: '没有匹配到任何基站，请检查MAC地址',
+      parseJSONFailed: '解析JSON文件失败',
+      firmwareUpdateNotImplemented: '更新基站功能暂未实现 - 基站: {name}',
+      
+      // 网络错误
+      networkError: '网络错误',
+      unknownError: '未知错误'
+    },
+    
+    // 表单验证
+    formValidation: {
+      codeRequired: '请输入基站编号',
+      codePattern: '基站编号只能包含字母、数字、下划线和横线',
+      nameRequired: '请输入基站名称',
+      ipRequired: '请输入IP地址',
+      ipPattern: 'IP地址格式不正确',
+      mapRequired: '请选择所属地图',
+      rssiTooSmall: 'RSSI值不能小于-100dBm',
+      rssiTooLarge: 'RSSI值不能大于-40dBm',
+      rssiNotInteger: 'RSSI值必须为整数',
+      targetIpInvalid: '目标IP地址格式不正确',
+      portTooSmall: '端口不能小于1',
+      portTooLarge: '端口不能大于65535',
+      portReserved: '端口不能是8833',
+      portNotInteger: '端口必须为整数'
+    }
   },
 
   // 报警记录页面
@@ -416,7 +585,24 @@ export default {
     geofenceName: '围栏名称',
     mapName: '地图名称',
     alarmTag: '报警标签',
-    alarmCoordinates: '报警坐标'
+    alarmCoordinates: '报警坐标',
+    fetchAlarmsFailed: '获取报警列表失败',
+    fetchMapsFailed: '获取地图列表失败',
+    fetchTagsFailed: '获取标签列表失败',
+    lastDay: '最近一天',
+    lastWeek: '最近一周',
+    lastMonth: '最近一个月'
+  },
+
+  // 围栏告警通知
+  geofenceAlarm: {
+    title: '围栏告警',
+    message: '标签 {tagId} 位于围栏 {geofenceName} 外部',
+    handleNotificationFailed: '处理告警通知失败',
+    registerListenerSuccess: '已注册围栏告警通知监听',
+    loadGeofencesSuccess: '加载地图 {mapId} 的围栏: {count} 个',
+    fetchListFailed: '获取围栏列表失败',
+    fetchListError: '获取围栏列表错误'
   },
 
   // 标签管理页面
@@ -459,7 +645,29 @@ export default {
     firmwareVersionPlaceholder: '请输入固件版本',
     remarkPlaceholder: '请输入备注信息',
     cancel: '取消',
-    confirm: '确定'
+    confirm: '确定',
+    // 新增的翻译键
+    selectAtLeastOne: '请至少选择一条记录',
+    batchDeleteConfirm: '确定要删除选中的 {count} 条记录吗？',
+    deleteConfirm: '确定要删除标签 "{name}" 吗？',
+    unknownMap: '未知地图',
+    nameRequired: '请输入标签名称',
+    macAddressRequired: '请输入MAC地址',
+    macAddressFormatError: 'MAC地址格式不正确，请输入12位十六进制字符（如：84fd27eee603），不要包含冒号或连字符',
+    modelRequired: '请输入标签型号',
+    firmwareVersionRequired: '请输入固件版本',
+    fetchTagsFailed: '获取标签列表失败',
+    fetchMapsFailed: '获取地图列表失败',
+    addSuccess: '添加成功',
+    addFailed: '添加失败',
+    updateSuccess: '更新成功',
+    updateFailed: '更新失败',
+    deleteSuccess: '删除成功',
+    deleteFailed: '删除失败',
+    batchDeleteSuccess: '批量删除成功',
+    batchDeleteFailed: '批量删除失败',
+    statusUpdateSuccess: '状态更新成功',
+    statusUpdateFailed: '状态更新失败'
   },
 
   // 用户管理页面
@@ -521,6 +729,9 @@ export default {
     trajectorySendTask: '发送演示轨迹',
     sendInterval: '发送间隔:',
     pauseTime: '暂停时间:',
+    timeoutManagement: '超时管理',
+    timeoutInterval: '超时时间:',
+    timeoutTaskWarning: '注意: 此功能用于管理标签超时，超时后系统将自动关闭该标签的告警',
     enabled: '启用',
     disabled: '禁用',
     saveConfig: '保存配置',
@@ -530,6 +741,7 @@ export default {
     trajectorySendIntervalWarning: '轨迹发送间隔不能少于100毫秒',
     trajectoryPauseWarning: '轨迹暂停时间不能少于5000毫秒',
     storageIntervalWarning: '轨迹存储间隔不能少于1000毫秒',
+    timeoutIntervalWarning: '超时时间不能少于1000毫秒',
     loadConfigFailed: '加载任务配置失败',
     saveConfigSuccess: '任务配置保存成功',
     saveConfigFailed: '保存任务配置失败'

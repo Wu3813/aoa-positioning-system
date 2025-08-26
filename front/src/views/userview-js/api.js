@@ -25,7 +25,7 @@ export function createUserAPI(data) {
       }
     } catch (error) {
       ElMessage.error(t('users.fetchUsersFailed'))
-      console.error('获取用户列表错误:', error)
+      console.error(t('users.fetchUsersFailed'), error)
       data.userList.value = [] // 出错时设置为空数组
     } finally {
       data.loading.value = false
@@ -40,7 +40,7 @@ export function createUserAPI(data) {
       return true
     } catch (error) {
       ElMessage.error(t('users.addFailed'))
-      console.error('添加用户错误:', error)
+      console.error(t('users.addFailed'), error)
       return false
     }
   }
@@ -58,7 +58,7 @@ export function createUserAPI(data) {
       return true
     } catch (error) {
       ElMessage.error(t('users.updateFailed'))
-      console.error('更新用户错误:', error)
+      console.error(t('users.updateFailed'), error)
       return false
     }
   }
@@ -71,7 +71,7 @@ export function createUserAPI(data) {
       return true
     } catch (error) {
       ElMessage.error(t('users.deleteFailed'))
-      console.error('删除用户错误:', error)
+      console.error(t('users.deleteFailed'), error)
       return false
     }
   }
@@ -84,7 +84,7 @@ export function createUserAPI(data) {
       return true
     } catch (error) {
       ElMessage.error(t('users.batchDeleteFailed'))
-      console.error('批量删除用户错误:', error)
+      console.error(t('users.batchDeleteFailed'), error)
       return false
     }
   }

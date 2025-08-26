@@ -1,8 +1,10 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
+import { useI18n } from 'vue-i18n'
 
 export const createMapAPI = (data) => {
   const { mapList, loading, currentMapId } = data
+  const { t } = useI18n()
 
   // 获取地图图片 URL
   const getMapImageUrl = (mapId) => {
@@ -30,7 +32,7 @@ export const createMapAPI = (data) => {
       await fetchCurrentMapId()
     } catch (error) {
       console.error('获取地图列表失败:', error)
-      ElMessage.error('获取地图列表失败')
+      ElMessage.error(t('maps.fetchMapListFailed'))
       mapList.value = []
     } finally {
       loading.value = false
@@ -52,18 +54,18 @@ export const createMapAPI = (data) => {
 
   // 删除地图
   const handleDelete = (row) => {
-    ElMessageBox.confirm(`确定要删除地图 "${row.name}" 吗？`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    return ElMessageBox.confirm(t('maps.deleteMapConfirm', { name: row.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     }).then(async () => {
       try {
         await axios.delete(`/api/maps/${row.mapId}`)
-        ElMessage.success('删除成功')
+        ElMessage.success(t('maps.deleteSuccess'))
         return true
       } catch (error) {
         console.error('删除失败:', error)
-        ElMessage.error('删除失败')
+        ElMessage.error(t('maps.deleteFailed'))
         return false
       }
     }).catch(() => {
@@ -75,23 +77,23 @@ export const createMapAPI = (data) => {
   // 批量删除
   const handleBatchDelete = (multipleSelection, searchForm) => {
     if (!multipleSelection.length) {
-      ElMessage.warning('请选择要删除的地图')
-      return
+      ElMessage.warning(t('maps.selectMapToDelete'))
+      return Promise.resolve(false)
     }
 
-    ElMessageBox.confirm(`确定要删除选中的 ${multipleSelection.length} 个地图吗？`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    return ElMessageBox.confirm(t('maps.batchDeleteConfirm', { count: multipleSelection.length }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     }).then(async () => {
       try {
         const mapIds = multipleSelection.map(item => item.mapId)
         await axios.delete('/api/maps/batch', { data: mapIds })
-        ElMessage.success('删除成功')
+        ElMessage.success(t('maps.deleteSuccess'))
         return true
       } catch (error) {
         console.error('批量删除失败:', error)
-        ElMessage.error('批量删除失败')
+        ElMessage.error(t('maps.batchDeleteFailed'))
         return false
       }
     }).catch(() => {
@@ -111,11 +113,11 @@ export const createMapAPI = (data) => {
       // 新增地图时检查比例尺是否已设置
       if (dialogType.value === 'add') {
         if (!mapForm.file) {
-          ElMessage.error('请选择要上传的地图文件')
+          ElMessage.error(t('maps.selectMapFile'))
           return false
         }
         if (!mapForm.scale || mapForm.scale <= 0) {
-          ElMessage.error('请先设置地图比例尺！请点击"点击设置测量点"完成比例尺设置')
+          ElMessage.error(t('maps.setScaleFirst'))
           return false
         }
       }
@@ -145,24 +147,24 @@ export const createMapAPI = (data) => {
       if (dialogType.value === 'add') {
         formData.append('file', mapForm.file)
         await axios.post('/api/maps', formData)
-        ElMessage.success('添加成功')
+        ElMessage.success(t('maps.addSuccess'))
       } else {
         if (mapForm.file) {
           formData.append('file', mapForm.file)
         }
         if (!mapForm.mapId) {
           console.error('编辑地图时 mapId 丢失')
-          ElMessage.error('编辑失败，地图 mapId 丢失')
+          ElMessage.error(t('maps.editFailedMapIdLost'))
           return false
         }
         await axios.put(`/api/maps/${mapForm.mapId}`, formData)
-        ElMessage.success('编辑成功')
+        ElMessage.success(t('maps.editSuccess'))
       }
       
       return true
     } catch (error) {
       console.error('提交失败:', error)
-      const errorMsg = error.response?.data?.message || (dialogType.value === 'add' ? '添加失败' : '编辑失败')
+      const errorMsg = error.response?.data?.message || (dialogType.value === 'add' ? t('maps.addFailed') : t('maps.editFailed'))
       ElMessage.error(errorMsg)
       return false
     }
@@ -173,11 +175,11 @@ export const createMapAPI = (data) => {
     try {
       await axios.put(`/api/maps/current/${row.mapId}`)
       currentMapId.value = row.mapId
-      ElMessage.success(`已将 "${row.name}" 设置为当前地图`)
+      ElMessage.success(t('maps.setCurrentMapSuccess', { name: row.name }))
       return true
     } catch (error) {
       console.error('设置当前地图失败:', error)
-      ElMessage.error('设置当前地图失败')
+      ElMessage.error(t('maps.setCurrentMapFailed'))
       return false
     }
   }

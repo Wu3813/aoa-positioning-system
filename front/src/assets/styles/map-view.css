@@ -9,13 +9,13 @@
   overflow: hidden;
 }
 
-.map-view-container .control-panel {
+.control-panel {
   padding: 0 20px;
   margin: 15px 0;
   display: flex;
 }
 
-.map-view-container .control-wrapper {
+.control-wrapper {
   border-radius: 4px;
   padding: 16px;
   background-color: #fff;
@@ -23,14 +23,14 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-.map-view-container .main-content {
+.main-content {
   flex: 1;
   padding: 0 20px;
   overflow: hidden;
   margin-bottom: 30px;
 }
 
-.map-view-container .map-table-wrapper {
+.map-table-wrapper {
   background: #fff;
   padding: 16px 16px 20px 16px;
   border-radius: 4px;
@@ -42,28 +42,28 @@
   flex-direction: column;
 }
 
-.map-view-container .map-table {
+.map-table {
   width: 100%;
   flex: 1;
 }
 
-.map-view-container .search-bar {
+.search-bar {
   margin-top: 15px;
 }
 
-.map-view-container .action-bar {
+.action-bar {
   margin-top: 15px;
   display: flex;
   gap: 10px;
 }
 
-.map-view-container .dialog-footer {
+.dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-.map-view-container .image-container {
+.image-container {
   width: 80px;
   height: 60px;
   display: flex;
@@ -71,7 +71,7 @@
   justify-content: center;
 }
 
-.map-view-container .image-slot {
+.image-slot {
   width: 100%;
   height: 100%;
   display: flex;
@@ -81,216 +81,46 @@
   color: #909399;
 }
 
-.map-view-container .el-icon {
+.el-icon {
   font-size: 20px;
 }
 
-.map-view-container .operation-buttons {
+.operation-buttons {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-width: 160px; /* 增加操作列宽度 */
+  max-width: 160px;
   width: 100%;
 }
 
-.map-view-container .operation-row {
+.operation-row {
   display: flex;
   width: 100%;
 }
 
-.map-view-container .operation-buttons .el-button {
+.operation-buttons .el-button {
   flex: 1;
-  font-size: 11px; /* 稍微增加字体大小 */
-  padding: 4px 2px; /* 增加内边距 */
-  height: 24px; /* 增加按钮高度 */
-  min-width: 0;
-  white-space: nowrap; /* 防止文本换行 */
-}
-
-/* 响应式布局适配 */
-@media screen and (max-width: 768px) {
-  .map-view-container .control-panel {
-    padding: 0 10px;
-    margin: 10px 0;
-  }
-  
-  .map-view-container .main-content {
-    padding: 0 10px;
-  }
-  
-  .map-view-container .map-table-wrapper {
-    padding: 10px;
-  }
-  
-  .map-view-container .el-form-item {
-    margin-bottom: 12px;
-  }
-}
-
-/* 恢复编辑页面相关样式 */
-.scale-calculator {
-  margin-bottom: 15px;
-}
-
-.scale-input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  flex-wrap: wrap; /* 允许换行 */
-}
-
-.scale-input-group span {
-  white-space: nowrap; /* 防止标签换行 */
-  min-width: fit-content; /* 确保标签不被压缩 */
-}
-
-.scale-result {
-  background-color: #f8f9fa;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin-top: 8px;
-  font-size: 13px;
-  border: 1px solid #e4e7ed;
-}
-
-.scale-result p {
-  margin: 5px 0;
-  white-space: nowrap; /* 防止结果文本换行 */
-}
-
-.map-preview-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.map-preview {
-  width: 100%;
-  height: 700px;
-  position: relative;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
-  cursor: pointer;
-  background-color: #f8f9fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.map-preview-section {
-  height: 100%;
-  margin-bottom: 0;
-  padding: 15px;
-  overflow: visible;
-}
-
-.no-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.preview-instructions {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.preview-instructions p {
-  white-space: normal; /* 允许说明文本换行 */
-  line-height: 1.4;
-  margin-bottom: 10px;
-}
-
-.marker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  position: absolute;
-  background-color: #409EFF;
-  border: 2px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
   font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 5;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
 }
 
-.line-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.point-inputs {
-  margin-top: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.measure-point-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap; /* 允许换行 */
-  width: 100%;
-}
-
-.measure-point-row span {
-  width: auto; /* 改为自适应宽度 */
-  min-width: fit-content; /* 确保最小宽度 */
-  display: inline-block;
-  line-height: 32px;
-  white-space: nowrap; /* 防止标签换行 */
-}
-
-.no-bottom-margin {
-  margin-bottom: 0 !important;
-}
-
+/* 对话框样式 */
 .map-dialog {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  max-height: 90vh;
 }
 
 .map-form {
-  height: 100%;
-  overflow: hidden;
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
 }
 
 .left-panel {
-  height: 100%;
-  overflow-y: auto;
-  padding-right: 10px;
+  padding-right: 20px;
 }
 
 .form-section {
-  background-color: #f8f9fa;
-  border-radius: 4px;
+  background: #f8f9fa;
+  border-radius: 6px;
   padding: 15px;
   margin-bottom: 15px;
   border: 1px solid #e4e7ed;
@@ -304,258 +134,231 @@
   color: #303133;
   border-bottom: 1px solid #e4e7ed;
   padding-bottom: 10px;
-  white-space: nowrap; /* 防止标题换行 */
 }
 
-.form-section h4 {
-  margin-top: 10px;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #606266;
+.required-mark {
+  color: #f56c6c;
+  margin-left: 4px;
 }
 
-.coordinate-inputs {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap; /* 允许换行 */
+.required-mark-right {
+  color: #f56c6c;
+  margin-left: 4px;
 }
 
-.half-width {
-  margin-bottom: 10px;
-  width: auto;
-  min-width: fit-content; /* 确保最小宽度 */
-}
-
-.coordinate-info {
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.point-inputs {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.map-upload .el-upload__tip {
-  line-height: 1.2;
-  font-size: 12px;
-  margin-top: 5px;
-  white-space: normal; /* 允许提示文本换行 */
-}
-
-.origin-marker {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  position: absolute;
-  background-color: #F56C6C;
-  border: 2px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+/* 必填标记样式 - 使用深度选择器 */
+.el-form-item__label .required-mark,
+.el-form-item__label .required-mark-right {
+  color: #f56c6c;
+  font-weight: normal;
+  margin-left: 4px;
 }
 
 .action-buttons {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
-  flex-wrap: wrap; /* 允许按钮换行 */
+  flex-wrap: wrap;
 }
 
 .action-buttons .el-button {
-  white-space: nowrap; /* 防止按钮文本换行 */
-  min-width: fit-content; /* 确保按钮不被压缩 */
+  min-width: 120px;
+  white-space: nowrap;
 }
 
-.size-info {
-  line-height: 32px;
-  color: #606266;
-  white-space: nowrap; /* 防止尺寸信息换行 */
+.coordinate-inputs {
+  margin-top: 15px;
 }
 
-.required-mark {
-  color: #f56c6c;
-  font-weight: normal;
-}
-
-/* 必填标记样式 - 右侧显示 */
-.required-mark-right {
-  color: #f56c6c;
-  font-weight: normal;
-  margin-left: 4px;
-}
-
-/* 必填标记位置调整 - 将*号从左侧移动到右侧 */
-.map-form .el-form-item.is-required .el-form-item__label::before {
-  content: '';
-  display: none;
-}
-
-.map-form .el-form-item.is-required .el-form-item__label::after {
-  content: ' *';
-  color: #f56c6c;
-  margin-left: 4px;
-}
-
-/* 确保Element表格内部滚动正常工作 */
-.el-table__body-wrapper {
-  overflow-x: auto !important;
-}
-
-/* 确保表格底部边框显示正常 */
-.el-table::before,
-.el-table::after {
-  display: none;
-}
-
-.el-table {
-  border-bottom: 1px solid #ebeef5;
-}
-
-/* 美化表格内部滚动条 */
-.el-table__body-wrapper::-webkit-scrollbar {
-  height: 12px !important;
-  display: block !important;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 6px;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-thumb {
-  background: #909399;
-  border-radius: 6px;
-  border: 2px solid #f1f1f1;
-}
-
-.el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #606266;
-}
-
-.el-select {
-  width: 100%;
-}
-
-/* 表格列宽度优化 - 防止英文文本换行 */
-.el-table .el-table__cell {
-  white-space: nowrap; /* 防止单元格内容换行 */
-}
-
-/* 表格列标题优化 */
-.el-table .el-table__header .el-table__cell {
-  white-space: nowrap; /* 防止表头换行 */
-}
-
-/* 搜索栏和操作栏优化 */
-.search-bar .el-form-item {
+.measure-point-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
 }
 
-.search-bar .el-form-item__label {
-  white-space: nowrap; /* 防止标签换行 */
+.coordinate-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 60px;
 }
 
-/* 对话框内容优化 */
-.map-dialog .el-dialog__body {
-  padding: 20px;
+.point-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 60px;
 }
 
-/* 表单标签优化 */
-.map-form .el-form-item__label {
-  white-space: nowrap; /* 防止表单标签换行 */
-  min-width: fit-content; /* 确保标签不被压缩 */
-  text-align: left; /* 标签左对齐 */
+.half-width {
+  flex: 1;
 }
 
-/* 基本信息区域样式优化 */
-.form-section .el-form-item {
-  margin-bottom: 18px;
+.no-bottom-margin {
+  margin-bottom: 0;
 }
 
-.form-section .el-form-item__label {
-  text-align: left; /* 标签左对齐 */
-  font-weight: 500; /* 稍微加粗标签 */
-  color: #303133; /* 标签颜色 */
+.scale-calculator {
+  margin-top: 15px;
 }
 
-.form-section .el-form-item__content {
-  text-align: left; /* 内容左对齐 */
+.scale-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-/* 输入框样式优化 */
-.form-section .el-input,
-.form-section .el-input-number {
+.scale-label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 80px;
+}
+
+.scale-result {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.scale-result p {
+  margin: 5px 0;
+  color: #0369a1;
+  font-size: 13px;
+}
+
+.point-inputs {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.map-preview-section {
+  height: 100%;
+}
+
+.map-preview-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-preview {
+  flex: 1;
+  position: relative;
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  cursor: crosshair;
+  overflow: hidden;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: none; /* 禁用过渡动画，避免尺寸变化时的延迟 */
+}
+
+.no-image {
+  text-align: center;
+  color: #909399;
+}
+
+.no-image p {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+}
+
+.origin-marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f56c6c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.line-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.form-section .el-input__inner {
-  text-align: left; /* 输入框内容左对齐 */
+.preview-instructions {
+  margin-top: 10px;
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
 }
 
-/* 上传组件样式优化 */
+.preview-instructions p {
+  margin: 5px 0;
+}
+
 .map-upload {
   width: 100%;
 }
 
-.map-upload .el-upload {
-  width: 100%;
-}
-
-.map-upload .el-upload-dragger {
-  width: 100%;
-  text-align: left; /* 上传区域内容左对齐 */
-}
-
-/* 坐标输入区域样式 */
-.coordinate-inputs .el-form-item {
-  margin-bottom: 10px;
-}
-
-.coordinate-inputs .el-form-item__label {
-  text-align: left; /* 坐标标签左对齐 */
-  min-width: 60px; /* 确保标签有足够宽度 */
-}
-
-/* 测量点输入区域样式 */
-.point-inputs .el-form-item {
-  margin-bottom: 8px;
-}
-
-.point-inputs .el-form-item__label {
-  text-align: left; /* 测量点标签左对齐 */
-  min-width: 60px; /* 确保标签有足够宽度 */
-}
-
-/* 比例尺计算区域样式 */
-.scale-calculator .el-form-item {
-  margin-bottom: 15px;
-}
-
-.scale-calculator .el-form-item__label {
-  text-align: left; /* 比例尺标签左对齐 */
-}
-
-/* 尺寸信息显示样式 */
 .size-info {
-  line-height: 32px;
   color: #606266;
-  white-space: nowrap; /* 防止尺寸信息换行 */
-  text-align: left; /* 尺寸信息左对齐 */
-  padding-left: 0; /* 移除左内边距 */
+  font-size: 13px;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
 }
 
-/* 按钮组优化 */
-.el-button-group .el-button {
-  white-space: nowrap; /* 防止按钮组内按钮文本换行 */
+/* 深度选择器样式 - 替代Vue组件中的:deep() */
+.map-view-container .el-icon {
+  font-size: 20px;
+}
+
+.map-view-container .operation-buttons .el-button {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.map-view-container .action-buttons .el-button {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.map-view-container .el-form-item__label .required-mark,
+.map-view-container .el-form-item__label .required-mark-right {
+  color: #f56c6c;
+  font-weight: normal;
+  margin-left: 4px;
 }

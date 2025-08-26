@@ -68,6 +68,7 @@ export function useTagView() {
     handleSearch: ui.handleSearch,
     handleResetSearch: ui.handleResetSearch,
     handleSelectionChange: ui.handleSelectionChange,
+    handleBatchDelete: ui.handleBatchDelete,
     handleAdd: ui.handleAdd,
     handleEdit: ui.handleEdit,
     handleDelete: ui.handleDelete,

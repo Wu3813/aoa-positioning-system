@@ -24,65 +24,120 @@ export function useMapView() {
   // 创建UI交互
   const uiHandler = createUIHandler(data)
 
-  // 计算图片在预览区域中的实际尺寸和位置
+  // 计算图片在预览区域中的实际尺寸和位置 - 参考MonitorView的实现
   const calculateImageDimensions = () => {
     if (!data.previewImage.value || !data.imageInfo.width || !data.imageInfo.height) return;
     
-    const container = data.previewImage.value.parentElement;
-    if (!container) return;
+    const img = data.previewImage.value;
     
-    // 移除固定内边距，使用容器的实际尺寸
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    // 获取图片的实际显示尺寸和位置信息
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = img.parentElement.getBoundingClientRect();
     
-    const imgRatio = data.imageInfo.width / data.imageInfo.height;
-    const containerRatio = containerWidth / containerHeight;
-    
-    let displayWidth, displayHeight;
-    let offsetX = 0, offsetY = 0;
-    
-    if (imgRatio > containerRatio) {
-      // 图片更宽，以容器宽度为基准
-      displayWidth = containerWidth;
-      displayHeight = containerWidth / imgRatio;
-      offsetY = (containerHeight - displayHeight) / 2;
-    } else {
-      // 图片更高，以容器高度为基准
-      displayHeight = containerHeight;
-      displayWidth = containerHeight * imgRatio;
-      offsetX = (containerWidth - displayWidth) / 2;
-    }
-    
-    // 更新图片显示信息
-    data.imageInfo.display = {
-      width: displayWidth,
-      height: displayHeight,
-      offsetX: offsetX,
-      offsetY: offsetY,
-      scaleX: data.imageInfo.width / displayWidth,
-      scaleY: data.imageInfo.height / displayHeight
+    // 存储图片在容器中的偏移量和显示尺寸
+    data.imageInfo.domInfo = {
+      offsetX: imgRect.left - containerRect.left,
+      offsetY: imgRect.top - containerRect.top,
+      displayWidth: imgRect.width,
+      displayHeight: imgRect.height
     };
+    
+    // 更新显示尺寸和缩放比例
+    data.imageInfo.displayWidth = imgRect.width;
+    data.imageInfo.displayHeight = imgRect.height;
+    data.imageInfo.scaleX = data.imageInfo.displayWidth / data.imageInfo.width;
+    data.imageInfo.scaleY = data.imageInfo.displayHeight / data.imageInfo.height;
     
     console.log('图片显示信息:', {
       原始尺寸: `${data.imageInfo.width} x ${data.imageInfo.height}`,
-      显示尺寸: `${displayWidth.toFixed(2)} x ${displayHeight.toFixed(2)}`,
-      缩放比例: `${data.imageInfo.display.scaleX.toFixed(4)} x ${data.imageInfo.display.scaleY.toFixed(4)}`,
-      偏移量: `${offsetX.toFixed(2)} x ${offsetY.toFixed(2)}`
+      显示尺寸: `${data.imageInfo.displayWidth.toFixed(2)} x ${data.imageInfo.displayHeight.toFixed(2)}`,
+      缩放比例: `${data.imageInfo.scaleX.toFixed(4)} x ${data.imageInfo.scaleY.toFixed(4)}`,
+      偏移量: `${data.imageInfo.domInfo.offsetX.toFixed(2)} x ${data.imageInfo.domInfo.offsetY.toFixed(2)}`
     });
     
-    // 重新计算并更新已有标记点的位置
+    // 强制更新Vue响应式数据，确保标记点位置重新计算
+    data.imageSizeVersion.value++;
+    
+    // 触发原点标记的重新渲染
     if (data.mapForm.originX !== null && data.mapForm.originY !== null) {
-      coordinateHandler.updateOriginMarker();
+      const tempOriginX = data.mapForm.originX;
+      const tempOriginY = data.mapForm.originY;
+      data.mapForm.originX = null;
+      data.mapForm.originX = tempOriginX;
+      data.mapForm.originY = null;
+      data.mapForm.originY = tempOriginY;
     }
     
     if (data.scaleForm.points.length > 0) {
       // 强制更新点位置的显示
-      data.scaleForm.points = [...data.scaleForm.points];
+      const tempPoints = [...data.scaleForm.points];
+      data.scaleForm.points = [];
+      data.scaleForm.points = tempPoints;
     }
   }
 
   // 窗口大小变化时重新计算
   window.addEventListener('resize', calculateImageDimensions);
+
+  // 监听对话框尺寸变化
+  const observeDialogResize = () => {
+    if (data.dialogVisible.value) {
+      // 使用 ResizeObserver 监听对话框内容区域的变化
+      const dialogContent = document.querySelector('.map-dialog .el-dialog__body');
+      if (dialogContent) {
+        const resizeObserver = new ResizeObserver(() => {
+          // 延迟执行，确保DOM更新完成
+          setTimeout(calculateImageDimensions, 100);
+        });
+        resizeObserver.observe(dialogContent);
+        
+        // 同时监听图片容器的变化
+        const previewContainer = document.querySelector('.map-preview');
+        if (previewContainer) {
+          const containerResizeObserver = new ResizeObserver(() => {
+            setTimeout(calculateImageDimensions, 50);
+          });
+          containerResizeObserver.observe(previewContainer);
+          
+          // 返回清理函数
+          return () => {
+            resizeObserver.disconnect();
+            containerResizeObserver.disconnect();
+          };
+        }
+        
+        // 返回清理函数
+        return () => {
+          resizeObserver.disconnect();
+        };
+      }
+    }
+  };
+
+  // 监听对话框显示状态变化
+  watch(() => data.dialogVisible.value, (newVal) => {
+    if (newVal) {
+      // 对话框打开时，延迟执行一次计算，确保DOM已渲染
+      setTimeout(() => {
+        calculateImageDimensions();
+        observeDialogResize();
+        
+        // 监听整个对话框的变化
+        const dialog = document.querySelector('.map-dialog');
+        if (dialog) {
+          const dialogResizeObserver = new ResizeObserver(() => {
+            setTimeout(calculateImageDimensions, 100);
+          });
+          dialogResizeObserver.observe(dialog);
+          
+          // 在组件卸载时清理
+          onBeforeUnmount(() => {
+            dialogResizeObserver.disconnect();
+          });
+        }
+      }, 200);
+    }
+  });
 
   // 在组件卸载时移除事件监听
   onBeforeUnmount(() => {
@@ -98,12 +153,31 @@ export function useMapView() {
   const handlePreviewImageLoad = (event) => {
     fileHandler.handlePreviewImageLoad(event);
     // 重新计算图片尺寸
-    calculateImageDimensions();
+    setTimeout(() => {
+      calculateImageDimensions();
+    }, 150);
   }
 
   // 更新点在UI上的显示位置 - 包装坐标处理器的getDisplayPosition
   const getDisplayPosition = (pixelX, pixelY) => {
-    return coordinateHandler.getDisplayPosition(pixelX, pixelY, data.previewImage.value);
+    const displayPos = coordinateHandler.getDisplayPosition(pixelX, pixelY);
+    // 添加图片的DOM偏移量，确保点跟随图片移动
+    if (data.imageInfo.domInfo) {
+      displayPos.x += data.imageInfo.domInfo.offsetX;
+      displayPos.y += data.imageInfo.domInfo.offsetY;
+    }
+    
+    // 添加调试日志，帮助排查问题
+    if (data.imageInfo.displayWidth && data.imageInfo.displayHeight) {
+      console.log('getDisplayPosition 调用:', {
+        输入坐标: { x: pixelX, y: pixelY },
+        计算位置: { x: displayPos.x.toFixed(2), y: displayPos.y.toFixed(2) },
+        图片显示尺寸: { width: data.imageInfo.displayWidth, height: data.imageInfo.displayHeight },
+        DOM偏移: data.imageInfo.domInfo ? { x: data.imageInfo.domInfo.offsetX, y: data.imageInfo.domInfo.offsetY } : null
+      });
+    }
+    
+    return displayPos;
   }
 
   // 处理排序变化 - 包装UI处理器的handleSortChange
@@ -248,6 +322,18 @@ export function useMapView() {
     coordinateHandler.resetScaleMeasurement();
   }
 
+  // 处理对话框打开事件
+  const handleDialogOpen = () => {
+    // 延迟执行，确保DOM已完全渲染
+    setTimeout(() => {
+      calculateImageDimensions();
+      // 设置一个定时器，在对话框完全打开后再次计算
+      setTimeout(() => {
+        calculateImageDimensions();
+      }, 500);
+    }, 300);
+  }
+
   // 计算比例尺 - 包装坐标处理器的calculateScale
   const calculateScale = () => {
     return coordinateHandler.calculateScale();
@@ -287,6 +373,47 @@ export function useMapView() {
       }
     },
     { deep: true }
+  );
+
+  // 监听图片显示尺寸变化，确保标记点位置正确
+  watch(
+    [
+      () => data.imageInfo.displayWidth,
+      () => data.imageInfo.displayHeight,
+      () => data.imageInfo.domInfo?.offsetX,
+      () => data.imageInfo.domInfo?.offsetY
+    ],
+    () => {
+      if (data.imageInfo.displayWidth && data.imageInfo.displayHeight) {
+        // 延迟执行，确保DOM更新完成
+        setTimeout(() => {
+          // 强制更新标记点位置
+          if (data.mapForm.originX !== null && data.mapForm.originY !== null) {
+            const tempOriginX = data.mapForm.originX;
+            const tempOriginY = data.mapForm.originY;
+            data.mapForm.originX = null;
+            data.mapForm.originX = tempOriginX;
+            data.mapForm.originY = null;
+            data.mapForm.originY = tempOriginY;
+          }
+          
+          if (data.scaleForm.points.length > 0) {
+            const tempPoints = [...data.scaleForm.points];
+            data.scaleForm.points = [];
+            data.scaleForm.points = tempPoints;
+          }
+        }, 50);
+      }
+    }
+  );
+
+  // 监听版本标识变化，确保标记点位置正确
+  watch(
+    () => data.imageSizeVersion.value,
+    () => {
+      // 版本标识变化时，强制重新计算标记点位置
+      console.log('图片尺寸版本更新，重新计算标记点位置');
+    }
   );
 
   return {
@@ -329,6 +456,7 @@ export function useMapView() {
     updateCoordinateRangeFromScale,
     getDisplayPosition,
     updateScaleCalculation,
-    resetScaleMeasurement
+    resetScaleMeasurement,
+    handleDialogOpen
   }
 }

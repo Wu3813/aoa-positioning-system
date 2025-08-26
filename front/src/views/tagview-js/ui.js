@@ -1,7 +1,10 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function createTagUI(data, api) {
+  const { t } = useI18n()
+
   // 搜索处理
   const handleSearch = () => {
     api.fetchTags();
@@ -22,16 +25,16 @@ export function createTagUI(data, api) {
   // 批量删除
   const handleBatchDelete = () => {
     if (data.multipleSelection.value.length === 0) {
-      ElMessage.warning('请至少选择一条记录');
+      ElMessage.warning(t('tags.selectAtLeastOne'));
       return;
     }
     
     ElMessageBox.confirm(
-      `确定要删除选中的 ${data.multipleSelection.value.length} 条记录吗？`,
-      '警告',
+      t('tags.batchDeleteConfirm', { count: data.multipleSelection.value.length }),
+      t('common.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -92,11 +95,11 @@ export function createTagUI(data, api) {
   // 删除单个标签
   const handleDelete = (row) => {
     ElMessageBox.confirm(
-      `确定要删除标签 "${row.name}" 吗？`,
-      '警告',
+      t('tags.deleteConfirm', { name: row.name }),
+      t('common.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {

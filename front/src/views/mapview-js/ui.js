@@ -79,6 +79,11 @@ export const createUIHandler = (data) => {
     isMeasuring.value = false;
     // 重置比例尺完成状态
     hasCompletedScale.value = false;
+    
+    // 清除保存的原始状态
+    if (data.originalOriginX !== undefined) delete data.originalOriginX;
+    if (data.originalOriginY !== undefined) delete data.originalOriginY;
+    if (data.originalPoints !== undefined) delete data.originalPoints;
   }
 
   // 编辑地图

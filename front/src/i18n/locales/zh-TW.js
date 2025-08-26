@@ -3,11 +3,15 @@ export default {
   common: {
     confirm: '確定',
     cancel: '取消',
+    delete: '刪除',
     logout: '退出登錄',
     admin: '管理員',
     user: '普通用戶',
     welcome: '歡迎',
-    to: '至'
+    to: '至',
+    warning: '警告',
+    locale: 'zh-TW',
+    meter: 'm'
   },
   
   // 系统标题
@@ -244,7 +248,49 @@ export default {
     clickImageSetMeasurePoints: '點擊圖片設置測量點 ({count}/2)，完成後點擊"完成"按鈕',
     selectOriginOrMeasure: '選擇"點擊設置原點"或"點擊設置測量點"開始',
     clearMarkers: '清除標記點',
-    confirm: '確定'
+    confirm: '確定',
+    // 新增的提示信息翻譯
+    fetchMapListFailed: '獲取地圖列表失敗',
+    deleteSuccess: '刪除成功',
+    deleteFailed: '刪除失敗',
+    selectMapToDelete: '請選擇要刪除的地圖',
+    deleteMapConfirm: '確定要刪除地圖 "{name}" 嗎？',
+    batchDeleteConfirm: '確定要刪除選中的 {count} 個地圖嗎？',
+    batchDeleteFailed: '批量刪除失敗',
+    selectMapFile: '請選擇要上傳的地圖文件',
+    setScaleFirst: '請先設置地圖比例尺！請點擊"點擊設置測量點"完成比例尺設置',
+    addSuccess: '添加成功',
+    editSuccess: '編輯成功',
+    editFailedMapIdLost: '編輯失敗，地圖 mapId 丟失',
+    addFailed: '添加失敗',
+    editFailed: '編輯失敗',
+    setCurrentMapSuccess: '已將 "{name}" 設置為當前地圖',
+    setCurrentMapFailed: '設置當前地圖失敗',
+    uploadFormatError: '上傳地圖圖片只能是 JPG/PNG 格式!',
+    uploadSizeError: '上傳地圖圖片大小不能超過 10MB!',
+    reuploadMapWarning: '更換地圖後，請重新設置原點坐標和比例尺！',
+    selectOneFileOnly: '只能選擇一個地圖文件，請先移除當前文件再選擇新的文件',
+    completeCurrentOperation: '請先完成當前操作',
+    completeMeasureFirst: '請先完成或取消測量點設置',
+    originUpdated: '原點已更新為 ({x}, {y})，點擊"完成"按鈕確認',
+    firstMeasurePointSet: '已設置第一個測量點 ({x}, {y})，請繼續設置第二個測量點',
+    secondMeasurePointSet: '已設置第二個測量點 ({x}, {y})，請點擊"完成"按鈕確認設置比例尺',
+    completeMeasureFirst: '請先完成或取消當前的測量點設置',
+    uploadMapFirst: '請先上傳地圖文件',
+    clickSetOriginHint: '請在圖片上點擊設置原點位置，完成後點擊"完成"按鈕',
+    originSettingComplete: '原點設置完成: ({x}, {y})',
+    completeOriginFirst: '請先完成或取消原點設置',
+    clickSetMeasurePointsHint: '請在圖片上點擊設置測量點，需要設置兩個點',
+    setTwoMeasurePoints: '請先設置兩個測量點',
+    scaleSettingComplete: '比例尺設置完成: 1 m = {scale} px',
+    measureCancelled: '已取消測量點設置',
+    completeOriginFirst: '請先完成或取消原點設置',
+    clickSetMeasurePointsHint: '請在圖片上點擊設置測量點，需要設置兩個點',
+    notCalculated: '未計算',
+    enterMapId: '請輸入地圖ID',
+    mapIdFormatError: '地圖ID只能包含字母、數字、下劃線和橫線',
+    enterMapName: '請輸入地圖名稱',
+    pixels: '像素'
   },
 
   // 電子圍欄頁面
@@ -294,9 +340,44 @@ export default {
     tip: '提示: 點擊地圖設置圍欄點，至少需要3個點形成圍欄',
     warning: '注意: 請完成圍欄點設置後才能保存圍欄',
     mapPreview: '地圖預覽',
-    selectMapFirst: '請選擇地圖',
+    selectMapFirst: '請先選擇地圖',
     noImage: '請選擇地圖',
-    points: '個點'
+    points: '個點',
+    // 新增的提示信息
+    clickSetPointsHint: '請在地圖上點擊設置圍欄點，至少需要3個點',
+    needThreePoints: '至少需要3個點才能形成圍欄',
+    pointSettingComplete: '圍欄點設置完成，共{count}個點',
+    allPointsCleared: '已清除所有圍欄點',
+    pointDeleted: '已刪除第{index}個點',
+    pointAdded: '已添加第{index}個圍欄點 ({x}, {y})',
+    completeSettingFirst: '請先點擊"完成設置"按鈕完成圍欄點設置',
+    needThreePointsForSave: '請設置至少3個圍欄點',
+    addSuccess: '添加成功',
+    updateSuccess: '更新成功',
+    addFailed: '添加失敗',
+    updateFailed: '更新失敗',
+    confirmToggle: '確定要{action}圍欄"{name}"嗎？',
+    toggleSuccess: '{action}成功',
+    toggleFailed: '{action}失敗',
+    confirmDelete: '確定要刪除圍欄"{name}"嗎？此操作不可恢復！',
+    deleteSuccess: '刪除成功',
+    deleteFailed: '刪除失敗',
+    confirmBatchEnable: '確定要啟用選中的 {count} 個圍欄嗎？',
+    confirmBatchDisable: '確定要禁用選中的 {count} 個圍欄嗎？',
+    confirmBatchDelete: '確定要刪除選中的 {count} 個圍欄嗎？此操作不可恢復！',
+    batchEnableSuccess: '批量啟用成功',
+    batchDisableSuccess: '批量禁用成功',
+    batchDeleteSuccess: '批量刪除成功',
+    batchEnableFailed: '批量啟用失敗',
+    batchDisableFailed: '批量禁用失敗',
+    batchDeleteFailed: '批量刪除失敗',
+    fetchListFailed: '獲取圍欄列表失敗',
+    fetchMapsFailed: '獲取地圖列表失敗',
+    unknownMap: '未知地圖',
+    formValidation: {
+      nameRequired: '請輸入圍欄名稱',
+      mapRequired: '請選擇所屬地圖'
+    }
   },
 
   // 基站管理頁面
@@ -397,7 +478,95 @@ export default {
     ipPlaceholder: 'IP地址',
     port: '端口號：',
     portPlaceholder: '端口',
-    portRange: '端口範圍：1-65535（不能是8833）'
+    portRange: '端口範圍：1-65535（不能是8833）',
+    
+    // 消息提示
+    messages: {
+      // 確認對話框
+      confirmDelete: '確定要刪除基站 "{name}" 嗎？',
+      confirmBatchDelete: '確定要刪除選中的 {count} 條記錄嗎？',
+      confirmFactoryReset: '確定要恢復基站 "{name}" 的出廠設置嗎？此操作不可逆！',
+      confirmRestart: '確定要重啟基站 "{name}" 嗎？',
+      confirmLocate: '確定要定位基站 "{name}" 嗎？基站燈將閃爍100次。',
+      confirmBatchUpdate: '發現{updateCount}個基站需要更新座標，{skipCount}個基站未匹配。是否繼續？',
+      
+      // 成功消息
+      addSuccess: '添加成功',
+      updateSuccess: '更新成功',
+      deleteSuccess: '刪除成功',
+      batchDeleteSuccess: '批量刪除成功',
+      refreshSuccess: '基站信息刷新成功',
+      statusUpdated: '狀態已更新',
+      checkAllSuccess: '檢查完成',
+      batchRefreshSuccess: '批量刷新成功',
+      testConnectionSuccess: 'UDP連接測試成功，自動獲取基站信息',
+      enableBroadcastSuccess: '標籤廣播數據上報開啟成功',
+      enableScanningSuccess: '掃描開啟成功',
+      factoryResetSuccess: '恢復出廠設置成功',
+      restartSuccess: '基站重啟成功',
+      locateSuccess: '基站定位成功',
+      applyConfigSuccess: '基站{configName}應用成功',
+      configRSSISuccess: 'RSSI配置成功',
+      configTargetSuccess: '目標IP端口配置成功',
+      batchUpdateSuccess: '成功更新了{count}個基站的座標數據',
+      
+      // 錯誤消息
+      fetchStationsFailed: '獲取基站列表失敗',
+      fetchMapsFailed: '獲取地圖列表失敗',
+      refreshFailed: '刷新失敗',
+      checkAllFailed: '檢查失敗',
+      batchRefreshFailed: '批量刷新失敗',
+      batchDeleteFailed: '批量刪除失敗',
+      testConnectionFailed: 'UDP連接測試失敗，請檢查IP地址或網絡連接',
+      addFailed: '添加失敗',
+      updateFailed: '更新失敗',
+      deleteFailed: '刪除失敗',
+      enableBroadcastFailed: '開啟標籤廣播數據上報失敗',
+      enableScanningFailed: '開啟掃描失敗',
+      factoryResetFailed: '恢復出廠設置失敗',
+      restartFailed: '基站重啟失敗',
+      locateFailed: '基站定位失敗',
+      applyConfigFailed: '基站{configName}應用失敗',
+      configRSSIFailed: '基站配置RSSI失敗',
+      configTargetFailed: '基站配置目標IP端口失敗',
+      batchUpdateFailed: '部分基站更新失敗',
+      
+      // 警告消息
+      selectAtLeastOne: '請至少選擇一條記錄',
+      selectAtLeastOneStation: '請至少選擇一個基站',
+      inputIPFirst: '請先輸入IP地址',
+      selectScanConfig: '請選擇一個掃描配置',
+      inputValidRSSI: '請輸入有效的RSSI值（-100到-40dBm的整數）',
+      inputValidTarget: '請輸入有效的目標IP地址和端口',
+      uploadJSONFile: '請上傳JSON格式文件',
+      invalidJSONFormat: 'JSON格式不正確，缺少detected_base_station數組',
+      noValidStationConfig: '沒有找到有效的基站配置信息',
+      noMatchingStations: '沒有匹配到任何基站，請檢查MAC地址',
+      parseJSONFailed: '解析JSON文件失敗',
+      firmwareUpdateNotImplemented: '更新基站功能暫未實現 - 基站: {name}',
+      
+      // 網絡錯誤
+      networkError: '網絡錯誤',
+      unknownError: '未知錯誤'
+    },
+    
+    // 表單驗證
+    formValidation: {
+      codeRequired: '請輸入基站編號',
+      codePattern: '基站編號只能包含字母、數字、下劃線和橫線',
+      nameRequired: '請輸入基站名稱',
+      ipRequired: '請輸入IP地址',
+      ipPattern: 'IP地址格式不正確',
+      mapRequired: '請選擇所屬地圖',
+      rssiTooSmall: 'RSSI值不能小於-100dBm',
+      rssiTooLarge: 'RSSI值不能大於-40dBm',
+      rssiNotInteger: 'RSSI值必須為整數',
+      targetIpInvalid: '目標IP地址格式不正確',
+      portTooSmall: '端口不能小於1',
+      portTooLarge: '端口不能大於65535',
+      portReserved: '端口不能是8833',
+      portNotInteger: '端口必須為整數'
+    }
   },
 
   // 報警記錄頁面
@@ -416,7 +585,24 @@ export default {
     geofenceName: '圍欄名稱',
     mapName: '地圖名稱',
     alarmTag: '報警標籤',
-    alarmCoordinates: '報警座標'
+    alarmCoordinates: '報警座標',
+    fetchAlarmsFailed: '獲取報警列表失敗',
+    fetchMapsFailed: '獲取地圖列表失敗',
+    fetchTagsFailed: '獲取標籤列表失敗',
+    lastDay: '最近一天',
+    lastWeek: '最近一週',
+    lastMonth: '最近一個月'
+  },
+
+  // 圍欄告警通知
+  geofenceAlarm: {
+    title: '圍欄告警',
+    message: '標籤 {tagId} 位於圍欄 {geofenceName} 外部',
+    handleNotificationFailed: '處理告警通知失敗',
+    registerListenerSuccess: '已註冊圍欄告警通知監聽',
+    loadGeofencesSuccess: '加載地圖 {mapId} 的圍欄: {count} 個',
+    fetchListFailed: '獲取圍欄列表失敗',
+    fetchListError: '獲取圍欄列表錯誤'
   },
 
   // 標籤管理頁面
@@ -459,7 +645,29 @@ export default {
     firmwareVersionPlaceholder: '請輸入固件版本',
     remarkPlaceholder: '請輸入備註信息',
     cancel: '取消',
-    confirm: '確定'
+    confirm: '確定',
+    // 新增的翻譯鍵
+    selectAtLeastOne: '請至少選擇一條記錄',
+    batchDeleteConfirm: '確定要刪除選中的 {count} 條記錄嗎？',
+    deleteConfirm: '確定要刪除標籤 "{name}" 嗎？',
+    unknownMap: '未知地圖',
+    nameRequired: '請輸入標籤名稱',
+    macAddressRequired: '請輸入MAC地址',
+    macAddressFormatError: 'MAC地址格式不正確，請輸入12位十六進制字符（如：84fd27eee603），不要包含冒號或連字符',
+    modelRequired: '請輸入標籤型號',
+    firmwareVersionRequired: '請輸入固件版本',
+    fetchTagsFailed: '獲取標籤列表失敗',
+    fetchMapsFailed: '獲取地圖列表失敗',
+    addSuccess: '添加成功',
+    addFailed: '添加失敗',
+    updateSuccess: '更新成功',
+    updateFailed: '更新失敗',
+    deleteSuccess: '刪除成功',
+    deleteFailed: '刪除失敗',
+    batchDeleteSuccess: '批量刪除成功',
+    batchDeleteFailed: '批量刪除失敗',
+    statusUpdateSuccess: '狀態更新成功',
+    statusUpdateFailed: '狀態更新失敗'
   },
 
   // 用戶管理頁面
@@ -521,6 +729,9 @@ export default {
     trajectorySendTask: '發送演示軌跡',
     sendInterval: '發送間隔:',
     pauseTime: '暫停時間:',
+    timeoutManagement: '超時管理',
+    timeoutInterval: '超時時間:',
+    timeoutTaskWarning: '注意: 此功能用於管理標籤超時，超時後系統將自動關閉該標籤的告警',
     enabled: '啟用',
     disabled: '禁用',
     saveConfig: '保存配置',
@@ -530,6 +741,7 @@ export default {
     trajectorySendIntervalWarning: '軌跡發送間隔不能少於100毫秒',
     trajectoryPauseWarning: '軌跡暫停時間不能少於5000毫秒',
     storageIntervalWarning: '軌跡存儲間隔不能少於1000毫秒',
+    timeoutIntervalWarning: '超時時間不能少於1000毫秒',
     loadConfigFailed: '加載任務配置失敗',
     saveConfigSuccess: '任務配置保存成功',
     saveConfigFailed: '保存任務配置失敗'

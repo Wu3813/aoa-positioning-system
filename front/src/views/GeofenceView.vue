@@ -8,10 +8,10 @@
         <div class="search-bar">
           <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch" label-width="100px">
             <el-form-item :label="$t('geofence.searchName')">
-              <el-input v-model="searchForm.name" :placeholder="$t('geofence.searchNamePlaceholder')" clearable style="width: 200px;" />
+              <el-input v-model="searchForm.name" :placeholder="$t('geofence.searchNamePlaceholder')" clearable class="search-name-input" />
             </el-form-item>
             <el-form-item :label="$t('geofence.searchMap')">
-              <el-select v-model="searchForm.mapId" :placeholder="$t('geofence.searchMapPlaceholder')" clearable style="width: 220px;">
+              <el-select v-model="searchForm.mapId" :placeholder="$t('geofence.searchMapPlaceholder')" clearable class="search-map-select">
                 <el-option 
                   v-for="map in mapList" 
                   :key="map.mapId" 
@@ -21,7 +21,7 @@
               </el-select>
             </el-form-item>
             <el-form-item :label="$t('geofence.searchStatus')">
-              <el-select v-model="searchForm.enabled" :placeholder="$t('geofence.searchStatusPlaceholder')" clearable style="width: 140px;">
+              <el-select v-model="searchForm.enabled" :placeholder="$t('geofence.searchStatusPlaceholder')" clearable class="search-status-select">
                 <el-option :label="$t('geofence.enabled')" :value="true" />
                 <el-option :label="$t('geofence.disabled')" :value="false" />
               </el-select>
@@ -60,13 +60,12 @@
       <div class="geofence-table-wrapper">
         <el-table 
           :data="filteredGeofenceList" 
-          style="width: 100%" 
+          class="geofence-table"
           @selection-change="handleSelectionChange"
           v-loading="loading"
           height="calc(100vh - 320px)"
           border
           stripe
-          class="geofence-table"
           @sort-change="handleSortChange"
         >
           <el-table-column type="selection" width="50" fixed="left" />
@@ -152,7 +151,7 @@
                   <span class="label-text">{{ $t('geofence.map') }}</span>
                   <span class="required-mark">*</span>
                 </template>
-                <el-select v-model="geofenceForm.mapId" :placeholder="$t('geofence.mapPlaceholder')" style="width: 100%;">
+                <el-select v-model="geofenceForm.mapId" :placeholder="$t('geofence.mapPlaceholder')" class="form-map-select">
                   <el-option 
                     v-for="map in mapList" 
                     :key="map.mapId" 
@@ -240,8 +239,7 @@
                   class="marker geofence-marker"
                   :style="{ 
                     left: `${getDisplayPosition(point.x, point.y).x}px`, 
-                    top: `${getDisplayPosition(point.x, point.y).y}px`,
-                    transform: 'translate(-50%, -50%)'
+                    top: `${getDisplayPosition(point.x, point.y).y}px`
                   }"
                 >
                   <span>{{ index + 1 }}</span>
@@ -352,356 +350,5 @@ onBeforeUnmount(onBeforeUnmountHandler)
 </script>
 
 <style scoped>
-/* GeofenceView 样式 - 使用scoped避免全局污染 */
-
-.geofence-view-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.control-panel {
-  padding: 0 20px;
-  margin: 15px 0;
-  display: flex;
-  flex-shrink: 0;
-}
-
-.control-wrapper {
-  border-radius: 4px;
-  padding: 16px;
-  background-color: #fff;
-  flex: 1;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  padding: 0 20px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-.geofence-table-wrapper {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.geofence-table {
-  width: 100%;
-  height: 100%;
-}
-
-.search-bar {
-  margin-top: 15px;
-  flex-shrink: 0;
-}
-
-/* 自适应语言宽度的搜索表单标签 */
-.search-bar :deep(.el-form-item__label) {
-  min-width: fit-content; /* 自适应内容宽度 */
-  white-space: nowrap;
-  padding-right: 8px; /* 增加标签和输入框之间的间距 */
-}
-
-/* 自适应语言宽度的搜索表单输入框 */
-.search-bar :deep(.el-input) {
-  min-width: 180px; /* 保持最小宽度 */
-  width: auto; /* 允许自动调整宽度 */
-}
-
-.search-bar :deep(.el-select) {
-  min-width: 200px; /* 保持最小宽度 */
-  width: auto; /* 允许自动调整宽度 */
-}
-
-.action-bar {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-/* 自适应语言宽度的操作按钮 */
-.action-bar :deep(.el-button) {
-  min-width: fit-content; /* 自适应内容宽度 */
-  white-space: nowrap;
-  padding: 8px 16px; /* 增加内边距，确保按钮有足够空间 */
-}
-
-.operation-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: fit-content; /* 自适应内容宽度 */
-  max-width: none; /* 移除最大宽度限制 */
-}
-
-.operation-row {
-  display: flex;
-  width: 100%;
-}
-
-.operation-buttons :deep(.el-button) {
-  flex: 1;
-  font-size: 12px;
-  padding: 4px 8px;
-  min-width: fit-content; /* 自适应内容宽度 */
-  white-space: nowrap;
-}
-
-/* 对话框样式 */
-.geofence-dialog {
-  max-height: 90vh;
-}
-
-.geofence-form {
-  max-height: calc(90vh - 120px);
-  overflow-y: auto;
-}
-
-.left-panel {
-  padding-right: 20px;
-}
-
-.form-section {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 1px solid #e4e7ed;
-}
-
-.form-section h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  border-bottom: 1px solid #e4e7ed;
-  padding-bottom: 10px;
-  white-space: nowrap; /* 防止标题换行 */
-}
-
-.required-mark {
-  color: #f56c6c;
-  margin-left: 4px;
-}
-
-/* 修复必填字段星号在不同语言下的显示问题 - 使用深度选择器 */
-:deep(.el-form-item__label .required-mark),
-:deep(.el-form-item__label .required-mark-right) {
-  color: #f56c6c;
-  font-weight: normal;
-  margin-left: 4px;
-}
-
-/* 自适应语言宽度的表单标签 */
-:deep(.el-form-item__label) {
-  position: relative;
-  display: inline;
-  min-height: 20px;
-  min-width: fit-content; /* 自适应内容宽度 */
-  white-space: nowrap; /* 防止标签换行 */
-  padding-right: 8px; /* 增加标签和输入框之间的间距 */
-}
-
-/* 标签文本样式 */
-.label-text {
-  display: inline;
-  white-space: nowrap; /* 防止标签文本换行 */
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-/* 自适应语言宽度的操作按钮 */
-.action-buttons :deep(.el-button) {
-  min-width: fit-content; /* 自适应内容宽度 */
-  white-space: nowrap;
-  padding: 8px 16px; /* 增加内边距 */
-}
-
-.points-list {
-  margin-top: 15px;
-}
-
-.point-count {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 8px;
-}
-
-.point-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 12px;
-  min-height: 32px;
-}
-
-.point-item:last-child {
-  border-bottom: none;
-}
-
-.point-item span {
-  flex: 1;
-  margin-right: 10px;
-  word-break: break-all;
-  white-space: normal; /* 允许点信息换行 */
-}
-
-.tip-text {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 10px;
-  line-height: 1.4;
-  white-space: normal; /* 允许提示文本换行 */
-}
-
-.tip-warning {
-  color: #e6a23c;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.map-preview-section {
-  height: 100%;
-}
-
-.map-preview-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.map-preview {
-  flex: 1;
-  position: relative;
-  border: 2px dashed #d9d9d9;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fafafa;
-  cursor: crosshair;
-  overflow: hidden;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.no-image {
-  text-align: center;
-  color: #909399;
-}
-
-.no-image p {
-  margin: 10px 0 0 0;
-  font-size: 14px;
-}
-
-.marker {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #409EFF;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.geofence-marker {
-  background: #67C23A;
-}
-
-.polygon-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* 响应式布局优化 */
-@media (max-width: 1200px) {
-  .search-bar :deep(.el-form-item) {
-    margin-bottom: 10px;
-  }
-  
-  .action-bar {
-    gap: 8px;
-  }
-  
-  .action-bar :deep(.el-button) {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 768px) {
-  .control-panel {
-    padding: 0 10px;
-  }
-  
-  .main-content {
-    padding: 0 10px;
-  }
-  
-  .search-bar :deep(.el-form-item) {
-    display: block;
-    margin-bottom: 15px;
-  }
-  
-  .search-bar :deep(.el-input),
-  .search-bar :deep(.el-select) {
-    width: 100%;
-    min-width: auto;
-  }
-  
-  .action-bar {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .action-bar :deep(.el-button) {
-    width: 100%;
-    justify-content: center;
-  }
-}
+/* 样式已迁移到外部CSS文件 */
 </style>

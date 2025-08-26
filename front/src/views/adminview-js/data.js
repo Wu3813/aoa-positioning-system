@@ -18,6 +18,10 @@ export function createAdminData() {
     storageTask: {
       enabled: true,
       intervalMs: 5000
+    },
+    timeoutTask: {
+      enabled: true,
+      timeoutMs: 30000
     }
   })
 
@@ -36,6 +40,10 @@ export function createAdminData() {
       storageTask: {
         enabled: true,
         intervalMs: 5000
+      },
+      timeoutTask: {
+        enabled: true,
+        timeoutMs: 30000
       }
     })
   }

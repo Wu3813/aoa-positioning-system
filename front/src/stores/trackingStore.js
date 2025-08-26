@@ -18,8 +18,8 @@ export const useTrackingStore = defineStore('tracking', () => {
   // 创建坐标转换缓存
   const coordinateUtils = createCoordinateCache(mapStore)
   
-  // 创建围栏管理器
-  const geofenceManager = createGeofenceManager(mapStore, coordinateUtils)
+  // 创建围栏管理器 - 暂时不传入翻译函数，在组件中处理
+  const geofenceManager = createGeofenceManager(mapStore, coordinateUtils, null)
   
   // 创建传感器管理器
   const sensorManager = createSensorManager(mapStore, { COLORS }, geofenceManager)
@@ -33,6 +33,8 @@ export const useTrackingStore = defineStore('tracking', () => {
   // 初始化 store
   function init() {
     sensorManager.initSensorColors()
+    sensorManager.initTraceSettings()
+    sensorManager.loadSensorVisibility()
     
     // 开启内存监控，定期清理可能的内存泄漏
     startMemoryMonitor()
@@ -101,6 +103,7 @@ export const useTrackingStore = defineStore('tracking', () => {
     traceLimit: sensorManager.traceLimit,
     forceUpdateFlag: sensorManager.forceUpdateFlag,
     getSensorColor: sensorManager.getSensorColor,
+    changeSensorColor: sensorManager.changeSensorColor,
     clearAllTraces: sensorManager.clearAllTraces,
     toggleVisibility: sensorManager.toggleVisibility,
     toggleAllVisible: sensorManager.toggleAllVisible,
@@ -112,6 +115,10 @@ export const useTrackingStore = defineStore('tracking', () => {
     geofenceList: geofenceManager.geofenceList,
     isPointInPolygon: geofenceManager.isPointInPolygon,
     fetchGeofences: geofenceManager.fetchGeofences,
+    setGeofenceTranslation: (translationFunction) => {
+      geofenceManager.setTranslationFunction(translationFunction)
+      geofenceManager.updateExistingNotificationsLanguage()
+    },
     
     // 初始化和清理
     init,

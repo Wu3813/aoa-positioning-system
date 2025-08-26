@@ -134,6 +134,7 @@
       :title="dialogType === 'add' ? $t('maps.addMap') : $t('maps.editMap')"
       width="90%"
       @close="resetForm"
+      @open="handleDialogOpen"
       :fullscreen="false"
       :destroy-on-close="true"
       class="map-dialog"
@@ -187,7 +188,7 @@
                   </el-upload>
                 </el-form-item>
                 <el-form-item :label="$t('maps.imageSize')" v-if="imageInfo.width && imageInfo.height" label-width="120px">
-                  <div class="size-info">{{ imageInfo.width || 0 }} × {{ imageInfo.height || 0 }} 像素</div>
+                  <div class="size-info">{{ imageInfo.width || 0 }} × {{ imageInfo.height || 0 }} {{ $t('maps.pixels') }}</div>
                 </el-form-item>
               </div>
               
@@ -361,7 +362,8 @@
                     :src="previewImageUrl" 
                     ref="previewImage"
                     @load="handlePreviewImageLoad"
-                    alt="地图预览"
+                    @resize="calculateImageDimensions"
+                    :alt="$t('maps.mapPreview')"
                     class="preview-image"
                   />
                   <div v-else class="no-image">
@@ -373,6 +375,7 @@
                   <div 
                     v-if="mapForm.originX !== null && mapForm.originY !== null && previewImageUrl" 
                     class="origin-marker"
+                    :key="`origin-${imageSizeVersion}`"
                     :style="{ 
                       left: `${getDisplayPosition(mapForm.originX, mapForm.originY).x}px`, 
                       top: `${getDisplayPosition(mapForm.originX, mapForm.originY).y}px`,
@@ -385,7 +388,7 @@
                   <!-- 标记点 -->
                   <div 
                     v-for="(point, index) in scaleForm.points" 
-                    :key="index" 
+                    :key="`point-${index}-${imageSizeVersion}`" 
                     class="marker"
                     :style="{ 
                       left: `${getDisplayPosition(point.x, point.y).x}px`, 
@@ -398,7 +401,7 @@
                   </div>
                   
                   <!-- 连线 -->
-                  <svg v-if="scaleForm.points.length === 2" class="line-overlay">
+                  <svg v-if="scaleForm.points.length === 2" class="line-overlay" :key="`line-${imageSizeVersion}`">
                     <line 
                       :x1="getDisplayPosition(scaleForm.points[0].x, scaleForm.points[0].y).x" 
                       :y1="getDisplayPosition(scaleForm.points[0].x, scaleForm.points[0].y).y"
@@ -455,6 +458,7 @@ const {
   sortOrder,
   scaleForm,
   imageInfo,
+  imageSizeVersion,
   previewContainer,
   previewImage,
   previewLoading,
@@ -506,345 +510,6 @@ const {
 } = useMapView()
 </script>
 
-<style scoped>
-/* MapView 组件样式 - 使用scoped避免全局污染 */
-
-.map-view-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.control-panel {
-  padding: 0 20px;
-  margin: 15px 0;
-  display: flex;
-}
-
-.control-wrapper {
-  border-radius: 4px;
-  padding: 16px;
-  background-color: #fff;
-  flex: 1;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.main-content {
-  flex: 1;
-  padding: 0 20px;
-  overflow: hidden;
-  margin-bottom: 30px;
-}
-
-.map-table-wrapper {
-  background: #fff;
-  padding: 16px 16px 20px 16px;
-  border-radius: 4px;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-}
-
-.map-table {
-  width: 100%;
-  flex: 1;
-}
-
-.search-bar {
-  margin-top: 15px;
-}
-
-.action-bar {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.image-container {
-  width: 80px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.image-slot {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f7fa;
-  color: #909399;
-}
-
-:deep(.el-icon) {
-  font-size: 20px;
-}
-
-.operation-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-width: 160px;
-  width: 100%;
-}
-
-.operation-row {
-  display: flex;
-  width: 100%;
-}
-
-.operation-buttons :deep(.el-button) {
-  flex: 1;
-  font-size: 12px;
-  padding: 4px 8px;
-}
-
-/* 对话框样式 */
-.map-dialog {
-  max-height: 90vh;
-}
-
-.map-form {
-  max-height: calc(90vh - 120px);
-  overflow-y: auto;
-}
-
-.left-panel {
-  padding-right: 20px;
-}
-
-.form-section {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 1px solid #e4e7ed;
-}
-
-.form-section h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  border-bottom: 1px solid #e4e7ed;
-  padding-bottom: 10px;
-}
-
-.required-mark {
-  color: #f56c6c;
-  margin-left: 4px;
-}
-
-.required-mark-right {
-  color: #f56c6c;
-  margin-left: 4px;
-}
-
-/* 必填标记样式 - 使用深度选择器 */
-:deep(.el-form-item__label .required-mark),
-:deep(.el-form-item__label .required-mark-right) {
-  color: #f56c6c;
-  font-weight: normal;
-  margin-left: 4px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.action-buttons :deep(.el-button) {
-  min-width: 120px;
-  white-space: nowrap;
-}
-
-.coordinate-inputs {
-  margin-top: 15px;
-}
-
-.measure-point-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.coordinate-label {
-  font-weight: 500;
-  color: #606266;
-  min-width: 60px;
-}
-
-.point-label {
-  font-weight: 500;
-  color: #606266;
-  min-width: 60px;
-}
-
-.half-width {
-  flex: 1;
-}
-
-.no-bottom-margin {
-  margin-bottom: 0;
-}
-
-.scale-calculator {
-  margin-top: 15px;
-}
-
-.scale-input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.scale-label {
-  font-weight: 500;
-  color: #606266;
-  min-width: 80px;
-}
-
-.scale-result {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.scale-result p {
-  margin: 5px 0;
-  color: #0369a1;
-  font-size: 13px;
-}
-
-.point-inputs {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #e4e7ed;
-}
-
-.map-preview-section {
-  height: 100%;
-}
-
-.map-preview-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.map-preview {
-  flex: 1;
-  position: relative;
-  border: 2px dashed #d9d9d9;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fafafa;
-  cursor: crosshair;
-  overflow: hidden;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.no-image {
-  text-align: center;
-  color: #909399;
-}
-
-.no-image p {
-  margin: 10px 0 0 0;
-  font-size: 14px;
-}
-
-.origin-marker {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #f56c6c;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.marker {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.line-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.preview-instructions {
-  margin-top: 10px;
-  text-align: center;
-  color: #909399;
-  font-size: 13px;
-}
-
-.preview-instructions p {
-  margin: 5px 0;
-}
-
-.map-upload {
-  width: 100%;
-}
-
-.size-info {
-  color: #606266;
-  font-size: 13px;
-  padding: 8px 12px;
-  background: #f5f7fa;
-  border-radius: 4px;
-  border: 1px solid #e4e7ed;
-}
+<style>
+/* 使用外部CSS文件 */
 </style>

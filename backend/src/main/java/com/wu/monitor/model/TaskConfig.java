@@ -88,9 +88,34 @@ public class TaskConfig {
         }
     }
     
+    /**
+     * 超时管理配置
+     */
+    public static class TimeoutTask {
+        private boolean enabled = true;     // 是否启用超时管理，默认启用
+        private long timeoutMs = 30000;     // 超时时间（毫秒），默认30秒
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+        
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+        
+        public long getTimeoutMs() {
+            return timeoutMs;
+        }
+        
+        public void setTimeoutMs(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+        }
+    }
+    
     private StationTask stationTask = new StationTask();
     private TrajectoryTask trajectoryTask = new TrajectoryTask();
     private StorageTask storageTask = new StorageTask();
+    private TimeoutTask timeoutTask = new TimeoutTask();
     
     public Long getId() {
         return id;
@@ -122,5 +147,13 @@ public class TaskConfig {
     
     public void setStorageTask(StorageTask storageTask) {
         this.storageTask = storageTask;
+    }
+    
+    public TimeoutTask getTimeoutTask() {
+        return timeoutTask;
+    }
+    
+    public void setTimeoutTask(TimeoutTask timeoutTask) {
+        this.timeoutTask = timeoutTask;
     }
 } 

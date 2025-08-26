@@ -10,7 +10,9 @@ import com.wu.monitor.model.Alarm;
 import com.wu.monitor.model.Geofence;
 import com.wu.monitor.model.MapEntity;
 import com.wu.monitor.model.TrackingData;
+import com.wu.monitor.model.TaskConfig;
 import com.wu.monitor.service.AlarmService;
+import com.wu.monitor.service.TaskConfigService;
 import com.wu.monitor.util.TimestampUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,9 @@ public class AlarmServiceImpl implements AlarmService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     
+    @Autowired
+    private TaskConfigService taskConfigService;
+    
     // 围栏缓存，避免频繁查询数据库
     private Map<Long, List<Geofence>> geofenceCache = new HashMap<>();
     
@@ -71,8 +76,8 @@ public class AlarmServiceImpl implements AlarmService {
     // 缓存清理间隔（30秒）
     private static final long CACHE_CLEAN_INTERVAL = 30 * 1000;
     
-    // 标签超时时间（毫秒）
-    private static final long TAG_TIMEOUT = 15 * 1000; // 15秒
+    // 标签超时时间（毫秒）- 将从配置中获取
+    private long tagTimeout = 30000; // 默认30秒
     
     // 告警过期时间（毫秒）
     private static final long ALARM_EXPIRY_TIME = 5 * 60 * 1000; // 5分钟
@@ -295,12 +300,15 @@ public class AlarmServiceImpl implements AlarmService {
             long currentTime = System.currentTimeMillis();
             Set<String> inactiveTags = new HashSet<>();
             
-            // 找出超过15秒未活动的标签
+            // 从配置中获取超时时间
+            updateTimeoutFromConfig();
+            
+            // 找出超过配置时间未活动的标签
             for (Map.Entry<String, Long> entry : lastActivityTime.entrySet()) {
                 String tagId = entry.getKey();
                 long lastActive = entry.getValue();
                 
-                if (currentTime - lastActive > TAG_TIMEOUT) {
+                if (currentTime - lastActive > tagTimeout) {
                     inactiveTags.add(tagId);
                 }
             }
@@ -511,6 +519,27 @@ public class AlarmServiceImpl implements AlarmService {
             logger.info("已发送围栏告警通知: 标签={}, 围栏={}", alarm.getAlarmTag(), alarm.getGeofenceName());
         } catch (Exception e) {
             logger.error("发送告警通知失败: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 从配置中更新超时时间
+     */
+    private void updateTimeoutFromConfig() {
+        try {
+            TaskConfig config = taskConfigService.getTaskConfig();
+            if (config != null && config.getTimeoutTask() != null) {
+                if (config.getTimeoutTask().isEnabled()) {
+                    tagTimeout = config.getTimeoutTask().getTimeoutMs();
+                } else {
+                    // 如果禁用超时管理，设置一个很大的值
+                    tagTimeout = Long.MAX_VALUE;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("获取超时配置失败，使用默认值: {}", e.getMessage());
+            // 使用默认值
+            tagTimeout = 30000;
         }
     }
     

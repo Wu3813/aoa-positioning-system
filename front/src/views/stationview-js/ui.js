@@ -1,6 +1,8 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export function createStationUI(data, api) {
+  const { t } = useI18n()
   // 搜索处理
   const handleSearch = () => {
     api.fetchStations();
@@ -73,11 +75,11 @@ export function createStationUI(data, api) {
   // 删除单个基站
   const handleDelete = (row) => {
     ElMessageBox.confirm(
-      `确定要删除基站 "${row.name}" 吗？`,
-      '警告',
+      t('station.messages.confirmDelete', { name: row.name }),
+      t('common.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -128,16 +130,16 @@ export function createStationUI(data, api) {
   // 批量删除
   const handleBatchDelete = () => {
     if (data.multipleSelection.value.length === 0) {
-      ElMessage.warning('请至少选择一条记录');
+      ElMessage.warning(t('station.messages.selectAtLeastOne'));
       return;
     }
     
     ElMessageBox.confirm(
-      `确定要删除选中的 ${data.multipleSelection.value.length} 条记录吗？`,
-      '警告',
+      t('station.messages.confirmBatchDelete', { count: data.multipleSelection.value.length }),
+      t('common.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -165,11 +167,11 @@ export function createStationUI(data, api) {
   // 恢复出厂设置
   const handleFactoryReset = (row) => {
     ElMessageBox.confirm(
-      `确定要恢复基站 "${row.name}" 的出厂设置吗？此操作不可逆！`,
-      '警告',
+      t('station.messages.confirmFactoryReset', { name: row.name }),
+      t('common.warning'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -182,11 +184,11 @@ export function createStationUI(data, api) {
   // 重启基站
   const handleRestart = (row) => {
     ElMessageBox.confirm(
-      `确定要重启基站 "${row.name}" 吗？`,
-      '确认',
+      t('station.messages.confirmRestart', { name: row.name }),
+      t('common.confirm'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning',
       }
     ).then(async () => {
@@ -199,11 +201,11 @@ export function createStationUI(data, api) {
   // 定位基站
   const handleLocate = (row) => {
     ElMessageBox.confirm(
-      `确定要定位基站 "${row.name}" 吗？基站灯将闪烁100次。`,
-      '确认',
+      t('station.messages.confirmLocate', { name: row.name }),
+      t('common.confirm'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'info',
       }
     ).then(async () => {
@@ -215,7 +217,7 @@ export function createStationUI(data, api) {
 
   // 更新基站
   const handleUpdate = (row) => {
-    ElMessage.info(`更新基站功能暂未实现 - 基站: ${row.name}`);
+    ElMessage.info(t('station.messages.firmwareUpdateNotImplemented', { name: row.name }));
     // TODO: 实现更新基站功能
   }
 
@@ -262,7 +264,7 @@ export function createStationUI(data, api) {
     
     // 检查文件类型
     if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-      ElMessage.error('请上传JSON格式文件');
+      ElMessage.error(t('station.messages.uploadJSONFile'));
       event.target.value = null; // 清空选择
       return;
     }
@@ -275,7 +277,7 @@ export function createStationUI(data, api) {
         
         // 确保JSON格式正确
         if (!content.detected_base_station || !Array.isArray(content.detected_base_station)) {
-          ElMessage.error('JSON格式不正确，缺少detected_base_station数组');
+          ElMessage.error(t('station.messages.invalidJSONFormat'));
           return;
         }
         
@@ -287,7 +289,7 @@ export function createStationUI(data, api) {
         );
         
         if (validStations.length === 0) {
-          ElMessage.error('没有找到有效的基站配置信息');
+          ElMessage.error(t('station.messages.noValidStationConfig'));
           return;
         }
         
@@ -324,17 +326,20 @@ export function createStationUI(data, api) {
         });
         
         if (stationsToUpdate.length === 0) {
-          ElMessage.warning('没有匹配到任何基站，请检查MAC地址');
+          ElMessage.warning(t('station.messages.noMatchingStations'));
           return;
         }
         
         // 提示确认
         ElMessageBox.confirm(
-          `发现${stationsToUpdate.length}个基站需要更新坐标，${skippedStations.length}个基站未匹配。是否继续？`,
-          '批量导入坐标',
+          t('station.messages.confirmBatchUpdate', { 
+            updateCount: stationsToUpdate.length, 
+            skipCount: skippedStations.length 
+          }),
+          t('station.importCoordinates'),
           {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
+            confirmButtonText: t('common.confirm'),
+            cancelButtonText: t('common.cancel'),
             type: 'warning'
           }
         ).then(async () => {
@@ -346,7 +351,7 @@ export function createStationUI(data, api) {
         
       } catch (error) {
         console.error('处理JSON文件错误:', error);
-        ElMessage.error('解析JSON文件失败: ' + error.message);
+        ElMessage.error(t('station.messages.parseJSONFailed') + ': ' + error.message);
       } finally {
         event.target.value = null; // 清空文件选择
       }

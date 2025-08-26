@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 
 export function createSensorManager(mapStore, colorUtils, geofenceManager) {
@@ -9,13 +9,57 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   // 缓存映射，提高查找性能
   const sensorMap = ref(new Map()) // MAC -> sensor对象的映射
   
-  // 超时处理相关
-  const SENSOR_TIMEOUT = 10000 // 10秒没有新数据则认为传感器离线
+  // 超时处理相关 - 使用统一的超时配置
+  const DEFAULT_SENSOR_TIMEOUT = 30000 // 默认30秒，与后端保持一致
   const sensorTimeouts = ref({}) // 存储每个传感器的超时定时器
+  
+  // 获取超时配置的函数
+  const getSensorTimeout = () => {
+    try {
+      // 从localStorage获取超时配置
+      const taskConfig = JSON.parse(localStorage.getItem('taskConfig') || '{}')
+      if (taskConfig.timeoutTask && taskConfig.timeoutTask.enabled && taskConfig.timeoutTask.timeoutMs) {
+        return taskConfig.timeoutTask.timeoutMs
+      }
+    } catch (e) {
+      console.error('获取超时配置失败，使用默认值:', e)
+    }
+    return DEFAULT_SENSOR_TIMEOUT
+  }
   
   // 轨迹控制相关
   const limitTraceEnabled = ref(true) // 默认启用轨迹限制
-  const traceLimit = ref(50) // 默认轨迹点数减少到50
+  const traceLimit = ref(20) // 默认轨迹点数减少到20
+  
+  // 初始化轨迹控制设置
+  function initTraceSettings() {
+    try {
+      const storedSettings = JSON.parse(sessionStorage.getItem('traceSettings') || '{}')
+      limitTraceEnabled.value = storedSettings.limitTraceEnabled !== undefined ? storedSettings.limitTraceEnabled : true
+      traceLimit.value = storedSettings.traceLimit || 20
+    } catch (e) {
+      console.error('无法从sessionStorage加载轨迹设置:', e)
+      limitTraceEnabled.value = true
+      traceLimit.value = 20
+    }
+  }
+  
+  // 保存轨迹控制设置
+  function saveTraceSettings() {
+    try {
+      const settings = {
+        limitTraceEnabled: limitTraceEnabled.value,
+        traceLimit: traceLimit.value
+      }
+      sessionStorage.setItem('traceSettings', JSON.stringify(settings))
+    } catch (e) {
+      console.error('无法保存轨迹设置到sessionStorage:', e)
+    }
+  }
+  
+  // 监听轨迹设置变化并保存
+  watch(limitTraceEnabled, saveTraceSettings)
+  watch(traceLimit, saveTraceSettings)
   
   // 传感器颜色映射
   const sensorColors = ref({})
@@ -73,14 +117,54 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     return colorUtils.COLORS[colorIndex]
   }
   
-  // 初始化从localStorage加载传感器颜色映射
+  // 初始化从sessionStorage加载传感器颜色映射
   function initSensorColors() {
     try {
-      const storedColors = JSON.parse(localStorage.getItem('sensorColors') || '{}')
+      const storedColors = JSON.parse(sessionStorage.getItem('sensorColors') || '{}')
       sensorColors.value = storedColors
     } catch (e) {
-      console.error('无法从localStorage加载传感器颜色:', e)
+      console.error('无法从sessionStorage加载传感器颜色:', e)
       sensorColors.value = {}
+    }
+  }
+
+  // 手动更改传感器颜色
+  function changeSensorColor(mac, newColor) {
+    // 验证参数
+    if (!mac) {
+      console.warn('changeSensorColor: 缺少MAC地址参数', { mac, newColor })
+      return
+    }
+    
+    const macLower = mac.toLowerCase()
+    
+    // 如果颜色为空或null，设置为白色
+    if (!newColor || newColor === null || newColor === undefined) {
+      newColor = '#FFFFFF'
+    }
+    
+    // 验证颜色格式
+    if (!/^#[0-9A-Fa-f]{6}$/.test(newColor)) {
+      console.warn('changeSensorColor: 无效的颜色格式', newColor)
+      return
+    }
+    
+    // 更新内存中的颜色
+    sensorColors.value[macLower] = newColor
+    
+    // 更新sessionStorage
+    try {
+      const storedColors = JSON.parse(sessionStorage.getItem('sensorColors') || '{}')
+      storedColors[macLower] = newColor
+      sessionStorage.setItem('sensorColors', JSON.stringify(storedColors))
+    } catch (e) {
+      console.error('无法存储传感器颜色到sessionStorage:', e)
+    }
+    
+    // 更新传感器列表中的颜色
+    const sensor = sensorMap.value.get(macLower)
+    if (sensor) {
+      sensor.color = newColor
     }
   }
   
@@ -159,6 +243,9 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     } else {
       visibleSensors.value.delete(macLower)
     }
+    
+    // 保存传感器可见性状态
+    saveSensorVisibility()
   }
   
   // 切换所有传感器显示状态
@@ -173,6 +260,9 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
         visibleSensors.value.delete(macLower)
       }
     })
+    
+    // 保存传感器可见性状态
+    saveSensorVisibility()
   }
   
   // 直接处理轨迹数据的函数，优化版
@@ -209,7 +299,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
         }
       }
       delete sensorTimeouts.value[macLower]
-    }, SENSOR_TIMEOUT)
+    }, getSensorTimeout())
     
     // 如果是新传感器，创建并添加
     if (!sensor) {
@@ -218,10 +308,20 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
         ([key, _]) => key.toLowerCase() === macLower
       )?.[1]
       
+      // 检查保存的可见性状态
+      let savedVisibility = true
+      try {
+        const storedVisibility = JSON.parse(sessionStorage.getItem('sensorVisibility') || '{}')
+        savedVisibility = storedVisibility[macLower] !== undefined ? storedVisibility[macLower] : true
+      } catch (e) {
+        console.error('无法从sessionStorage读取传感器可见性状态:', e)
+        savedVisibility = true
+      }
+      
       sensor = {
         mac: macLower, // 存储小写MAC地址
         name: tagInfo?.name || data.mac, // 名称保留原始显示
-        visible: true,
+        visible: savedVisibility,
         showTrace: true,
         color: getSensorColor(macLower),
         points: [],
@@ -230,7 +330,9 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       }
       sensorList.value.push(sensor)
       sensorMap.value.set(macLower, sensor)
-      visibleSensors.value.add(macLower)
+      if (savedVisibility) {
+        visibleSensors.value.add(macLower)
+      }
     } else {
       // 更新标签的mapId
       sensor.mapId = data.map_id
@@ -400,6 +502,41 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     forceUpdateFlag.value += 1;
   }
   
+  // 保存传感器可见性状态
+  function saveSensorVisibility() {
+    try {
+      const visibilityState = {}
+      sensorList.value.forEach(sensor => {
+        visibilityState[sensor.mac] = sensor.visible
+      })
+      sessionStorage.setItem('sensorVisibility', JSON.stringify(visibilityState))
+    } catch (e) {
+      console.error('无法保存传感器可见性状态到sessionStorage:', e)
+    }
+  }
+  
+  // 加载传感器可见性状态
+  function loadSensorVisibility() {
+    try {
+      const storedVisibility = JSON.parse(sessionStorage.getItem('sensorVisibility') || '{}')
+      
+      // 应用保存的可见性状态
+      sensorList.value.forEach(sensor => {
+        const macLower = sensor.mac.toLowerCase()
+        if (storedVisibility[macLower] !== undefined) {
+          sensor.visible = storedVisibility[macLower]
+          if (sensor.visible) {
+            visibleSensors.value.add(macLower)
+          } else {
+            visibleSensors.value.delete(macLower)
+          }
+        }
+      })
+    } catch (e) {
+      console.error('无法从sessionStorage加载传感器可见性状态:', e)
+    }
+  }
+  
   return {
     // 状态
     sensorList,
@@ -415,6 +552,8 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     // 方法
     getSensorColor,
     initSensorColors,
+    initTraceSettings,
+    loadSensorVisibility,
     clearAllTraces,
     toggleVisibility,
     toggleAllVisible,
@@ -428,6 +567,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     optimizeMemory,
     cleanup,
     hasDataUpdates,
-    notifyUpdate
+    notifyUpdate,
+    changeSensorColor
   }
 } 

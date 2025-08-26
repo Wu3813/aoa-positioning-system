@@ -1,11 +1,14 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { fetchAlarms, fetchMaps, fetchTags } from './api.js'
 
 /**
  * 报警页面数据管理
  */
 export const useAlarmData = () => {
+  const { t } = useI18n()
+  
   // 响应式数据
   const loading = ref(false)
   const alarmList = ref([])
@@ -28,7 +31,7 @@ export const useAlarmData = () => {
   // 日期快捷选项
   const dateShortcuts = [
     {
-      text: '最近一天',
+      text: t('alarms.lastDay'),
       value: () => {
         const end = new Date()
         const start = new Date()
@@ -37,7 +40,7 @@ export const useAlarmData = () => {
       }
     },
     {
-      text: '最近一周',
+      text: t('alarms.lastWeek'),
       value: () => {
         const end = new Date()
         const start = new Date()
@@ -46,7 +49,7 @@ export const useAlarmData = () => {
       }
     },
     {
-      text: '最近一个月',
+      text: t('alarms.lastMonth'),
       value: () => {
         const end = new Date()
         const start = new Date()
@@ -118,7 +121,7 @@ export const useAlarmData = () => {
       console.log('报警列表获取成功:', alarmList.value)
     } catch (error) {
       console.error('获取报警列表错误:', error)
-      ElMessage.error('获取报警列表失败: ' + (error.response?.data?.message || error.message))
+      ElMessage.error(t('alarms.fetchAlarmsFailed') + ': ' + (error.response?.data?.message || error.message))
       alarmList.value = []
     } finally {
       loading.value = false
@@ -145,7 +148,7 @@ export const useAlarmData = () => {
       console.log('地图列表获取成功:', mapList.value)
     } catch (error) {
       console.error('获取地图列表错误:', error)
-      ElMessage.error('获取地图列表失败')
+      ElMessage.error(t('alarms.fetchMapsFailed'))
       mapList.value = []
     }
   }
@@ -170,7 +173,7 @@ export const useAlarmData = () => {
       console.log('标签列表获取成功:', tagList.value)
     } catch (error) {
       console.error('获取标签列表错误:', error)
-      ElMessage.error('获取标签列表失败')
+      ElMessage.error(t('alarms.fetchTagsFailed'))
       tagList.value = []
     }
   }
@@ -223,7 +226,7 @@ export const useAlarmData = () => {
    */
   const formatDateTime = (dateTime) => {
     if (!dateTime) return '-'
-    return new Date(dateTime).toLocaleString('zh-CN')
+    return new Date(dateTime).toLocaleString()
   }
 
   /**

@@ -1,6 +1,6 @@
 import { ref, reactive, computed } from 'vue'
 
-export function createGeofenceData() {
+export function createGeofenceData(t) {
   // 响应式数据
   const loading = ref(false)
   const geofenceList = ref([])
@@ -43,10 +43,10 @@ export function createGeofenceData() {
   // 表单验证规则
   const formRules = {
     name: [
-      { required: true, message: '请输入围栏名称', trigger: 'blur' }
+      { required: true, message: t('geofence.formValidation.nameRequired'), trigger: 'blur' }
     ],
     mapId: [
-      { required: true, message: '请选择所属地图', trigger: 'change' }
+      { required: true, message: t('geofence.formValidation.mapRequired'), trigger: 'change' }
     ]
   }
 
@@ -90,7 +90,9 @@ export function createGeofenceData() {
   // 工具方法
   const formatDateTime = (dateTime) => {
     if (!dateTime) return '-'
-    return new Date(dateTime).toLocaleString('zh-CN')
+    // 根据当前语言设置格式化日期
+    const locale = t('common.locale') || 'zh-CN'
+    return new Date(dateTime).toLocaleString(locale)
   }
 
   // 重置表单

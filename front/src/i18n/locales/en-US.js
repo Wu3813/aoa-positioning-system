@@ -3,11 +3,15 @@ export default {
   common: {
     confirm: 'Confirm',
     cancel: 'Cancel',
+    delete: 'Delete',
     logout: 'Logout',
     admin: 'Admin',
     user: 'User',
     welcome: 'Welcome',
-    to: 'to'
+    to: 'to',
+    warning: 'Warning',
+    locale: 'en-US',
+    meter: 'm'
   },
   
   // System title
@@ -244,7 +248,49 @@ export default {
     clickImageSetMeasurePoints: 'Click on image to set measure points ({count}/2), then click "Complete" button',
     selectOriginOrMeasure: 'Select "Click to Set Origin" or "Click to Set Measure Points" to start',
     clearMarkers: 'Clear Markers',
-    confirm: 'Confirm'
+    confirm: 'Confirm',
+    // 新增的提示信息翻译
+    fetchMapListFailed: 'Failed to fetch map list',
+    deleteSuccess: 'Delete successful',
+    deleteFailed: 'Delete failed',
+    selectMapToDelete: 'Please select maps to delete',
+    deleteMapConfirm: 'Are you sure to delete map "{name}"?',
+    batchDeleteConfirm: 'Are you sure to delete the selected {count} maps?',
+    batchDeleteFailed: 'Batch delete failed',
+    selectMapFile: 'Please select map file to upload',
+    setScaleFirst: 'Please set map scale first! Click "Click to Set Measure Points" to complete scale setting',
+    addSuccess: 'Add successful',
+    editSuccess: 'Edit successful',
+    editFailedMapIdLost: 'Edit failed, map mapId lost',
+    addFailed: 'Add failed',
+    editFailed: 'Edit failed',
+    setCurrentMapSuccess: '"{name}" has been set as current map',
+    setCurrentMapFailed: 'Failed to set current map',
+    uploadFormatError: 'Map image can only be JPG/PNG format!',
+    uploadSizeError: 'Map image size cannot exceed 10MB!',
+    reuploadMapWarning: 'After changing map, please reset origin coordinates and scale!',
+    selectOneFileOnly: 'Only one map file can be selected, please remove current file first',
+    completeCurrentOperation: 'Please complete current operation first',
+    completeMeasureFirst: 'Please complete or cancel measure point setting first',
+    originUpdated: 'Origin updated to ({x}, {y}), click "Complete" button to confirm',
+    firstMeasurePointSet: 'First measure point set ({x}, {y}), please continue to set second point',
+    secondMeasurePointSet: 'Second measure point set ({x}, {y}), click "Complete" button to confirm scale setting',
+    completeMeasureFirst: 'Please complete or cancel current measure point setting first',
+    uploadMapFirst: 'Please upload map file first',
+    clickSetOriginHint: 'Click on image to set origin position, then click "Complete" button',
+    originSettingComplete: 'Origin setting complete: ({x}, {y})',
+    completeOriginFirst: 'Please complete or cancel origin setting first',
+    clickSetMeasurePointsHint: 'Click on image to set measure points, need to set two points',
+    setTwoMeasurePoints: 'Please set two measure points first',
+    scaleSettingComplete: 'Scale setting complete: 1 m = {scale} px',
+    measureCancelled: 'Measure point setting cancelled',
+    completeOriginFirst: 'Please complete or cancel origin setting first',
+    clickSetMeasurePointsHint: 'Click on image to set measure points, need to set two points',
+    notCalculated: 'Not calculated',
+    enterMapId: 'Please enter map ID',
+    mapIdFormatError: 'Map ID can only contain letters, numbers, underscores and hyphens',
+    enterMapName: 'Please enter map name',
+    pixels: 'pixels'
   },
 
   // Geofence management page
@@ -294,9 +340,44 @@ export default {
     tip: 'Tip: Click on map to set geofence points, at least 3 points required',
     warning: 'Note: Please complete point settings before saving',
     mapPreview: 'Map Preview',
-    selectMapFirst: 'Please select map',
+    selectMapFirst: 'Please select map first',
     noImage: 'Please select map',
-    points: ' points'
+    points: ' points',
+    // New prompt messages
+    clickSetPointsHint: 'Click on map to set geofence points, at least 3 points required',
+    needThreePoints: 'At least 3 points are required to form a geofence',
+    pointSettingComplete: 'Geofence point setting completed, {count} points total',
+    allPointsCleared: 'All geofence points cleared',
+    pointDeleted: 'Point {index} deleted',
+    pointAdded: 'Point {index} added ({x}, {y})',
+    completeSettingFirst: 'Please click "Complete" button to finish point setting first',
+    needThreePointsForSave: 'Please set at least 3 geofence points',
+    addSuccess: 'Added successfully',
+    updateSuccess: 'Updated successfully',
+    addFailed: 'Add failed',
+    updateFailed: 'Update failed',
+    confirmToggle: 'Are you sure to {action} geofence "{name}"?',
+    toggleSuccess: '{action} successful',
+    toggleFailed: '{action} failed',
+    confirmDelete: 'Are you sure to delete geofence "{name}"? This action cannot be undone!',
+    deleteSuccess: 'Deleted successfully',
+    deleteFailed: 'Delete failed',
+    confirmBatchEnable: 'Are you sure to enable {count} selected geofences?',
+    confirmBatchDisable: 'Are you sure to disable {count} selected geofences?',
+    confirmBatchDelete: 'Are you sure to delete {count} selected geofences? This action cannot be undone!',
+    batchEnableSuccess: 'Batch enable successful',
+    batchDisableSuccess: 'Batch disable successful',
+    batchDeleteSuccess: 'Batch delete successful',
+    batchEnableFailed: 'Batch enable failed',
+    batchDisableFailed: 'Batch disable failed',
+    batchDeleteFailed: 'Batch delete failed',
+    fetchListFailed: 'Failed to get geofence list',
+    fetchMapsFailed: 'Failed to get map list',
+    unknownMap: 'Unknown map',
+    formValidation: {
+      nameRequired: 'Please enter geofence name',
+      mapRequired: 'Please select map'
+    }
   },
 
   // Station management page
@@ -397,7 +478,95 @@ export default {
     ipPlaceholder: 'IP Address',
     port: 'Port:',
     portPlaceholder: 'Port',
-    portRange: 'Port range: 1-65535 (cannot be 8833)'
+    portRange: 'Port range: 1-65535 (cannot be 8833)',
+    
+    // Messages
+    messages: {
+      // Confirmation dialogs
+      confirmDelete: 'Are you sure you want to delete station "{name}"?',
+      confirmBatchDelete: 'Are you sure you want to delete the selected {count} records?',
+      confirmFactoryReset: 'Are you sure you want to factory reset station "{name}"? This operation is irreversible!',
+      confirmRestart: 'Are you sure you want to restart station "{name}"?',
+      confirmLocate: 'Are you sure you want to locate station "{name}"? The station light will flash 100 times.',
+      confirmBatchUpdate: 'Found {updateCount} stations need coordinate updates, {skipCount} stations not matched. Continue?',
+      
+      // Success messages
+      addSuccess: 'Added successfully',
+      updateSuccess: 'Updated successfully',
+      deleteSuccess: 'Deleted successfully',
+      batchDeleteSuccess: 'Batch deleted successfully',
+      refreshSuccess: 'Station information refreshed successfully',
+      statusUpdated: 'Status updated',
+      checkAllSuccess: 'Check completed',
+      batchRefreshSuccess: 'Batch refresh successful',
+      testConnectionSuccess: 'UDP connection test successful, automatically getting station information',
+      enableBroadcastSuccess: 'Tag broadcast data reporting enabled successfully',
+      enableScanningSuccess: 'Scanning enabled successfully',
+      factoryResetSuccess: 'Factory reset successful',
+      restartSuccess: 'Station restart successful',
+      locateSuccess: 'Station location successful',
+      applyConfigSuccess: 'Station {configName} applied successfully',
+      configRSSISuccess: 'RSSI configuration successful',
+      configTargetSuccess: 'Target IP port configuration successful',
+      batchUpdateSuccess: 'Successfully updated coordinates for {count} stations',
+      
+      // Error messages
+      fetchStationsFailed: 'Failed to get station list',
+      fetchMapsFailed: 'Failed to get map list',
+      refreshFailed: 'Refresh failed',
+      checkAllFailed: 'Check failed',
+      batchRefreshFailed: 'Batch refresh failed',
+      batchDeleteFailed: 'Batch delete failed',
+      testConnectionFailed: 'UDP connection test failed, please check IP address or network connection',
+      addFailed: 'Add failed',
+      updateFailed: 'Update failed',
+      deleteFailed: 'Delete failed',
+      enableBroadcastFailed: 'Failed to enable tag broadcast data reporting',
+      enableScanningFailed: 'Failed to enable scanning',
+      factoryResetFailed: 'Factory reset failed',
+      restartFailed: 'Station restart failed',
+      locateFailed: 'Station location failed',
+      applyConfigFailed: 'Station {configName} application failed',
+      configRSSIFailed: 'Station RSSI configuration failed',
+      configTargetFailed: 'Station target IP port configuration failed',
+      batchUpdateFailed: 'Some station updates failed',
+      
+      // Warning messages
+      selectAtLeastOne: 'Please select at least one record',
+      selectAtLeastOneStation: 'Please select at least one station',
+      inputIPFirst: 'Please enter IP address first',
+      selectScanConfig: 'Please select a scan configuration',
+      inputValidRSSI: 'Please enter a valid RSSI value (integer from -100 to -40 dBm)',
+      inputValidTarget: 'Please enter a valid target IP address and port',
+      uploadJSONFile: 'Please upload a JSON format file',
+      invalidJSONFormat: 'Invalid JSON format, missing detected_base_station array',
+      noValidStationConfig: 'No valid station configuration found',
+      noMatchingStations: 'No matching stations found, please check MAC addresses',
+      parseJSONFailed: 'Failed to parse JSON file',
+      firmwareUpdateNotImplemented: 'Firmware update function not implemented - Station: {name}',
+      
+      // Network errors
+      networkError: 'Network error',
+      unknownError: 'Unknown error'
+    },
+    
+    // Form validation
+    formValidation: {
+      codeRequired: 'Please enter station code',
+      codePattern: 'Station code can only contain letters, numbers, underscores and hyphens',
+      nameRequired: 'Please enter station name',
+      ipRequired: 'Please enter IP address',
+      ipPattern: 'IP address format is incorrect',
+      mapRequired: 'Please select a map',
+      rssiTooSmall: 'RSSI value cannot be less than -100dBm',
+      rssiTooLarge: 'RSSI value cannot be greater than -40dBm',
+      rssiNotInteger: 'RSSI value must be an integer',
+      targetIpInvalid: 'Target IP address format is incorrect',
+      portTooSmall: 'Port cannot be less than 1',
+      portTooLarge: 'Port cannot be greater than 65535',
+      portReserved: 'Port cannot be 8833',
+      portNotInteger: 'Port must be an integer'
+    }
   },
 
   // Alarm records page
@@ -416,7 +585,24 @@ export default {
     geofenceName: 'Geofence Name',
     mapName: 'Map Name',
     alarmTag: 'Alarm Tag',
-    alarmCoordinates: 'Alarm Coordinates'
+    alarmCoordinates: 'Alarm Coordinates',
+    fetchAlarmsFailed: 'Failed to fetch alarm list',
+    fetchMapsFailed: 'Failed to fetch map list',
+    fetchTagsFailed: 'Failed to fetch tag list',
+    lastDay: 'Last Day',
+    lastWeek: 'Last Week',
+    lastMonth: 'Last Month'
+  },
+
+  // Geofence alarm notification
+  geofenceAlarm: {
+    title: 'Geofence Alarm',
+    message: 'Tag {tagId} is outside geofence {geofenceName}',
+    handleNotificationFailed: 'Failed to handle alarm notification',
+    registerListenerSuccess: 'Geofence alarm notification listener registered',
+    loadGeofencesSuccess: 'Loaded {count} geofences for map {mapId}',
+    fetchListFailed: 'Failed to get geofence list',
+    fetchListError: 'Error getting geofence list'
   },
 
   // Tag management page
@@ -459,7 +645,29 @@ export default {
     firmwareVersionPlaceholder: 'Please enter firmware version',
     remarkPlaceholder: 'Please enter remark information',
     cancel: 'Cancel',
-    confirm: 'Confirm'
+    confirm: 'Confirm',
+    // New translation keys
+    selectAtLeastOne: 'Please select at least one record',
+    batchDeleteConfirm: 'Are you sure to delete the selected {count} records?',
+    deleteConfirm: 'Are you sure to delete tag "{name}"?',
+    unknownMap: 'Unknown Map',
+    nameRequired: 'Please enter tag name',
+    macAddressRequired: 'Please enter MAC address',
+    macAddressFormatError: 'MAC address format is incorrect. Please enter 12 hexadecimal characters (e.g., 84fd27eee603) without colons or hyphens',
+    modelRequired: 'Please enter tag model',
+    firmwareVersionRequired: 'Please enter firmware version',
+    fetchTagsFailed: 'Failed to fetch tag list',
+    fetchMapsFailed: 'Failed to fetch map list',
+    addSuccess: 'Added successfully',
+    addFailed: 'Add failed',
+    updateSuccess: 'Updated successfully',
+    updateFailed: 'Update failed',
+    deleteSuccess: 'Deleted successfully',
+    deleteFailed: 'Delete failed',
+    batchDeleteSuccess: 'Batch delete successful',
+    batchDeleteFailed: 'Batch delete failed',
+    statusUpdateSuccess: 'Status updated successfully',
+    statusUpdateFailed: 'Status update failed'
   },
 
   // User management page
@@ -521,6 +729,9 @@ export default {
     trajectorySendTask: 'Send Demo Trajectory',
     sendInterval: 'Interval:',
     pauseTime: 'Pause Time:',
+    timeoutManagement: 'Timeout Management',
+    timeoutInterval: 'Timeout:',
+    timeoutTaskWarning: 'Note: This feature manages tag timeout. After timeout, the system will automatically close alarms for that tag',
     enabled: 'Enabled',
     disabled: 'Disabled',
     saveConfig: 'Save Configuration',
@@ -530,6 +741,7 @@ export default {
     trajectorySendIntervalWarning: 'Trajectory send interval cannot be less than 100 milliseconds',
     trajectoryPauseWarning: 'Trajectory pause time cannot be less than 5000 milliseconds',
     storageIntervalWarning: 'Trajectory storage interval cannot be less than 1000 milliseconds',
+    timeoutIntervalWarning: 'Timeout cannot be less than 1000 milliseconds',
     loadConfigFailed: 'Failed to load task configuration',
     saveConfigSuccess: 'Task configuration saved successfully',
     saveConfigFailed: 'Failed to save task configuration'

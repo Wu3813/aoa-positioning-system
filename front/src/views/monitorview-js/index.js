@@ -145,6 +145,20 @@ export function useMonitorView() {
     handleMapChange: api.handleMapChange,
     toggleVisibility: uiHandler.toggleVisibility,
     toggleAllVisible: uiHandler.toggleAllVisible,
+    changeSensorColor: data.trackingStore.changeSensorColor,
+    handleColorChange: (mac, color) => {
+      console.log('颜色更改事件触发:', { mac, color })
+      if (mac) {
+        try {
+          data.trackingStore.changeSensorColor(mac, color)
+          console.log('颜色更改成功:', { mac, color })
+        } catch (error) {
+          console.error('颜色更改失败:', error)
+        }
+      } else {
+        console.warn('颜色更改参数无效:', { mac, color })
+      }
+    },
     handleImageLoad: uiHandler.handleImageLoad,
     updateScaleFactor: uiHandler.updateScaleFactor,
     renderCanvas: renderHandler.renderCanvas,

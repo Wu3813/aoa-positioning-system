@@ -1,21 +1,24 @@
 import { onMounted, onBeforeUnmount, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createGeofenceData } from './data'
 import { createGeofenceAPI } from './api'
 import { createGeofenceUI } from './ui'
 import { createGeofenceMap } from './map'
 
 export function useGeofenceView() {
+  const { t } = useI18n()
+  
   // 创建数据管理
-  const data = createGeofenceData()
+  const data = createGeofenceData(t)
   
   // 创建API操作
-  const api = createGeofenceAPI(data)
+  const api = createGeofenceAPI(data, t)
   
   // 创建UI交互
-  const ui = createGeofenceUI(data, api)
+  const ui = createGeofenceUI(data, api, t)
   
   // 创建地图处理
-  const map = createGeofenceMap(data, api)
+  const map = createGeofenceMap(data, api, t)
 
   // 监听地图选择变化
   watch(() => data.geofenceForm.mapId, (newMapId) => {

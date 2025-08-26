@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export function createStationAPI(data) {
+  const { t } = useI18n()
   // 获取基站列表
   const fetchStations = async () => {
     data.loading.value = true;
@@ -34,7 +36,7 @@ export function createStationAPI(data) {
       }
     } catch (error) {
       console.error('获取基站列表错误:', error);
-      ElMessage.error('获取基站列表失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('station.messages.fetchStationsFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.unknownError')));
       data.stationList.value = []; // 出错时设置为空数组
     } finally {
       data.loading.value = false;
@@ -54,7 +56,7 @@ export function createStationAPI(data) {
       }
     } catch (error) {
       console.error('获取地图列表错误:', error);
-      ElMessage.error('获取地图列表失败');
+      ElMessage.error(t('station.messages.fetchMapsFailed'));
       data.mapList.value = [];
     }
   }
@@ -73,16 +75,16 @@ export function createStationAPI(data) {
         
         // 根据基站状态显示不同的消息
         if (response.data.data.status === 1) {
-          ElMessage.success('基站信息刷新成功');
+          ElMessage.success(t('station.messages.refreshSuccess'));
         } else {
-          ElMessage.warning('状态已更新');
+          ElMessage.warning(t('station.messages.statusUpdated'));
         }
       } else {
-        ElMessage.warning(response.data.message || '刷新失败');
+        ElMessage.warning(response.data.message || t('station.messages.refreshFailed'));
       }
     } catch (error) {
       console.error('刷新基站状态错误:', error);
-      ElMessage.error('刷新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.refreshFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       const index = data.refreshingStations.value.indexOf(row.id);
       if (index > -1) {
@@ -103,11 +105,11 @@ export function createStationAPI(data) {
           await fetchStations();
         }, 500); // 延迟500ms确保数据库更新完成
       } else {
-        ElMessage.warning(response.data.message || '检查失败');
+        ElMessage.warning(response.data.message || t('station.messages.checkAllFailed'));
       }
     } catch (error) {
       console.error('检查所有基站状态错误:', error);
-      ElMessage.error('检查失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.checkAllFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.checkAllLoading.value = false;
     }
@@ -116,7 +118,7 @@ export function createStationAPI(data) {
   // 批量刷新选中的基站
   const batchRefresh = async () => {
     if (data.multipleSelection.value.length === 0) {
-      ElMessage.warning('请至少选择一个基站');
+      ElMessage.warning(t('station.messages.selectAtLeastOneStation'));
       return;
     }
     
@@ -130,11 +132,11 @@ export function createStationAPI(data) {
         // 重新加载基站列表以显示最新状态
         await fetchStations();
       } else {
-        ElMessage.warning(response.data.message || '批量刷新失败');
+        ElMessage.warning(response.data.message || t('station.messages.batchRefreshFailed'));
       }
     } catch (error) {
       console.error('批量刷新基站错误:', error);
-      ElMessage.error('批量刷新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.batchRefreshFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.batchRefreshLoading.value = false;
     }
@@ -143,25 +145,25 @@ export function createStationAPI(data) {
   // 批量删除
   const batchDelete = async () => {
     if (data.multipleSelection.value.length === 0) {
-      ElMessage.warning('请至少选择一条记录');
+      ElMessage.warning(t('station.messages.selectAtLeastOne'));
       return;
     }
     
     try {
       const ids = data.multipleSelection.value.map(item => item.id);
       await axios.delete('/api/stations/batch', { data: ids });
-      ElMessage.success('批量删除成功');
+      ElMessage.success(t('station.messages.batchDeleteSuccess'));
       fetchStations(); // 重新加载基站列表
     } catch (error) {
       console.error('批量删除基站错误:', error);
-      ElMessage.error('批量删除失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('station.messages.batchDeleteFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.unknownError')));
     }
   }
 
   // 测试连接
   const testConnection = async () => {
     if (!data.stationForm.ipAddress || !data.stationForm.ipAddress.trim()) {
-      ElMessage.warning('请先输入IP地址');
+      ElMessage.warning(t('station.messages.inputIPFirst'));
       return;
     }
     
@@ -172,7 +174,7 @@ export function createStationAPI(data) {
       });
       
       if (response.data.success) {
-        ElMessage.success('UDP连接测试成功，自动获取基站信息');
+        ElMessage.success(t('station.messages.testConnectionSuccess'));
         data.udpConnected.value = true; // 设置UDP连接成功状态
         
         // 自动填充获取到的信息
@@ -191,12 +193,12 @@ export function createStationAPI(data) {
           }
         }
       } else {
-        ElMessage.warning(response.data.message || 'UDP连接测试失败，请检查IP地址或网络连接');
+        ElMessage.warning(response.data.message || t('station.messages.testConnectionFailed'));
         data.udpConnected.value = false; // 连接失败时重置状态
       }
     } catch (error) {
       console.error('测试连接错误:', error);
-      ElMessage.error('UDP连接测试失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.testConnectionFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
       data.udpConnected.value = false; // 连接失败时重置状态
     } finally {
       data.testingConnection.value = false;
@@ -248,11 +250,11 @@ export function createStationAPI(data) {
       if (data.dialogType.value === 'add') {
         // 添加基站
         await axios.post('/api/stations', submitData);
-        ElMessage.success('添加成功');
+        ElMessage.success(t('station.messages.addSuccess'));
       } else {
         // 更新基站
         await axios.put(`/api/stations/${submitData.id}`, submitData);
-        ElMessage.success('更新成功');
+        ElMessage.success(t('station.messages.updateSuccess'));
       }
       data.dialogVisible.value = false;
       fetchStations(); // 重新加载基站列表
@@ -260,8 +262,8 @@ export function createStationAPI(data) {
     } catch (error) {
       console.error('保存基站错误:', error);
       ElMessage.error(
-        (data.dialogType.value === 'add' ? '添加失败: ' : '更新失败: ') + 
-        (error.response?.data?.message || error.message || '未知错误')
+        (data.dialogType.value === 'add' ? t('station.messages.addFailed') + ': ' : t('station.messages.updateFailed') + ': ') + 
+        (error.response?.data?.message || error.message || t('station.messages.unknownError'))
       );
       return false;
     }
@@ -271,18 +273,18 @@ export function createStationAPI(data) {
   const deleteStation = async (row) => {
     try {
       await axios.delete(`/api/stations/${row.id}`);
-      ElMessage.success('删除成功');
+      ElMessage.success(t('station.messages.deleteSuccess'));
       fetchStations(); // 重新加载基站列表
     } catch (error) {
       console.error('删除基站错误:', error);
-      ElMessage.error('删除失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('station.messages.deleteFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.unknownError')));
     }
   }
 
   // 开启标签广播数据上报
   const enableBroadcast = async () => {
     if (!data.stationForm.ipAddress || !data.stationForm.ipAddress.trim()) {
-      ElMessage.warning('请先输入IP地址');
+      ElMessage.warning(t('station.messages.inputIPFirst'));
       return;
     }
     
@@ -293,13 +295,13 @@ export function createStationAPI(data) {
       });
       
       if (response.data.success) {
-        ElMessage.success('标签广播数据上报开启成功');
+        ElMessage.success(t('station.messages.enableBroadcastSuccess'));
       } else {
-        ElMessage.warning(response.data.message || '开启标签广播数据上报失败');
+        ElMessage.warning(response.data.message || t('station.messages.enableBroadcastFailed'));
       }
     } catch (error) {
       console.error('开启标签广播数据上报错误:', error);
-      ElMessage.error('开启标签广播数据上报失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.enableBroadcastFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.enablingBroadcast.value = false;
     }
@@ -308,7 +310,7 @@ export function createStationAPI(data) {
   // 开启扫描
   const enableScanning = async () => {
     if (!data.stationForm.ipAddress || !data.stationForm.ipAddress.trim()) {
-      ElMessage.warning('请先输入IP地址');
+      ElMessage.warning(t('station.messages.inputIPFirst'));
       return;
     }
     
@@ -319,13 +321,13 @@ export function createStationAPI(data) {
       });
       
       if (response.data.success) {
-        ElMessage.success('扫描开启成功');
+        ElMessage.success(t('station.messages.enableScanningSuccess'));
       } else {
-        ElMessage.warning(response.data.message || '开启扫描失败');
+        ElMessage.warning(response.data.message || t('station.messages.enableScanningFailed'));
       }
     } catch (error) {
       console.error('开启扫描错误:', error);
-      ElMessage.error('开启扫描失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.enableScanningFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.enablingScanning.value = false;
     }
@@ -341,11 +343,11 @@ export function createStationAPI(data) {
       if (response.data.success) {
         ElMessage.success(response.data.message);
       } else {
-        ElMessage.warning(response.data.message || '恢复出厂设置失败');
+        ElMessage.warning(response.data.message || t('station.messages.factoryResetFailed'));
       }
     } catch (error) {
       console.error('恢复出厂设置错误:', error);
-      ElMessage.error('恢复出厂设置失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.factoryResetFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     }
   }
 
@@ -359,11 +361,11 @@ export function createStationAPI(data) {
       if (response.data.success) {
         ElMessage.success(response.data.message);
       } else {
-        ElMessage.warning(response.data.message || '基站重启失败');
+        ElMessage.warning(response.data.message || t('station.messages.restartFailed'));
       }
     } catch (error) {
       console.error('基站重启错误:', error);
-      ElMessage.error('基站重启失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.restartFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     }
   }
 
@@ -377,11 +379,11 @@ export function createStationAPI(data) {
       if (response.data.success) {
         ElMessage.success(response.data.message);
       } else {
-        ElMessage.warning(response.data.message || '基站定位失败');
+        ElMessage.warning(response.data.message || t('station.messages.locateFailed'));
       }
     } catch (error) {
       console.error('基站定位错误:', error);
-      ElMessage.error('基站定位失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.locateFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     }
   }
 
@@ -390,30 +392,30 @@ export function createStationAPI(data) {
     const row = data.currentConfigStation.value
     
     if (!data.selectedScanConfig.value) {
-      ElMessage.warning('请选择一个扫描配置');
+      ElMessage.warning(t('station.messages.selectScanConfig'));
       return;
     }
     
     data.applyScanConfigLoading.value = true
     
     try {
-      const configName = data.selectedScanConfig.value === 'config1' ? '配置1' : '配置2';
+      const configName = data.selectedScanConfig.value === 'config1' ? t('station.config1') : t('station.config2');
       const response = await axios.post(`/api/stations/${data.selectedScanConfig.value}`, {
         ipAddress: row.ipAddress
       });
       
       if (response.data.success) {
-        ElMessage.success(`基站${configName}应用成功`);
+        ElMessage.success(t('station.messages.applyConfigSuccess', { configName }));
         data.configDialogVisible.value = false
         // 刷新基站列表以显示最新的扫描配置
         await fetchStations()
       } else {
-        ElMessage.warning(response.data.message || `基站${configName}应用失败`);
+        ElMessage.warning(response.data.message || t('station.messages.applyConfigFailed', { configName }));
       }
     } catch (error) {
-      const configName = data.selectedScanConfig.value === 'config1' ? '配置1' : '配置2';
+      const configName = data.selectedScanConfig.value === 'config1' ? t('station.config1') : t('station.config2');
       console.error(`基站${configName}错误:`, error);
-      ElMessage.error(`基站${configName}应用失败: ` + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.applyConfigFailed', { configName }) + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.applyScanConfigLoading.value = false
     }
@@ -425,7 +427,7 @@ export function createStationAPI(data) {
     
     // 最后检查（虽然按钮应该已经被禁用）
     if (!data.isRssiValid.value) {
-      ElMessage.warning('请输入有效的RSSI值（-100到-40dBm的整数）')
+      ElMessage.warning(t('station.messages.inputValidRSSI'))
       return
     }
     
@@ -442,11 +444,11 @@ export function createStationAPI(data) {
         // 刷新基站列表以显示最新的RSSI值
         await fetchStations()
       } else {
-        ElMessage.warning(response.data.message || '基站配置RSSI失败');
+        ElMessage.warning(response.data.message || t('station.messages.configRSSIFailed'));
       }
     } catch (error) {
       console.error('基站配置RSSI错误:', error);
-      ElMessage.error('基站配置RSSI失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.configRSSIFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.configRSSILoading.value = false
     }
@@ -458,7 +460,7 @@ export function createStationAPI(data) {
     
     // 最后检查（虽然按钮应该已经被禁用）
     if (!data.isTargetValid.value) {
-      ElMessage.warning('请输入有效的目标IP地址和端口')
+      ElMessage.warning(t('station.messages.inputValidTarget'))
       return
     }
     
@@ -476,11 +478,11 @@ export function createStationAPI(data) {
         // 刷新基站列表以显示最新数据
         await fetchStations()
       } else {
-        ElMessage.warning(response.data.message || '基站配置目标IP端口失败');
+        ElMessage.warning(response.data.message || t('station.messages.configTargetFailed'));
       }
     } catch (error) {
       console.error('基站配置目标IP端口错误:', error);
-      ElMessage.error('基站配置目标IP端口失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.configTargetFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     } finally {
       data.configTargetLoading.value = false
     }
@@ -492,15 +494,15 @@ export function createStationAPI(data) {
       const response = await axios.post('/api/stations/batch/update-coordinates', stationsToUpdate);
       
       if (response.data.success) {
-        ElMessage.success(`成功更新了${stationsToUpdate.length}个基站的坐标数据`);
+        ElMessage.success(t('station.messages.batchUpdateSuccess', { count: stationsToUpdate.length }));
         // 重新加载基站列表
         fetchStations();
       } else {
-        ElMessage.warning(response.data.message || '部分基站更新失败');
+        ElMessage.warning(response.data.message || t('station.messages.batchUpdateFailed'));
       }
     } catch (error) {
       console.error('批量更新基站坐标错误:', error);
-      ElMessage.error('批量更新失败: ' + (error.response?.data?.message || error.message || '网络错误'));
+      ElMessage.error(t('station.messages.batchUpdateFailed') + ': ' + (error.response?.data?.message || error.message || t('station.messages.networkError')));
     }
   }
 

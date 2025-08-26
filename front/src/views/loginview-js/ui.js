@@ -9,7 +9,7 @@ export function createLoginUI(data, api) {
   const changeLocale = (newLocale) => {
     locale.value = newLocale
     localStorage.setItem('locale', newLocale)
-    // 重新加载页面以应用新的语言设置
+    // 登录页面可以重载，因为还没有围栏告警
     window.location.reload()
   }
 

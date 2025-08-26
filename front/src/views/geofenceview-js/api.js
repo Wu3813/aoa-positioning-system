@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-export function createGeofenceAPI(data) {
+export function createGeofenceAPI(data, t) {
   const fetchGeofences = async () => {
     data.loading.value = true
     try {
@@ -18,7 +18,7 @@ export function createGeofenceAPI(data) {
         geofences.forEach(geofence => {
           if (geofence.mapId) {
             const map = data.mapList.value.find(m => m.mapId === geofence.mapId)
-            geofence.mapName = map ? map.name : '未知地图'
+            geofence.mapName = map ? map.name : t('geofence.unknownMap')
           } else {
             geofence.mapName = '-'
           }
@@ -27,11 +27,11 @@ export function createGeofenceAPI(data) {
         data.geofenceList.value = geofences
         console.log('围栏列表获取成功:', data.geofenceList.value)
       } else {
-        ElMessage.error(response.data.message || '获取围栏列表失败')
+        ElMessage.error(response.data.message || t('geofence.fetchListFailed'))
       }
     } catch (error) {
       console.error('获取围栏列表错误:', error)
-      ElMessage.error('获取围栏列表失败: ' + (error.response?.data?.message || error.message))
+      ElMessage.error(t('geofence.fetchListFailed') + ': ' + (error.response?.data?.message || error.message))
     } finally {
       data.loading.value = false
     }
@@ -53,7 +53,7 @@ export function createGeofenceAPI(data) {
       console.log('地图列表获取成功:', data.mapList.value)
     } catch (error) {
       console.error('获取地图列表错误:', error)
-      ElMessage.error('获取地图列表失败')
+      ElMessage.error(t('geofence.fetchMapsFailed'))
       data.mapList.value = []
     }
   }

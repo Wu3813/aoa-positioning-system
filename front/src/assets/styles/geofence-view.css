@@ -71,6 +71,28 @@
   width: auto; /* 允许自动调整宽度 */
 }
 
+/* 搜索表单中的内联样式对应的类 */
+.geofence-view-container .search-name-input {
+  width: 200px;
+}
+
+.geofence-view-container .search-map-select {
+  width: 220px;
+}
+
+.geofence-view-container .search-status-select {
+  width: 140px;
+}
+
+/* 表单中的内联样式对应的类 */
+.geofence-view-container .form-map-select {
+  width: 100%;
+}
+
+.geofence-dialog .form-map-select {
+  width: 100%;
+}
+
 .geofence-view-container .action-bar {
   margin-top: 15px;
   display: flex;
@@ -147,33 +169,29 @@
   width: 100%;
 }
 
-/* 对话框样式 */
-.geofence-view-container .geofence-dialog {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+/* 对话框样式 - 对话框在容器外部，需要单独处理 */
+.geofence-dialog {
+  max-height: 90vh;
 }
 
-.geofence-view-container .geofence-form {
-  height: 100%;
-  overflow: hidden;
-}
-
-.geofence-view-container .left-panel {
-  height: 100%;
+.geofence-dialog .geofence-form {
+  max-height: calc(90vh - 120px);
   overflow-y: auto;
-  padding-right: 10px;
 }
 
-.geofence-view-container .form-section {
-  background-color: #f8f9fa;
-  border-radius: 4px;
+.geofence-dialog .left-panel {
+  padding-right: 20px;
+}
+
+.geofence-dialog .form-section {
+  background: #f8f9fa;
+  border-radius: 6px;
   padding: 15px;
   margin-bottom: 15px;
   border: 1px solid #e4e7ed;
 }
 
-.geofence-view-container .form-section h3 {
+.geofence-dialog .form-section h3 {
   margin-top: 0;
   margin-bottom: 15px;
   font-size: 16px;
@@ -181,207 +199,191 @@
   color: #303133;
   border-bottom: 1px solid #e4e7ed;
   padding-bottom: 10px;
+  white-space: nowrap; /* 防止标题换行 */
 }
 
-.geofence-view-container .required-mark {
+.geofence-dialog .required-mark {
   color: #f56c6c;
   margin-left: 4px;
 }
 
-.geofence-view-container .required-mark-right {
-  color: #f56c6c;
-  margin-left: 4px;
-}
-
-/* 修复必填字段星号在不同语言下的显示问题 - 使用简单布局 */
-.geofence-view-container .el-form-item__label .required-mark,
-.geofence-view-container .el-form-item__label .required-mark-right {
+/* 修复必填字段星号在不同语言下的显示问题 - 使用深度选择器 */
+.geofence-dialog .el-form-item__label .required-mark,
+.geofence-dialog .el-form-item__label .required-mark-right {
   color: #f56c6c;
   font-weight: normal;
-  margin-left: 4px; /* 与MapView保持一致，星号紧跟在标签后面 */
+  margin-left: 4px;
 }
 
-/* 标签容器布局 - 使用简单布局，让星号紧跟在标签后面 */
-.geofence-view-container .el-form-item__label {
+/* 自适应语言宽度的表单标签 */
+.geofence-dialog .el-form-item__label {
   position: relative;
-  display: inline; /* 使用inline布局，不使用flex */
+  display: inline;
   min-height: 20px;
+  min-width: fit-content; /* 自适应内容宽度 */
+  white-space: nowrap; /* 防止标签换行 */
+  padding-right: 8px; /* 增加标签和输入框之间的间距 */
 }
 
 /* 标签文本样式 */
-.geofence-view-container .label-text {
-  display: inline; /* 使用inline布局 */
+.geofence-dialog .label-text {
+  display: inline;
+  white-space: nowrap; /* 防止标签文本换行 */
 }
 
-.geofence-view-container .action-buttons {
+.geofence-dialog .action-buttons {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
-  flex-wrap: wrap; /* 允许按钮换行 */
+  flex-wrap: wrap;
 }
 
-/* 调整表单按钮的宽度，适应英文文本 */
-.geofence-view-container .action-buttons .el-button {
-  min-width: 120px; /* 增加最小宽度 */
+/* 自适应语言宽度的操作按钮 */
+.geofence-dialog .action-buttons .el-button {
+  min-width: fit-content; /* 自适应内容宽度 */
   white-space: nowrap;
+  padding: 8px 16px; /* 增加内边距 */
 }
 
-.geofence-view-container .points-list {
+.geofence-dialog .points-list {
   margin-top: 15px;
 }
 
-.geofence-view-container .point-count {
+.geofence-dialog .point-count {
   font-size: 13px;
   color: #909399;
   margin-bottom: 8px;
 }
 
-.geofence-view-container .point-item {
+.geofence-dialog .point-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
   border-bottom: 1px solid #f0f0f0;
   font-size: 12px;
-  min-height: 32px; /* 确保有足够的高度 */
+  min-height: 32px;
 }
 
-.geofence-view-container .point-item:last-child {
+.geofence-dialog .point-item:last-child {
   border-bottom: none;
 }
 
-/* 调整点信息的显示，适应英文文本 */
-.geofence-view-container .point-item span {
+.geofence-dialog .point-item span {
   flex: 1;
   margin-right: 10px;
-  word-break: break-all; /* 允许长文本换行 */
+  word-break: break-all;
+  white-space: normal; /* 允许点信息换行 */
 }
 
-.geofence-view-container .point-item .el-button {
-  flex-shrink: 0;
-  min-width: 60px; /* 确保删除按钮有足够宽度 */
-}
-
-.geofence-view-container .tip-text {
-  margin-top: 10px;
+.geofence-dialog .tip-text {
   font-size: 12px;
   color: #909399;
-  background: #f5f7fa;
-  padding: 8px;
-  border-radius: 4px;
-  line-height: 1.4; /* 增加行高，改善英文文本可读性 */
+  margin-top: 10px;
+  line-height: 1.4;
+  white-space: normal; /* 允许提示文本换行 */
 }
 
-.geofence-view-container .tip-warning {
+.geofence-dialog .tip-warning {
   color: #e6a23c;
-  background-color: #fdf6ec;
-  border-left: 3px solid #e6a23c;
-  margin-top: 5px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-weight: 500;
+  gap: 4px;
 }
 
-.geofence-view-container .map-preview-section {
+.geofence-dialog .map-preview-section {
   height: 100%;
-  margin-bottom: 0;
-  padding: 15px;
-  overflow: visible;
 }
 
-.geofence-view-container .map-preview-container {
-  width: 100%;
+.geofence-dialog .map-preview-container {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-.geofence-view-container .map-preview {
-  width: 100%;
-  height: 700px;
+.geofence-dialog .map-preview {
+  flex: 1;
   position: relative;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
-  cursor: pointer;
-  background-color: #f8f9fa;
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  box-sizing: border-box;
+  background: #fafafa;
+  cursor: crosshair;
+  overflow: hidden;
 }
 
-.geofence-view-container .preview-image {
+.geofence-dialog .preview-image {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  display: block;
 }
 
-.geofence-view-container .no-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa;
+.geofence-dialog .no-image {
+  text-align: center;
+  color: #909399;
 }
 
-.geofence-view-container .marker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
+.geofence-dialog .no-image p {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+}
+
+.geofence-dialog .marker {
   position: absolute;
-  background-color: #409EFF;
-  border: 2px solid #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #409EFF;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
-  z-index: 5;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
 }
 
-.geofence-view-container .geofence-marker {
-  background-color: #409EFF;
-  border: 2px solid #fff;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+.geofence-dialog .geofence-marker {
+  background: #67C23A;
 }
 
-.geofence-view-container .polygon-overlay {
+.geofence-dialog .polygon-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 5;
 }
 
-.geofence-view-container .dialog-footer {
-  text-align: right;
+.geofence-dialog .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-/* 响应式设计，适应不同屏幕尺寸 */
+.geofence-dialog .form-map-select {
+  width: 100%;
+}
+
+/* 响应式布局优化 */
 @media (max-width: 1200px) {
   .geofence-view-container .search-bar .el-form-item {
     margin-bottom: 10px;
   }
   
-  .geofence-view-container .search-bar .el-input,
-  .geofence-view-container .search-bar .el-select {
-    min-width: 160px;
+  .geofence-view-container .action-bar {
+    gap: 8px;
   }
   
   .geofence-view-container .action-bar .el-button {
-    min-width: 90px;
+    padding: 6px 12px;
+    font-size: 13px;
   }
 }
 
@@ -412,12 +414,7 @@
   
   .geofence-view-container .action-bar .el-button {
     width: 100%;
-    min-width: auto;
-  }
-  
-  .geofence-view-container .operation-buttons {
-    min-width: 160px;
-    max-width: 180px;
+    justify-content: center;
   }
 }
 

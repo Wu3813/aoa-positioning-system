@@ -1,7 +1,7 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
-export function createGeofenceUI(data, api) {
+export function createGeofenceUI(data, api, t) {
   const handleSearch = () => {
     api.fetchGeofences()
   }
@@ -42,14 +42,14 @@ export function createGeofenceUI(data, api) {
   }
 
   const handleToggleEnabled = async (row) => {
-    const action = row.enabled ? '禁用' : '启用'
+    const action = row.enabled ? t('geofence.disabled') : t('geofence.enabled')
     try {
       await ElMessageBox.confirm(
-        `确定要${action}围栏"${row.name}"吗？`,
-        '确认操作',
+        t('geofence.confirmToggle', { action: action, name: row.name }),
+        t('common.confirm'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
@@ -59,15 +59,15 @@ export function createGeofenceUI(data, api) {
       )
       
       if (response.data.success) {
-        ElMessage.success(`${action}成功`)
+        ElMessage.success(t('geofence.toggleSuccess', { action: action }))
         api.fetchGeofences()
       } else {
-        ElMessage.error(response.data.message || `${action}失败`)
+        ElMessage.error(response.data.message || t('geofence.toggleFailed', { action: action }))
       }
     } catch (error) {
       if (error !== 'cancel') {
         console.error(`${action}围栏错误:`, error)
-        ElMessage.error(`${action}失败: ` + (error.response?.data?.message || error.message))
+        ElMessage.error(t('geofence.toggleFailed', { action: action }) + ': ' + (error.response?.data?.message || error.message))
       }
     }
   }
@@ -75,26 +75,26 @@ export function createGeofenceUI(data, api) {
   const handleDelete = async (row) => {
     try {
       await ElMessageBox.confirm(
-        `确定要删除围栏"${row.name}"吗？此操作不可恢复！`,
-        '确认删除',
+        t('geofence.confirmDelete', { name: row.name }),
+        t('common.confirm'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
       
       const response = await axios.delete(`/api/geofences/${row.id}`)
       if (response.data.success) {
-        ElMessage.success('删除成功')
+        ElMessage.success(t('geofence.deleteSuccess'))
         api.fetchGeofences()
       } else {
-        ElMessage.error(response.data.message || '删除失败')
+        ElMessage.error(response.data.message || t('geofence.deleteFailed'))
       }
     } catch (error) {
       if (error !== 'cancel') {
         console.error('删除围栏错误:', error)
-        ElMessage.error('删除失败: ' + (error.response?.data?.message || error.message))
+        ElMessage.error(t('geofence.deleteFailed') + ': ' + (error.response?.data?.message || error.message))
       }
     }
   }
@@ -108,11 +108,11 @@ export function createGeofenceUI(data, api) {
     
     try {
       await ElMessageBox.confirm(
-        `确定要启用选中的 ${data.multipleSelection.value.length} 个围栏吗？`,
-        '确认批量启用',
+        t('geofence.confirmBatchEnable', { count: data.multipleSelection.value.length }),
+        t('common.confirm'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
@@ -122,12 +122,12 @@ export function createGeofenceUI(data, api) {
       )
       
       await Promise.all(promises)
-      ElMessage.success('批量启用成功')
+      ElMessage.success(t('geofence.batchEnableSuccess'))
       api.fetchGeofences()
     } catch (error) {
       if (error !== 'cancel') {
         console.error('批量启用错误:', error)
-        ElMessage.error('批量启用失败')
+        ElMessage.error(t('geofence.batchEnableFailed'))
       }
     }
   }
@@ -137,11 +137,11 @@ export function createGeofenceUI(data, api) {
     
     try {
       await ElMessageBox.confirm(
-        `确定要禁用选中的 ${data.multipleSelection.value.length} 个围栏吗？`,
-        '确认批量禁用',
+        t('geofence.confirmBatchDisable', { count: data.multipleSelection.value.length }),
+        t('common.confirm'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
@@ -151,12 +151,12 @@ export function createGeofenceUI(data, api) {
       )
       
       await Promise.all(promises)
-      ElMessage.success('批量禁用成功')
+      ElMessage.success(t('geofence.batchDisableSuccess'))
       api.fetchGeofences()
     } catch (error) {
       if (error !== 'cancel') {
         console.error('批量禁用错误:', error)
-        ElMessage.error('批量禁用失败')
+        ElMessage.error(t('geofence.batchDisableFailed'))
       }
     }
   }
@@ -166,11 +166,11 @@ export function createGeofenceUI(data, api) {
     
     try {
       await ElMessageBox.confirm(
-        `确定要删除选中的 ${data.multipleSelection.value.length} 个围栏吗？此操作不可恢复！`,
-        '确认批量删除',
+        t('geofence.confirmBatchDelete', { count: data.multipleSelection.value.length }),
+        t('common.confirm'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
@@ -179,15 +179,15 @@ export function createGeofenceUI(data, api) {
       const response = await axios.delete('/api/geofences/batch', { data: ids })
       
       if (response.data.success) {
-        ElMessage.success('批量删除成功')
+        ElMessage.success(t('geofence.batchDeleteSuccess'))
         api.fetchGeofences()
       } else {
-        ElMessage.error(response.data.message || '批量删除失败')
+        ElMessage.error(response.data.message || t('geofence.batchDeleteFailed'))
       }
     } catch (error) {
       if (error !== 'cancel') {
         console.error('批量删除错误:', error)
-        ElMessage.error('批量删除失败: ' + (error.response?.data?.message || error.message))
+        ElMessage.error(t('geofence.batchDeleteFailed') + ': ' + (error.response?.data?.message || error.message))
       }
     }
   }
@@ -204,14 +204,14 @@ export function createGeofenceUI(data, api) {
     try {
       // 检查是否处于设置点模式
       if (data.isSettingPoints.value) {
-        ElMessage.warning('请先点击"完成设置"按钮完成围栏点设置')
+        ElMessage.warning(t('geofence.completeSettingFirst'))
         return
       }
       
       await data.geofenceFormRef.value.validate()
       
       if (data.geofenceForm.points.length < 3) {
-        ElMessage.warning('请设置至少3个围栏点')
+        ElMessage.warning(t('geofence.needThreePointsForSave'))
         return
       }
       
@@ -233,15 +233,15 @@ export function createGeofenceUI(data, api) {
       }
       
       if (response.data.success) {
-        ElMessage.success(`${data.dialogType.value === 'add' ? '添加' : '更新'}成功`)
+        ElMessage.success(data.dialogType.value === 'add' ? t('geofence.addSuccess') : t('geofence.updateSuccess'))
         data.dialogVisible.value = false
         api.fetchGeofences()
       } else {
-        ElMessage.error(response.data.message || `${data.dialogType.value === 'add' ? '添加' : '更新'}失败`)
+        ElMessage.error(response.data.message || (data.dialogType.value === 'add' ? t('geofence.addFailed') : t('geofence.updateFailed')))
       }
     } catch (error) {
       console.error('提交表单错误:', error)
-      ElMessage.error(`${data.dialogType.value === 'add' ? '添加' : '更新'}失败: ` + (error.response?.data?.message || error.message))
+      ElMessage.error((data.dialogType.value === 'add' ? t('geofence.addFailed') : t('geofence.updateFailed')) + ': ' + (error.response?.data?.message || error.message))
     } finally {
       data.submitLoading.value = false
     }

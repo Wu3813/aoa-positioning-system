@@ -13,6 +13,9 @@
         <!-- 存储任务配置 -->
         <result column="storage_interval_ms" property="storageTask.intervalMs" />
         <result column="storage_enabled" property="storageTask.enabled" />
+        <!-- 超时管理配置 -->
+        <result column="timeout_enabled" property="timeoutTask.enabled" />
+        <result column="timeout_ms" property="timeoutTask.timeoutMs" />
     </resultMap>
     
     <select id="selectTaskConfig" resultMap="TaskConfigResultMap">
@@ -24,7 +27,9 @@
             trajectory_send_interval_ms, 
             trajectory_pause_ms, 
             storage_interval_ms,
-            storage_enabled
+            storage_enabled,
+            timeout_enabled,
+            timeout_ms
         FROM task_config
         LIMIT 1
     </select>
@@ -37,7 +42,9 @@
             trajectory_send_interval_ms,
             trajectory_pause_ms,
             storage_interval_ms,
-            storage_enabled
+            storage_enabled,
+            timeout_enabled,
+            timeout_ms
         ) VALUES (
             #{stationTask.intervalMs},
             #{stationTask.enabled},
@@ -45,7 +52,9 @@
             #{trajectoryTask.sendIntervalMs},
             #{trajectoryTask.pauseMs},
             #{storageTask.intervalMs},
-            #{storageTask.enabled}
+            #{storageTask.enabled},
+            #{timeoutTask.enabled},
+            #{timeoutTask.timeoutMs}
         )
     </insert>
     
@@ -61,7 +70,9 @@
             trajectory_send_interval_ms = #{trajectoryTask.sendIntervalMs},
             trajectory_pause_ms = #{trajectoryTask.pauseMs},
             storage_interval_ms = #{storageTask.intervalMs},
-            storage_enabled = #{storageTask.enabled}
+            storage_enabled = #{storageTask.enabled},
+            timeout_enabled = #{timeoutTask.enabled},
+            timeout_ms = #{timeoutTask.timeoutMs}
         WHERE id = #{id}
     </update>
 </mapper> 

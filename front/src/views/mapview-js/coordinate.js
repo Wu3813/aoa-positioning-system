@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export const createCoordinateHandler = (data) => {
   const { 
@@ -10,10 +11,11 @@ export const createCoordinateHandler = (data) => {
     hasCompletedScale, 
     previewImageUrl 
   } = data
+  const { t } = useI18n()
 
   // 计算比例尺
   const calculateScale = () => {
-    if (scaleForm.pixelDistance <= 0 || scaleForm.realDistance <= 0) return '未计算';
+    if (scaleForm.pixelDistance <= 0 || scaleForm.realDistance <= 0) return t('maps.notCalculated');
     
     const pixelsPerMeter = scaleForm.pixelDistance / scaleForm.realDistance;
     return `1 m = ${pixelsPerMeter.toFixed(2)} px`;
@@ -24,9 +26,9 @@ export const createCoordinateHandler = (data) => {
     return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
   }
 
-  // 处理地图点击 - 修改为使用图片实际坐标
+  // 处理地图点击 - 参考MonitorView的定位方法
   const handleMapClick = (event, previewImage) => {
-    if (!previewImage || !imageInfo.display || !previewImageUrl.value) return;
+    if (!previewImage || !imageInfo.width || !imageInfo.height || !previewImageUrl.value) return;
     
     // 获取点击相对于容器的坐标
     const rect = event.currentTarget.getBoundingClientRect();
@@ -36,8 +38,9 @@ export const createCoordinateHandler = (data) => {
     // 获取图片的实际位置和尺寸（DOM元素尺寸）
     const imgElement = previewImage;
     const imgRect = imgElement.getBoundingClientRect();
-    const imgOffsetX = imgRect.left - rect.left;
-    const imgOffsetY = imgRect.top - rect.top;
+    const containerRect = imgElement.parentElement.getBoundingClientRect();
+    const imgOffsetX = imgRect.left - containerRect.left;
+    const imgOffsetY = imgRect.top - containerRect.top;
     const imgDisplayWidth = imgRect.width;
     const imgDisplayHeight = imgRect.height;
     
@@ -79,7 +82,7 @@ export const createCoordinateHandler = (data) => {
     if (isSettingOrigin.value) {
       mapForm.originX = boundedImageX;
       mapForm.originY = boundedImageY;
-      ElMessage.info(`原点已更新为 (${boundedImageX}, ${boundedImageY})，点击"完成"按钮确认`);
+      ElMessage.info(t('maps.originUpdated', { x: boundedImageX, y: boundedImageY }));
       return;
     }
     
@@ -101,11 +104,11 @@ export const createCoordinateHandler = (data) => {
       
       // 提示用户
       if (scaleForm.points.length === 1) {
-        ElMessage.info(`已设置第一个测量点 (${boundedImageX}, ${boundedImageY})，请继续设置第二个测量点`);
+        ElMessage.info(t('maps.firstMeasurePointSet', { x: boundedImageX, y: boundedImageY }));
       } else if (scaleForm.points.length === 2) {
         // 自动计算距离
         scaleForm.pixelDistance = calculatePixelDistance(scaleForm.points[0], scaleForm.points[1]);
-        ElMessage.info(`已设置第二个测量点 (${boundedImageX}, ${boundedImageY})，请点击"完成"按钮确认设置比例尺`);
+        ElMessage.info(t('maps.secondMeasurePointSet', { x: boundedImageX, y: boundedImageY }));
       }
       
       return;
@@ -116,30 +119,30 @@ export const createCoordinateHandler = (data) => {
   const setOriginMode = () => {
     // 检查是否处于测量模式且尚未完成
     if (isMeasuring.value) {
-      ElMessage.warning('请先完成或取消当前的测量点设置');
+      ElMessage.warning(t('maps.completeMeasureFirst'));
       return;
     }
     
     // 检查是否已有测量点但未完成
     if (scaleForm.points.length > 0 && scaleForm.points.length < 2 && !hasCompletedScale.value) {
-      ElMessage.warning('请先完成或取消当前的测量点设置');
+      ElMessage.warning(t('maps.completeMeasureFirst'));
       return;
     }
     
     if (!previewImageUrl.value) {
-      ElMessage.warning('请先上传地图文件');
+      ElMessage.warning(t('maps.uploadMapFirst'));
       return;
     }
     
     isSettingOrigin.value = true;
     isMeasuring.value = false; // 确保退出测量模式
-    ElMessage.info('请在图片上点击设置原点位置，完成后点击"完成"按钮');
+    ElMessage.info(t('maps.clickSetOriginHint'));
   }
 
   // 完成原点设置
   const completeOriginSetting = () => {
     isSettingOrigin.value = false;
-    ElMessage.success(`原点设置完成: (${mapForm.originX}, ${mapForm.originY})`);
+    ElMessage.success(t('maps.originSettingComplete', { x: mapForm.originX, y: mapForm.originY }));
   }
 
   // 取消原点设置
@@ -163,12 +166,12 @@ export const createCoordinateHandler = (data) => {
   // 设置测量模式
   const setMeasureMode = () => {
     if (!previewImageUrl.value) {
-      ElMessage.warning('请先上传地图文件');
+      ElMessage.warning(t('maps.uploadMapFirst'));
       return;
     }
     
     if (isSettingOrigin.value) {
-      ElMessage.warning('请先完成或取消原点设置');
+      ElMessage.warning(t('maps.completeOriginFirst'));
       return;
     }
     
@@ -179,13 +182,13 @@ export const createCoordinateHandler = (data) => {
     scaleForm.points = [];
     scaleForm.pointInputs = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
     scaleForm.pixelDistance = 0;
-    ElMessage.info('请在图片上点击设置测量点，需要设置两个点');
+    ElMessage.info(t('maps.clickSetMeasurePointsHint'));
   }
 
   // 完成测量
   const completeMeasuring = () => {
     if (scaleForm.points.length < 2) {
-      ElMessage.warning('请先设置两个测量点');
+      ElMessage.warning(t('maps.setTwoMeasurePoints'));
       return;
     }
     
@@ -205,7 +208,7 @@ export const createCoordinateHandler = (data) => {
     if (scaleForm.pixelDistance > 0 && scaleForm.realDistance > 0) {
       const pixelsPerMeter = scaleForm.pixelDistance / scaleForm.realDistance;
       mapForm.scale = pixelsPerMeter.toFixed(2);
-      ElMessage.success(`比例尺设置完成: 1 m = ${pixelsPerMeter.toFixed(2)} px`);
+      ElMessage.success(t('maps.scaleSettingComplete', { scale: pixelsPerMeter.toFixed(2) }));
     }
     
     // 根据比例尺自动更新坐标范围
@@ -237,7 +240,7 @@ export const createCoordinateHandler = (data) => {
       );
     }
     
-    ElMessage.info('已取消测量点设置');
+    ElMessage.info(t('maps.measureCancelled'));
   }
 
   // 从输入框更新点位置
@@ -289,28 +292,36 @@ export const createCoordinateHandler = (data) => {
     console.log(`坐标范围: X(${xMin.toFixed(2)}, ${xMax.toFixed(2)}), Y(${yMin.toFixed(2)}, ${yMax.toFixed(2)})`);
   }
 
-  // 更新点在UI上的显示位置
-  const getDisplayPosition = (pixelX, pixelY, previewImage) => {
-    if (!imageInfo.display || !previewImage) return { x: 0, y: 0 };
+  // 更新点在UI上的显示位置 - 参考MonitorView的定位方法
+  const getDisplayPosition = (pixelX, pixelY) => {
+    if (!imageInfo.width || !imageInfo.height) return { x: 0, y: 0 };
     
     // 确保输入坐标在图片范围内
     const boundedPixelX = Math.max(0, Math.min(imageInfo.width - 1, pixelX || 0));
     const boundedPixelY = Math.max(0, Math.min(imageInfo.height - 1, pixelY || 0));
-    
-    // 获取图片DOM元素的实际位置和尺寸
-    const imgElement = previewImage;
-    const imgRect = imgElement.getBoundingClientRect();
-    const containerRect = imgElement.parentElement.getBoundingClientRect();
-    const imgOffsetX = imgRect.left - containerRect.left;
-    const imgOffsetY = imgRect.top - containerRect.top;
     
     // 计算坐标相对于原图的比例
     const relativeX = boundedPixelX / imageInfo.width;
     const relativeY = boundedPixelY / imageInfo.height;
     
     // 将比例应用到实际显示图片上
-    const displayX = imgOffsetX + (relativeX * imgRect.width);
-    const displayY = imgOffsetY + (relativeY * imgRect.height);
+    // 优先使用计算得到的显示尺寸，如果没有则使用原始尺寸
+    const currentDisplayWidth = imageInfo.displayWidth || imageInfo.width;
+    const currentDisplayHeight = imageInfo.displayHeight || imageInfo.height;
+    
+    const displayX = relativeX * currentDisplayWidth;
+    const displayY = relativeY * currentDisplayHeight;
+    
+    // 添加调试日志，帮助排查问题
+    if (imageInfo.displayWidth && imageInfo.displayHeight) {
+      console.log('点位置计算:', {
+        原始坐标: { x: pixelX, y: pixelY },
+        边界坐标: { x: boundedPixelX, y: boundedPixelY },
+        相对比例: { x: relativeX.toFixed(4), y: relativeY.toFixed(4) },
+        显示尺寸: { width: currentDisplayWidth, height: currentDisplayHeight },
+        显示坐标: { x: displayX.toFixed(2), y: displayY.toFixed(2) }
+      });
+    }
     
     return { x: displayX, y: displayY };
   }
@@ -329,7 +340,7 @@ export const createCoordinateHandler = (data) => {
   const resetScaleMeasurement = () => {
     // 检查是否处于原点设置模式
     if (isSettingOrigin.value) {
-      ElMessage.warning('请先完成或取消原点设置');
+      ElMessage.warning(t('maps.completeOriginFirst'));
       return;
     }
     
@@ -340,7 +351,7 @@ export const createCoordinateHandler = (data) => {
     scaleForm.points = [];
     scaleForm.pointInputs = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
     scaleForm.pixelDistance = 0;
-    ElMessage.info('请在图片上点击设置测量点，需要设置两个点');
+    ElMessage.info(t('maps.clickSetMeasurePointsHint'));
   }
 
   return {

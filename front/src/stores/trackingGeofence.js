@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
-export function createGeofenceManager(mapStore, coordinateUtils) {
+export function createGeofenceManager(mapStore, coordinateUtils, t) {
   // 围栏列表
   const geofenceList = ref([])
   
@@ -11,6 +11,9 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
   
   // 活跃的围栏告警
   const activeGeofenceAlerts = ref({}) // 格式: {mac+geofenceId: notificationInstance}
+  
+  // 翻译函数引用
+  let translationFunction = t
   
   // 点在多边形内部检测（射线法）- 优化版 - 仅保留用于前端可能的可视化需求
   const isPointInPolygon = (point, polygon) => {
@@ -74,16 +77,17 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
       
       // 创建通知
       const uiNotification = ElNotification({
-        title: notification.title,
-        message: notification.message,
+        title: translationFunction ? translationFunction('geofenceAlarm.title') : 'Geofence Alarm',
+        message: translationFunction ? translationFunction('geofenceAlarm.message', { 
+          tagId: notification.alarmTag, 
+          geofenceName: notification.geofenceName || 'Unknown' 
+        }) : `Tag ${notification.alarmTag} left geofence ${notification.geofenceName || 'Unknown'}`,
         type: 'warning',
         duration: 0, // 不自动关闭
         position: 'bottom-right',
-        showClose: true,
-        onClose: () => {
-          // 当手动关闭时清除引用
-          delete activeGeofenceAlerts.value[alertKey]
-        }
+        showClose: false, // 禁用手动关闭
+        closeOnClick: false, // 点击通知内容不关闭
+        closeOnPressEscape: false // 按ESC键不关闭
       })
       
       // 保存通知引用以便后续关闭
@@ -113,10 +117,10 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
           const notification = JSON.parse(message.body)
           handleWebSocketAlarmNotification(notification)
         } catch (error) {
-          console.error('处理告警通知失败:', error)
+          console.error(translationFunction ? translationFunction('geofenceAlarm.handleNotificationFailed') : 'Failed to handle notification', error)
         }
       })
-      console.log('已注册围栏告警通知监听')
+      console.log(translationFunction ? translationFunction('geofenceAlarm.registerListenerSuccess') : 'Alarm notification listener registered successfully')
     }
   }
   
@@ -135,16 +139,19 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
         geofenceList.value = geofences.filter(fence => 
           fence.points && fence.points.length >= 3
         )
-        console.log(`加载地图 ${mapId} 的围栏:`, geofenceList.value.length, '个')
+        console.log(translationFunction ? translationFunction('geofenceAlarm.loadGeofencesSuccess', { 
+          mapId: mapId, 
+          count: geofenceList.value.length 
+        }) : `Loaded ${geofenceList.value.length} geofences for map ${mapId}`)
         
         // 预计算围栏数据
         precomputeGeofenceData()
       } else {
-        console.warn('获取围栏列表失败:', response.data.message)
+        console.warn(translationFunction ? translationFunction('geofenceAlarm.fetchListFailed') : 'Failed to fetch geofence list', response.data.message)
         geofenceList.value = []
       }
     } catch (error) {
-      console.error('获取围栏列表错误:', error)
+      console.error(translationFunction ? translationFunction('geofenceAlarm.fetchListError') : 'Error fetching geofence list', error)
       geofenceList.value = []
     }
   }
@@ -173,6 +180,48 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     activeGeofenceAlerts.value = {}
   }
   
+  // 设置翻译函数
+  function setTranslationFunction(t) {
+    translationFunction = t
+  }
+  
+  // 更新所有现有通知的语言
+  function updateExistingNotificationsLanguage() {
+    // 遍历所有活跃的通知，重新创建它们以更新语言
+    Object.keys(activeGeofenceAlerts.value).forEach(alertKey => {
+      const notification = activeGeofenceAlerts.value[alertKey]
+      if (notification) {
+        // 关闭旧通知
+        notification.close()
+        
+        // 从alertKey中提取信息 (格式: mac-geofenceId)
+        const [alarmTag, geofenceId] = alertKey.split('-')
+        
+        // 查找对应的围栏信息
+        const geofence = geofenceList.value.find(g => g.id == geofenceId)
+        const geofenceName = geofence ? geofence.name : 'Unknown'
+        
+        // 创建新的通知（使用新的翻译函数）
+        const newNotification = ElNotification({
+          title: translationFunction ? translationFunction('geofenceAlarm.title') : 'Geofence Alarm',
+          message: translationFunction ? translationFunction('geofenceAlarm.message', { 
+            tagId: alarmTag, 
+            geofenceName: geofenceName
+          }) : `Tag ${alarmTag} left geofence ${geofenceName}`,
+          type: 'warning',
+          duration: 0, // 不自动关闭
+          position: 'bottom-right',
+          showClose: false, // 禁用手动关闭
+          closeOnClick: false, // 点击通知内容不关闭
+          closeOnPressEscape: false // 按ESC键不关闭
+        })
+        
+        // 更新通知引用
+        activeGeofenceAlerts.value[alertKey] = newNotification
+      }
+    })
+  }
+  
   return {
     geofenceList,
     geofenceCache,
@@ -183,6 +232,8 @@ export function createGeofenceManager(mapStore, coordinateUtils) {
     clearAlertsForTag,
     clearAllAlerts,
     registerAlarmNotificationListener,
-    handleWebSocketAlarmNotification
+    handleWebSocketAlarmNotification,
+    setTranslationFunction,
+    updateExistingNotificationsLanguage
   }
 } 

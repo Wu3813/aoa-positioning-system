@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus'
 
-export function createGeofenceMap(data, api) {
+export function createGeofenceMap(data, api, t) {
   // 处理地图预览图片加载
   const handlePreviewImageLoad = (event) => {
     const img = event.target
@@ -62,37 +62,37 @@ export function createGeofenceMap(data, api) {
   // 设置围栏点模式
   const setPointMode = () => {
     if (!data.selectedMapImageUrl.value) {
-      ElMessage.warning('请先选择地图')
+      ElMessage.warning(t('geofence.selectMapFirst'))
       return
     }
     
     data.geofenceForm.points = []
     data.isSettingPoints.value = true
-    ElMessage.info('请在地图上点击设置围栏点，至少需要3个点')
+    ElMessage.info(t('geofence.clickSetPointsHint'))
   }
 
   // 完成围栏点设置
   const completePointSetting = () => {
     if (data.geofenceForm.points.length < 3) {
-      ElMessage.warning('至少需要3个点才能形成围栏')
+      ElMessage.warning(t('geofence.needThreePoints'))
       return
     }
     
     data.isSettingPoints.value = false
-    ElMessage.success(`围栏点设置完成，共${data.geofenceForm.points.length}个点`)
+    ElMessage.success(t('geofence.pointSettingComplete', { count: data.geofenceForm.points.length }))
   }
 
   // 取消围栏点设置
   const cancelPointSetting = () => {
     data.geofenceForm.points = []
     data.isSettingPoints.value = false
-    ElMessage.info('已清除所有围栏点')
+    ElMessage.info(t('geofence.allPointsCleared'))
   }
 
   // 删除围栏点
   const removePoint = (index) => {
     data.geofenceForm.points.splice(index, 1)
-    ElMessage.info(`已删除第${index + 1}个点`)
+    ElMessage.info(t('geofence.pointDeleted', { index: index + 1 }))
   }
 
   // 处理地图点击
@@ -151,7 +151,11 @@ export function createGeofenceMap(data, api) {
     // 添加围栏点
     data.geofenceForm.points.push({ x: boundedImageX, y: boundedImageY })
     
-    ElMessage.info(`已添加第${data.geofenceForm.points.length}个围栏点 (${boundedImageX}, ${boundedImageY})`)
+    ElMessage.info(t('geofence.pointAdded', { 
+      index: data.geofenceForm.points.length, 
+      x: boundedImageX, 
+      y: boundedImageY 
+    }))
   }
 
   // 获取显示位置（图片坐标转换为显示坐标）

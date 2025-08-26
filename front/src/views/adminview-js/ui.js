@@ -6,7 +6,7 @@ export function createAdminUI(data, api, t) {
     const success = await api.saveTaskConfig()
     if (success) {
       // 保存成功后可以执行其他操作，比如刷新数据
-      console.log('任务配置保存成功')
+      console.log(t('admin.saveConfigSuccess'))
     }
   }
 
@@ -18,7 +18,7 @@ export function createAdminUI(data, api, t) {
 
   // 验证任务配置
   const validateTaskConfig = () => {
-    const { stationTask, trajectoryTask, storageTask } = data.taskConfig
+    const { stationTask, trajectoryTask, storageTask, timeoutTask } = data.taskConfig
     
     // 验证基站任务配置
     if (stationTask.enabled && stationTask.intervalMs < 1000) {
@@ -41,6 +41,12 @@ export function createAdminUI(data, api, t) {
     // 验证存储任务配置
     if (storageTask.enabled && storageTask.intervalMs < 1000) {
       ElMessage.warning(t('admin.storageIntervalWarning'))
+      return false
+    }
+    
+    // 验证超时管理配置
+    if (timeoutTask.enabled && timeoutTask.timeoutMs < 1000) {
+      ElMessage.warning(t('admin.timeoutIntervalWarning'))
       return false
     }
     

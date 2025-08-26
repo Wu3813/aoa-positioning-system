@@ -1,7 +1,10 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export function createTagAPI(data) {
+  const { t } = useI18n()
+
   // 获取标签列表
   const fetchTags = async () => {
     data.loading.value = true;
@@ -27,7 +30,7 @@ export function createTagAPI(data) {
       }
     } catch (error) {
       console.error('获取标签列表错误:', error);
-      ElMessage.error('获取标签列表失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.fetchTagsFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       data.tagList.value = [];
     } finally {
       data.loading.value = false;
@@ -54,11 +57,11 @@ export function createTagAPI(data) {
   const addTag = async (tagData) => {
     try {
       await axios.post('/api/tags', tagData);
-      ElMessage.success('添加成功');
+      ElMessage.success(t('tags.addSuccess'));
       return true;
     } catch (error) {
       console.error('添加标签错误:', error);
-      ElMessage.error('添加失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.addFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       return false;
     }
   }
@@ -67,11 +70,11 @@ export function createTagAPI(data) {
   const updateTag = async (id, tagData) => {
     try {
       await axios.put(`/api/tags/${id}`, tagData);
-      ElMessage.success('更新成功');
+      ElMessage.success(t('tags.updateSuccess'));
       return true;
     } catch (error) {
       console.error('更新标签错误:', error);
-      ElMessage.error('更新失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.updateFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       return false;
     }
   }
@@ -80,11 +83,11 @@ export function createTagAPI(data) {
   const deleteTag = async (id) => {
     try {
       await axios.delete(`/api/tags/${id}`);
-      ElMessage.success('删除成功');
+      ElMessage.success(t('tags.deleteSuccess'));
       return true;
     } catch (error) {
       console.error('删除标签错误:', error);
-      ElMessage.error('删除失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.deleteFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       return false;
     }
   }
@@ -93,11 +96,11 @@ export function createTagAPI(data) {
   const batchDeleteTags = async (ids) => {
     try {
       await axios.delete('/api/tags/batch', { data: ids });
-      ElMessage.success('批量删除成功');
+      ElMessage.success(t('tags.batchDeleteSuccess'));
       return true;
     } catch (error) {
       console.error('批量删除标签错误:', error);
-      ElMessage.error('批量删除失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.batchDeleteFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       return false;
     }
   }
@@ -106,11 +109,11 @@ export function createTagAPI(data) {
   const updateTagStatus = async (id, tagStatus) => {
     try {
       await axios.put(`/api/tags/${id}/status`, tagStatus);
-      ElMessage.success('状态更新成功');
+      ElMessage.success(t('tags.statusUpdateSuccess'));
       return true;
     } catch (error) {
       console.error('更新标签状态错误:', error);
-      ElMessage.error('状态更新失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      ElMessage.error(t('tags.statusUpdateFailed') + ': ' + (error.response?.data?.message || error.message || t('common.unknownError')));
       return false;
     }
   }

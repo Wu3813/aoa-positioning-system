@@ -3,7 +3,9 @@ package com.wu.monitor.service.impl;
 import com.wu.monitor.exception.ResourceNotFoundException;
 import com.wu.monitor.mapper.TagMapper;
 import com.wu.monitor.model.Tag;
+import com.wu.monitor.model.TaskConfig;
 import com.wu.monitor.service.TagService;
+import com.wu.monitor.service.TaskConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,6 +21,9 @@ public class TagServiceImpl implements TagService {
 
     @Autowired
     private TagMapper tagMapper;
+    
+    @Autowired
+    private TaskConfigService taskConfigService;
 
     @Override
     public List<Tag> getAllTags(String name, String macAddress, Integer status) {
@@ -187,6 +192,20 @@ public class TagServiceImpl implements TagService {
     // 定时检查离线标签 - 每3秒执行一次
     @Scheduled(fixedRate = 3000) // 3秒 = 3000毫秒
     public void scheduleOfflineCheck() {
-        checkAndUpdateOfflineTags(10000); // 10000毫秒（10秒）内没有更新的标签设为离线
+        try {
+            // 获取超时配置
+            TaskConfig config = taskConfigService.getTaskConfig();
+            if (config != null && config.getTimeoutTask() != null && config.getTimeoutTask().isEnabled()) {
+                // 使用配置的超时时间
+                long timeoutMs = config.getTimeoutTask().getTimeoutMs();
+                checkAndUpdateOfflineTags(timeoutMs);
+            } else {
+                // 如果超时管理未启用，使用默认的30秒
+                checkAndUpdateOfflineTags(30000);
+            }
+        } catch (Exception e) {
+            log.error("获取超时配置异常，使用默认30秒超时: {}", e.getMessage());
+            checkAndUpdateOfflineTags(30000);
+        }
     }
 } 

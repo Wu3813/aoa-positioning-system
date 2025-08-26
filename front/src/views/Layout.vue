@@ -110,6 +110,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Monitor, User, Location, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
+import { createGeofenceTranslationFunction } from '@/utils/geofenceTranslations'
 
 const route = useRoute()
 const router = useRouter()
@@ -142,7 +143,7 @@ onMounted(() => {
 })
 
 // 语言切换
-const changeLocale = (newLocale) => {
+const changeLocale = async (newLocale) => {
   locale.value = newLocale
   localStorage.setItem('locale', newLocale)
   try {
@@ -150,7 +151,13 @@ const changeLocale = (newLocale) => {
   } catch (e) {
     // 忽略环境不支持的情况
   }
-  window.location.reload()
+  
+  // 更新围栏管理器的翻译函数，避免页面重载导致通知消失
+  const { useTrackingStore } = await import('@/stores/trackingStore')
+  const trackingStore = useTrackingStore()
+  
+  const translationFunction = createGeofenceTranslationFunction(locale.value)
+  trackingStore.setGeofenceTranslation(translationFunction)
 }
 
 // 登出

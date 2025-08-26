@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 export const createFileHandler = (data) => {
   const { 
@@ -13,6 +14,7 @@ export const createFileHandler = (data) => {
     dialogType, 
     uploadRef 
   } = data
+  const { t } = useI18n()
 
   // 处理文件变更
   const handleFileChange = (file, fileList) => {
@@ -21,14 +23,14 @@ export const createFileHandler = (data) => {
     }
     const isLt10M = file.size / 1024 / 1024 < 10; 
     if (!['image/jpeg', 'image/png'].includes(file.raw.type)) {
-      ElMessage.error('上传地图图片只能是 JPG/PNG 格式!');
+      ElMessage.error(t('maps.uploadFormatError'));
       uploadRef.value?.clearFiles(); 
       mapForm.file = null;
       previewImageUrl.value = null;
       return false;
     }
     if (!isLt10M) {
-      ElMessage.error('上传地图图片大小不能超过 10MB!');
+      ElMessage.error(t('maps.uploadSizeError'));
       uploadRef.value?.clearFiles(); 
       mapForm.file = null;
       previewImageUrl.value = null;
@@ -66,7 +68,7 @@ export const createFileHandler = (data) => {
     // 如果是编辑模式，提示用户需要重新设置原点和比例尺
     if (dialogType.value === 'edit') {
       ElMessage.warning({
-        message: '更换地图后，请重新设置原点坐标和比例尺！',
+        message: t('maps.reuploadMapWarning'),
         duration: 5000
       });
     }
@@ -83,12 +85,14 @@ export const createFileHandler = (data) => {
 
   // 处理文件超出限制
   const handleExceed = () => {
-    ElMessage.warning('只能选择一个地图文件，请先移除当前文件再选择新的文件')
+    ElMessage.warning(t('maps.selectOneFileOnly'))
   }
 
-  // 处理预览图片加载
+  // 处理预览图片加载 - 参考MonitorView的实现
   const handlePreviewImageLoad = (event) => {
     const img = event.target;
+    
+    // 获取图片的真实尺寸
     imageInfo.width = img.naturalWidth;
     imageInfo.height = img.naturalHeight;
     
@@ -98,12 +102,38 @@ export const createFileHandler = (data) => {
     
     previewLoading.value = false;
     
-    if (!imageInfo.originalImage) {
-      imageInfo.originalImage = new Image();
-      imageInfo.originalImage.src = img.src;
-    }
-    
-    calculateImageDimensions();
+    // 等待图片完全加载并布局完成
+    setTimeout(() => {
+      // 获取图片的实际显示尺寸和位置信息
+      const imgRect = img.getBoundingClientRect();
+      const containerRect = img.parentElement.getBoundingClientRect();
+      
+      // 存储图片在容器中的偏移量和显示尺寸
+      imageInfo.domInfo = {
+        offsetX: imgRect.left - containerRect.left,
+        offsetY: imgRect.top - containerRect.top,
+        displayWidth: imgRect.width,
+        displayHeight: imgRect.height
+      };
+      
+      // 更新显示尺寸和缩放比例
+      imageInfo.displayWidth = imgRect.width;
+      imageInfo.displayHeight = imgRect.height;
+      imageInfo.scaleX = imageInfo.displayWidth / imageInfo.width;
+      imageInfo.scaleY = imageInfo.displayHeight / imageInfo.height;
+      
+      console.log("地图图片加载完成，尺寸：", imageInfo.width, "x", imageInfo.height, 
+                "显示尺寸:", imageInfo.displayWidth, "x", imageInfo.displayHeight, 
+                "偏移位置:", imageInfo.domInfo.offsetX, "x", imageInfo.domInfo.offsetY,
+                "缩放比例:", imageInfo.scaleX, imageInfo.scaleY);
+      
+      imageInfo.loaded = true;
+      
+      // 触发一次额外的尺寸计算，确保标记点位置正确
+      setTimeout(() => {
+        // 这里会通过 index.js 中的 handlePreviewImageLoad 调用 calculateImageDimensions
+      }, 50);
+    }, 100);
   }
 
   // 计算图片在预览区域中的实际尺寸和位置
@@ -117,13 +147,13 @@ export const createFileHandler = (data) => {
   // 清除标记点
   const clearMarkers = () => {
     if (isSettingOrigin.value || isMeasuring.value) {
-      ElMessage.warning('请先完成当前操作');
+      ElMessage.warning(t('maps.completeCurrentOperation'));
       return;
     }
     
     // 检查是否有未完成的测量点设置（有1个点但没有2个点）
     if (scaleForm.points.length === 1 && !hasCompletedScale.value) {
-      ElMessage.warning('请先完成或取消测量点设置');
+      ElMessage.warning(t('maps.completeMeasureFirst'));
       return;
     }
     

@@ -11,6 +11,7 @@ import router from './router'
 import axios from 'axios'
 import { useTrackingStore } from './stores/trackingStore'
 import i18n from './i18n'
+import { createGeofenceTranslationFunction } from './utils/geofenceTranslations'
 
 // 设置基础URL
 // 开发环境中，设置为本地开发服务器地址
@@ -37,6 +38,12 @@ try {
 // 初始化轨迹追踪系统
 const trackingStore = useTrackingStore()
 trackingStore.init()
+
+// 设置翻译函数（在 i18n 初始化后）
+const currentLocale = localStorage.getItem('locale') || 'zh-CN'
+const translationFunction = createGeofenceTranslationFunction(currentLocale)
+trackingStore.setGeofenceTranslation(translationFunction)
+
 trackingStore.startAutoConnect()
 
 // 在页面卸载前清理资源
