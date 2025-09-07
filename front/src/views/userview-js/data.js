@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function createUserData() {
@@ -18,6 +18,45 @@ export function createUserData() {
 
   // 表格多选
   const multipleSelection = ref([])
+
+  // 排序相关变量
+  const sortOrder = ref({
+    prop: 'createTime',
+    order: 'ascending'
+  })
+
+  // 计算属性：根据排序条件处理用户列表
+  const filteredUserList = computed(() => {
+    let list = [...userList.value];
+    
+    if (sortOrder.value.prop && sortOrder.value.order) {
+      const { prop, order } = sortOrder.value;
+      const isAsc = order === 'ascending';
+      
+      list.sort((a, b) => {
+        let valueA = a[prop];
+        let valueB = b[prop];
+        
+        // 特殊处理日期时间字段
+        if (prop === 'createTime') {
+          valueA = valueA ? new Date(valueA).getTime() : 0;
+          valueB = valueB ? new Date(valueB).getTime() : 0;
+        }
+        
+        // 特殊处理字符串字段（用户名、角色）
+        if (typeof valueA === 'string' && typeof valueB === 'string') {
+          valueA = valueA.toLowerCase();
+          valueB = valueB.toLowerCase();
+          return isAsc ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+        }
+        
+        // 数值比较
+        return isAsc ? valueA - valueB : valueB - valueA;
+      });
+    }
+    
+    return list;
+  })
 
   // 用户表单
   const userForm = reactive({
@@ -89,6 +128,8 @@ export function createUserData() {
     multipleSelection,
     userForm,
     rules,
+    sortOrder,
+    filteredUserList,
     
     // 工具方法
     formatDateTime,

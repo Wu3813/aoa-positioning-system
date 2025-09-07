@@ -40,6 +40,7 @@
           :data="userList" 
           style="width: 100%"
           @selection-change="handleSelectionChange"
+          @sort-change="handleSortChange"
           v-loading="loading"
           height="100%"
           border
@@ -47,15 +48,15 @@
           class="user-table"
         >
           <el-table-column type="selection" width="40" fixed="left" />
-          <el-table-column prop="username" :label="$t('users.username')" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="role" :label="$t('users.role')" min-width="120">
+          <el-table-column prop="username" :label="$t('users.username')" min-width="150" show-overflow-tooltip sortable />
+          <el-table-column prop="role" :label="$t('users.role')" min-width="120" sortable>
             <template #default="scope">
               <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'info'">
                 {{ scope.row.role === 'admin' ? $t('users.admin') : $t('users.user') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" :label="$t('users.createTime')" min-width="160" show-overflow-tooltip>
+          <el-table-column prop="createTime" :label="$t('users.createTime')" min-width="160" show-overflow-tooltip sortable>
             <template #default="scope">
               {{ formatDateTime(scope.row.createTime) }}
             </template>
@@ -140,6 +141,7 @@ const {
   handleSearch,
   handleResetSearch,
   handleSelectionChange,
+  handleSortChange,
   handleAdd,
   handleEdit,
   handleDelete,

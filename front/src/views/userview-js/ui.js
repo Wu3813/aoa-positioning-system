@@ -20,6 +20,14 @@ export function createUserUI(data, api) {
     data.multipleSelection.value = selection
   }
 
+  // 排序处理
+  const handleSortChange = ({ prop, order }) => {
+    data.sortOrder.value = {
+      prop: prop || '',
+      order: order || ''
+    }
+  }
+
   // 添加用户
   const handleAdd = () => {
     data.dialogType.value = 'add'
@@ -116,6 +124,7 @@ export function createUserUI(data, api) {
     handleSearch,
     handleResetSearch,
     handleSelectionChange,
+    handleSortChange,
     handleAdd,
     handleEdit,
     handleDelete,

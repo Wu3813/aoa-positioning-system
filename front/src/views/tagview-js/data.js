@@ -54,8 +54,8 @@ export function createTagData() {
 
   // 排序相关变量
   const sortOrder = ref({
-    prop: '',
-    order: ''
+    prop: 'createTime',
+    order: 'ascending'
   })
 
   // 计算属性：根据排序条件处理标签列表
@@ -80,6 +80,13 @@ export function createTagData() {
         if (prop === 'macAddress') {
           valueA = valueA ? valueA.replace(/[:-]/g, '').toLowerCase() : '';
           valueB = valueB ? valueB.replace(/[:-]/g, '').toLowerCase() : '';
+        }
+        
+        // 特殊处理状态字段（1=在线，0=离线）
+        if (prop === 'status') {
+          // 确保状态值为数字类型进行比较
+          valueA = valueA === 1 ? 1 : 0;
+          valueB = valueB === 1 ? 1 : 0;
         }
         
         // 处理可能为空的值

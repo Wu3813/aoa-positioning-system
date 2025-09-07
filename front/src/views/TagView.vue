@@ -57,7 +57,7 @@
         >
           <el-table-column type="selection" width="55" fixed="left" />
           <el-table-column prop="name" :label="$t('tags.tagName')" width="180" fixed="left" show-overflow-tooltip sortable="custom" />
-          <el-table-column :label="$t('tags.status')" width="120" fixed="left">
+          <el-table-column :label="$t('tags.status')" width="120" fixed="left" prop="status" sortable="custom">
             <template #default="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
                 {{ scope.row.status === 1 ? $t('tags.online') : $t('tags.offline') }}

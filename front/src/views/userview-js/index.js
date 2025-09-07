@@ -20,7 +20,7 @@ export function useUserView() {
 
   return {
     // 响应式数据
-    userList: data.userList,
+    userList: data.filteredUserList,
     loading: data.loading,
     dialogVisible: data.dialogVisible,
     dialogType: data.dialogType,
@@ -29,6 +29,7 @@ export function useUserView() {
     multipleSelection: data.multipleSelection,
     userForm: data.userForm,
     rules: data.rules,
+    sortOrder: data.sortOrder,
     
     // 工具方法
     formatDateTime: data.formatDateTime,
@@ -38,6 +39,7 @@ export function useUserView() {
     handleSearch: ui.handleSearch,
     handleResetSearch: ui.handleResetSearch,
     handleSelectionChange: ui.handleSelectionChange,
+    handleSortChange: ui.handleSortChange,
     handleAdd: ui.handleAdd,
     handleEdit: ui.handleEdit,
     handleDelete: ui.handleDelete,
