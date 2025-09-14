@@ -22,8 +22,8 @@ export default {
   
   // Navigation menu
   menu: {
-    realtime: 'Real-time Tracking',
-    history: 'History Tracking',
+    realtime: 'Real-time Monitoring',
+    history: 'Historical Trajectory',
     maps: 'Map Management',
     geofence: 'Geofence Management',
     stations: 'Station Management',
@@ -56,7 +56,7 @@ export default {
 
   // Real-time monitoring page
   monitor: {
-    title: 'Real-time Tracking',
+    title: 'Real-Time Monitoring',
     selectMap: 'Select Map:',
     selectMapPlaceholder: 'Please select a map',
     traceControl: 'Trace Limit',
@@ -83,9 +83,9 @@ export default {
     switchMapFailed: 'Failed to switch map'
   },
 
-  // History tracking page
+  // Historical Trajectory page
   history: {
-    title: 'History Tracking',
+    title: 'Historical Trajectory',
     selectMap: 'Select Map',
     selectMapPlaceholder: 'Please select a map',
     selectTag: 'Select Tag',
