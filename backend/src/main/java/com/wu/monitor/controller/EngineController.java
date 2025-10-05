@@ -20,10 +20,9 @@ public class EngineController {
      */
     @GetMapping
     public List<Engine> getAllEngines(
-            @RequestParam(required = false) String code,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer status) {
-        return engineService.getAllEngines(code, name, status);
+        return engineService.getAllEngines(name, status);
     }
 
     /**
@@ -83,7 +82,22 @@ public class EngineController {
     @PutMapping("/{id}/status")
     public Engine updateEngineStatus(
             @PathVariable Long id,
-            @RequestParam Integer status) {
-        return engineService.updateEngineStatus(id, status);
+            @RequestBody StatusUpdateRequest request) {
+        return engineService.updateEngineStatus(id, request.getStatus());
+    }
+
+    /**
+     * 状态更新请求类
+     */
+    public static class StatusUpdateRequest {
+        private Integer status;
+
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(Integer status) {
+            this.status = status;
+        }
     }
 } 

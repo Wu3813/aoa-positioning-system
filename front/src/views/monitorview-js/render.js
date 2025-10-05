@@ -75,15 +75,25 @@ export const createRenderHandler = (data) => {
         if (!isNaN(x) && !isNaN(y)) {
           // 绘制外圈阴影
           ctx.beginPath()
-          ctx.shadowBlur = 3
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+          ctx.shadowBlur = 4
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
           ctx.strokeStyle = '#fff'
-          ctx.lineWidth = 2
+          ctx.lineWidth = 3
           ctx.fillStyle = sensor.color
-          ctx.arc(x, y, 5, 0, Math.PI * 2)
+          ctx.arc(x, y, 10, 0, Math.PI * 2) // 增大半径从5到8
           ctx.fill()
           ctx.stroke()
           ctx.shadowBlur = 0
+          
+          // 绘制标签名称
+          ctx.font = 'bold 12px Arial'
+          ctx.fillStyle = '#333'
+          ctx.textAlign = 'left'
+          ctx.textBaseline = 'middle'
+          
+          // 在轨迹点右侧显示标签名称
+          ctx.fillText(sensor.name, x + 12, y)
+          
         }
       }
     })

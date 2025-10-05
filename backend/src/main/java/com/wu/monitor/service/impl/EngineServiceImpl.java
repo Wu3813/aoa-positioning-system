@@ -18,8 +18,8 @@ public class EngineServiceImpl implements EngineService {
     private EngineMapper engineMapper;
 
     @Override
-    public List<Engine> getAllEngines(String code, String name, Integer status) {
-        return engineMapper.findAll(code, name, status);
+    public List<Engine> getAllEngines(String name, Integer status) {
+        return engineMapper.findAll(name, status);
     }
 
     @Override
@@ -34,11 +34,6 @@ public class EngineServiceImpl implements EngineService {
     @Override
     @Transactional
     public Engine createEngine(Engine engine) {
-        // 检查编号是否已存在
-        if (engineMapper.findByCode(engine.getCode()) != null) {
-            throw new IllegalArgumentException("引擎编号已存在");
-        }
-        
         // 设置创建时间
         engine.setCreateTime(LocalDateTime.now());
         
@@ -57,12 +52,6 @@ public class EngineServiceImpl implements EngineService {
         // 检查引擎是否存在
         if (engineMapper.findById(id) == null) {
             throw new ResourceNotFoundException("引擎不存在");
-        }
-        
-        // 检查编号是否与其他引擎重复
-        Engine existingEngine = engineMapper.findByCode(engine.getCode());
-        if (existingEngine != null && !existingEngine.getId().equals(id)) {
-            throw new IllegalArgumentException("引擎编号已存在");
         }
         
         engine.setId(id);

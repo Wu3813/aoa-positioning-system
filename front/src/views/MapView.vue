@@ -158,7 +158,7 @@
                   <template #label>
                     {{ $t('maps.mapId') }} <span class="required-mark-right">*</span>
                   </template>
-                  <el-input v-model="mapForm.mapId" :placeholder="$t('maps.searchMapNamePlaceholder')" />
+                  <el-input v-model="mapForm.mapId" :placeholder="$t('maps.searchMapNamePlaceholder')" :disabled="dialogType === 'edit'" />
                 </el-form-item>
                 <el-form-item :label="$t('maps.mapName')" prop="name" label-width="120px">
                   <template #label>

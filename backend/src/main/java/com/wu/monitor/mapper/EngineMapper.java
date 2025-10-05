@@ -10,12 +10,11 @@ import java.util.List;
 public interface EngineMapper {
     /**
      * 查询所有引擎
-     * @param code 引擎编号（可选）
      * @param name 引擎名称（可选）
      * @param status 引擎状态（可选）
      * @return 引擎列表
      */
-    List<Engine> findAll(@Param("code") String code, @Param("name") String name, @Param("status") Integer status);
+    List<Engine> findAll(@Param("name") String name, @Param("status") Integer status);
     
     /**
      * 根据ID查询引擎
@@ -24,12 +23,6 @@ public interface EngineMapper {
      */
     Engine findById(@Param("id") Long id);
     
-    /**
-     * 根据编号查询引擎
-     * @param code 引擎编号
-     * @return 引擎信息
-     */
-    Engine findByCode(@Param("code") String code);
     
     /**
      * 插入引擎

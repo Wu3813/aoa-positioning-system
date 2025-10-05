@@ -6,12 +6,11 @@ import java.util.List;
 public interface EngineService {
     /**
      * 获取所有引擎
-     * @param code 引擎编号（可选）
      * @param name 引擎名称（可选）
      * @param status 引擎状态（可选）
      * @return 引擎列表
      */
-    List<Engine> getAllEngines(String code, String name, Integer status);
+    List<Engine> getAllEngines(String name, Integer status);
     
     /**
      * 根据ID获取引擎
