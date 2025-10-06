@@ -419,7 +419,7 @@ const uploadAction = computed(() => {
   const engine = engineList.value.find(e => e.id === engineForm.id)
   if (!engine) return ''
   const baseUrl = buildManagementUrl(engine.managementUrl)
-  return `${baseUrl}/model/upload/v1`
+  return `${baseUrl}/api/v1/model/upload`
 })
 
 const uploadHeaders = computed(() => {
@@ -700,7 +700,7 @@ const handleEdit = async (row) => {
 const performHealthCheck = async (row) => {
   try {
     const baseUrl = buildManagementUrl(row.managementUrl)
-    const healthUrl = `${baseUrl}/health`
+    const healthUrl = `${baseUrl}/api/v1/health`
     const response = await axios.get(healthUrl, { timeout: 5000 })
     
     const isHealthy = response.data && response.data.status === 'healthy'
@@ -715,7 +715,7 @@ const performHealthCheck = async (row) => {
     
     // 检查配置状态
     try {
-      const configUrl = `${baseUrl}/config/current/v1`
+      const configUrl = `${baseUrl}/api/v1/config/current`
       const configResponse = await axios.get(configUrl, { timeout: 5000 })
       if (configResponse.data && configResponse.data.success) {
         row.configStatus = 'synced'
@@ -769,7 +769,7 @@ const loadEngineConfig = async (engine) => {
   try {
     // 获取当前配置
     const baseUrl = buildManagementUrl(engine.managementUrl)
-    const configUrl = `${baseUrl}/config/current/v1`
+    const configUrl = `${baseUrl}/api/v1/config/current`
     const response = await axios.get(configUrl, { timeout: 5000 })
     
     if (response.data && response.data.success) {
@@ -853,7 +853,7 @@ const handleSyncConfig = async (showMessage = true) => {
     }
     
     const baseUrl = buildManagementUrl(engine.managementUrl)
-    const configUrl = `${baseUrl}/config/update/v1`
+    const configUrl = `${baseUrl}/api/v1/config/update`
     const response = await axios.post(configUrl, configForm, { timeout: 10000 })
     
     if (response.data && response.data.success) {
@@ -979,7 +979,7 @@ const handleCleanupModels = async () => {
   cleanupLoading.value = true
   try {
     const baseUrl = buildManagementUrl(engine.managementUrl)
-    const cleanupUrl = `${baseUrl}/model/cleanup/v1`
+    const cleanupUrl = `${baseUrl}/api/v1/model/cleanup`
     const response = await axios.post(cleanupUrl, {}, { timeout: 15000 })
     
     if (response.data && response.data.success) {
