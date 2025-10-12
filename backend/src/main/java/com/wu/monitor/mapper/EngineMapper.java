@@ -66,4 +66,18 @@ public interface EngineMapper {
      * @return 影响行数
      */
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+    
+    /**
+     * 更新最后通信时间
+     * @param id 引擎ID
+     * @return 影响行数
+     */
+    int updateLastCommunication(@Param("id") Long id);
+    
+    /**
+     * 更新最后配置时间
+     * @param id 引擎ID
+     * @return 影响行数
+     */
+    int updateLastConfigTime(@Param("id") Long id);
 } 

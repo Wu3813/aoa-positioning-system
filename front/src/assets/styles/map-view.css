@@ -85,7 +85,7 @@
   font-size: 20px;
 }
 
-.operation-buttons {
+.map-view-container .operation-buttons {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -93,12 +93,12 @@
   width: 100%;
 }
 
-.operation-row {
+.map-view-container .operation-row {
   display: flex;
   width: 100%;
 }
 
-.operation-buttons .el-button {
+.map-view-container .operation-buttons .el-button {
   flex: 1;
   font-size: 12px;
   padding: 4px 8px;

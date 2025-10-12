@@ -1,0 +1,486 @@
+.engine-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.engine-view-container .control-panel {
+  padding: 0 20px;
+  margin: 15px 0;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.engine-view-container .control-wrapper {
+  border-radius: 4px;
+  padding: 16px;
+  background-color: #fff;
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.engine-view-container .main-content {
+  flex: 1;
+  display: flex;
+  padding: 0 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.engine-view-container .engine-table-wrapper {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.engine-view-container .engine-table {
+  width: 100%;
+  height: 100%;
+}
+
+.engine-view-container .search-bar {
+  margin-top: 15px;
+  flex-shrink: 0;
+}
+
+.engine-view-container .action-bar {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.engine-view-container .operation-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: fit-content; /* 自适应内容宽度 */
+  max-width: none; /* 移除最大宽度限制 */
+}
+
+.engine-view-container .operation-row {
+  display: flex;
+  width: 100%;
+}
+
+.engine-view-container .operation-buttons .el-button {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: fit-content; /* 自适应内容宽度 */
+  white-space: nowrap;
+}
+
+.engine-dialog .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.engine-dialog .dialog-footer .el-button {
+  min-width: 100px;
+  height: 36px;
+}
+
+/* 英文界面适配 - 增加列宽度 */
+.engine-view-container[lang="en-US"] .engine-table .el-table-column {
+  min-width: auto;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="tagCount"] {
+  width: 120px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="stationCount"] {
+  width: 120px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="mapName"] {
+  width: 140px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="lastConfigTime"] {
+  width: 200px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="lastCommunication"] {
+  width: 200px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[prop="remark"] {
+  min-width: 220px !important;
+}
+
+.engine-view-container[lang="en-US"] .engine-table .el-table-column[label="Operation"] {
+  width: 300px !important;
+}
+
+/* 英文界面按钮适配 */
+.engine-view-container[lang="en-US"] .operation-buttons .el-button-group {
+  width: 100%;
+  display: flex;
+}
+
+.engine-view-container[lang="en-US"] .operation-buttons .el-button-group .el-button {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.engine-view-container[lang="en-US"] .action-bar .el-button {
+  min-width: 100px;
+}
+
+/* 英文界面搜索栏适配 */
+.engine-view-container[lang="en-US"] .search-bar .el-form-item {
+  margin-right: 16px;
+}
+
+.engine-view-container[lang="en-US"] .search-bar .el-form-item:last-child {
+  margin-right: 0;
+}
+
+/* 响应式布局适配 */
+@media screen and (max-width: 768px) {
+  .engine-view-container .control-panel {
+    padding: 0 10px;
+    margin: 10px 0;
+  }
+
+  .engine-view-container .main-content {
+    padding: 0 10px;
+  }
+
+  .engine-view-container .engine-table-wrapper {
+    padding: 10px;
+  }
+
+  .engine-view-container .el-form-item {
+    margin-bottom: 12px;
+  }
+}
+
+/* 确保Element表格内部滚动正常工作 */
+.engine-view-container .el-table__body-wrapper {
+  overflow-x: auto !important;
+}
+
+/* 美化表格内部滚动条 */
+.engine-view-container .el-table__body-wrapper::-webkit-scrollbar {
+  height: 12px !important;
+  display: block !important;
+}
+
+.engine-view-container .el-table__body-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.engine-view-container .el-table__body-wrapper::-webkit-scrollbar-thumb {
+  background: #909399;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.engine-view-container .el-table__body-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #606266;
+}
+
+.engine-view-container .el-select {
+  width: 100%;
+}
+
+/* 引擎对话框样式 */
+.engine-dialog {
+  max-height: 90vh;
+}
+
+.engine-dialog-content {
+  display: flex;
+  gap: 16px;
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+.engine-dialog .dialog-left-panel {
+  flex: 0 0 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.engine-dialog .dialog-right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.engine-dialog .form-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e4e7ed;
+}
+
+.engine-dialog .form-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 8px;
+}
+
+.engine-dialog .config-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e4e7ed;
+}
+
+.engine-dialog .config-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 8px;
+}
+
+.engine-dialog .config-actions {
+  background: #f0f9ff;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #b3d8ff;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.engine-dialog .config-actions .el-button {
+  min-width: 140px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.engine-dialog .config-actions .el-button .el-icon {
+  margin-right: 6px;
+}
+
+/* AI引擎配置样式 */
+.engine-dialog .ai-engine-config {
+  background: #f8f9fa;
+  border: 1px solid #e4e7ed;
+}
+
+.engine-dialog .ai-engine-config h3 {
+  color: #303133;
+  border-bottom-color: #e4e7ed;
+}
+
+/* 经典引擎配置样式 */
+.engine-dialog .classic-engine-config {
+  background: #f0f8ff;
+  border: 1px solid #b3d9ff;
+}
+
+.engine-dialog .classic-engine-config h3 {
+  color: #1f2937;
+  border-bottom-color: #b3d9ff;
+}
+
+.engine-dialog .current-model-item {
+  margin-bottom: 10px;
+}
+
+.engine-dialog .current-model-item .el-input.is-disabled .el-input__inner {
+  background-color: #f5f7fa;
+  border-color: #e4e7ed;
+  color: #606266;
+}
+
+.engine-dialog .model-path-item {
+  margin-bottom: 10px;
+}
+
+.engine-dialog .ai-params-row {
+  margin-bottom: 12px;
+}
+
+/* 模型操作按钮样式 */
+.engine-dialog .model-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e7ed;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.engine-dialog .model-actions .el-button {
+  min-width: 120px;
+  height: 36px;
+  font-weight: 500;
+}
+
+.engine-dialog .model-actions .el-button .el-icon {
+  margin-right: 6px;
+}
+
+/* 上传按钮样式 */
+.engine-dialog .upload-button {
+  display: inline-block;
+}
+
+.engine-dialog .upload-button .el-button {
+  min-width: 120px;
+  height: 36px;
+  font-weight: 500;
+}
+
+.engine-dialog .upload-button .el-button .el-icon {
+  margin-right: 6px;
+}
+
+/* 英文界面对话框适配 */
+.engine-dialog[lang="en-US"] .dialog-left-panel {
+  flex: 0 0 450px;
+}
+
+.engine-dialog[lang="en-US"] .el-form-item__label {
+  width: 140px !important;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.4;
+  padding-right: 12px;
+}
+
+.engine-dialog[lang="en-US"] .el-form-item__content {
+  margin-left: 140px !important;
+}
+
+/* 英文界面表单标签适配 */
+.engine-dialog[lang="en-US"] .ai-params-row .el-form-item__label {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.engine-dialog[lang="en-US"] .model-actions .el-button {
+  min-width: 130px;
+  font-size: 13px;
+}
+
+.engine-dialog[lang="en-US"] .config-section h3 {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* 英文界面对话框宽度适配 */
+.engine-dialog[lang="en-US"] {
+  width: 1500px !important;
+}
+
+/* 响应式布局 */
+@media screen and (max-width: 1600px) {
+  .engine-dialog[lang="en-US"] {
+    width: 95% !important;
+  }
+  
+  .engine-dialog[lang="en-US"] .dialog-left-panel {
+    flex: 0 0 400px;
+  }
+}
+
+@media screen and (max-width: 1400px) {
+  .engine-dialog .engine-dialog-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .engine-dialog .dialog-left-panel {
+    flex: none;
+  }
+
+  .engine-dialog .dialog-right-panel {
+    flex: none;
+  }
+  
+  .engine-dialog[lang="en-US"] .el-form-item__label {
+    width: 120px !important;
+  }
+  
+  .engine-dialog[lang="en-US"] .el-form-item__content {
+    margin-left: 120px !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .engine-dialog {
+    width: 95% !important;
+    margin: 0 auto;
+  }
+
+  .engine-dialog .engine-dialog-content {
+    max-height: calc(90vh - 100px);
+  }
+
+  .engine-dialog .form-section,
+  .engine-dialog .config-section {
+    padding: 16px;
+  }
+
+  .engine-dialog .config-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .engine-dialog .config-actions .el-button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .engine-dialog .ai-params-row .el-col {
+    margin-bottom: 16px;
+  }
+
+  .engine-dialog .model-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .engine-dialog .model-actions .el-button {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  /* 英文界面小屏幕适配 */
+  .engine-dialog[lang="en-US"] .el-form-item__label {
+    width: 100px !important;
+    font-size: 11px;
+  }
+  
+  .engine-dialog[lang="en-US"] .el-form-item__content {
+    margin-left: 100px !important;
+  }
+  
+  .engine-dialog[lang="en-US"] .config-section h3 {
+    font-size: 14px;
+  }
+  
+  .engine-view-container[lang="en-US"] .operation-buttons .el-button-group .el-button {
+    font-size: 10px;
+    padding: 3px 4px;
+  }
+}

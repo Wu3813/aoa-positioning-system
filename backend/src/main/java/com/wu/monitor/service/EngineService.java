@@ -60,4 +60,16 @@ public interface EngineService {
      * @return 更新后的引擎信息
      */
     Engine updateEngineStatus(Long id, Integer status);
+    
+    /**
+     * 更新最后通信时间
+     * @param id 引擎ID
+     */
+    void updateLastCommunication(Long id);
+    
+    /**
+     * 更新最后配置时间
+     * @param id 引擎ID
+     */
+    void updateLastConfigTime(Long id);
 } 

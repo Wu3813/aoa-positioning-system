@@ -9,15 +9,21 @@
         <result property="mapId" column="map_id" jdbcType="BIGINT"/>
         <result property="mapName" column="map_name"/>
         <result property="status" column="status"/>
+        <result property="configApiPort" column="config_api_port"/>
         <result property="lastCommunication" column="last_communication"/>
+        <result property="lastConfigTime" column="last_config_time"/>
         <result property="createTime" column="create_time"/>
         <result property="remark" column="remark"/>
+        <result property="tagCount" column="tag_count"/>
+        <result property="stationCount" column="station_count"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        e.id, e.name, e.management_url, e.map_id, e.status,
-        e.last_communication, e.create_time, e.remark, m.name as map_name
+        e.id, e.name, e.management_url, e.map_id, e.status, e.config_api_port,
+        e.last_communication, e.last_config_time, e.create_time, e.remark, m.name as map_name,
+        COALESCE(tag_counts.tag_count, 0) as tag_count,
+        COALESCE(station_counts.station_count, 0) as station_count
     </sql>
 
     <!-- 查询所有引擎 -->
@@ -25,6 +31,18 @@
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
         LEFT JOIN map m ON e.map_id = m.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as tag_count
+            FROM tag
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) tag_counts ON e.map_id = tag_counts.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as station_count
+            FROM station
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) station_counts ON e.map_id = station_counts.map_id
         <where>
             <if test="name != null and name != ''">
                 AND e.name LIKE CONCAT('%', #{name}, '%')
@@ -41,6 +59,18 @@
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
         LEFT JOIN map m ON e.map_id = m.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as tag_count
+            FROM tag
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) tag_counts ON e.map_id = tag_counts.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as station_count
+            FROM station
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) station_counts ON e.map_id = station_counts.map_id
         WHERE e.id = #{id}
     </select>
 
@@ -48,11 +78,11 @@
     <!-- 插入引擎 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO engine (
-            name, management_url, map_id, status,
-            last_communication, create_time, remark
+            name, management_url, map_id, status, config_api_port,
+            last_communication, last_config_time, create_time, remark
         ) VALUES (
-            #{name}, #{managementUrl}, #{mapId}, #{status},
-            #{lastCommunication}, #{createTime}, #{remark}
+            #{name}, #{managementUrl}, #{mapId}, #{status}, #{configApiPort},
+            #{lastCommunication}, #{lastConfigTime}, #{createTime}, #{remark}
         )
     </insert>
 
@@ -64,7 +94,9 @@
             <if test="managementUrl != null">management_url = #{managementUrl},</if>
             <if test="mapId != null">map_id = #{mapId},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="configApiPort != null">config_api_port = #{configApiPort},</if>
             <if test="lastCommunication != null">last_communication = #{lastCommunication},</if>
+            <if test="lastConfigTime != null">last_config_time = #{lastConfigTime},</if>
             <if test="remark != null">remark = #{remark}</if>
         </set>
         WHERE id = #{id}
@@ -88,6 +120,18 @@
         SELECT <include refid="Base_Column_List"/>
         FROM engine e
         LEFT JOIN map m ON e.map_id = m.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as tag_count
+            FROM tag
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) tag_counts ON e.map_id = tag_counts.map_id
+        LEFT JOIN (
+            SELECT map_id, COUNT(*) as station_count
+            FROM station
+            WHERE map_id IS NOT NULL
+            GROUP BY map_id
+        ) station_counts ON e.map_id = station_counts.map_id
         WHERE e.map_id = #{mapId}
         ORDER BY e.create_time ASC
     </select>
@@ -97,6 +141,20 @@
         UPDATE engine
         SET status = #{status},
             last_communication = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新最后通信时间 -->
+    <update id="updateLastCommunication">
+        UPDATE engine
+        SET last_communication = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新最后配置时间 -->
+    <update id="updateLastConfigTime">
+        UPDATE engine
+        SET last_config_time = NOW()
         WHERE id = #{id}
     </update>
 </mapper> 

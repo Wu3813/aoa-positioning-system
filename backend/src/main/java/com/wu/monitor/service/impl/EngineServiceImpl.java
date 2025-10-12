@@ -96,4 +96,28 @@ public class EngineServiceImpl implements EngineService {
         
         return getEngineById(id);
     }
+    
+    @Override
+    @Transactional
+    public void updateLastCommunication(Long id) {
+        // 检查引擎是否存在
+        Engine engine = engineMapper.findById(id);
+        if (engine == null) {
+            throw new ResourceNotFoundException("引擎不存在");
+        }
+        
+        engineMapper.updateLastCommunication(id);
+    }
+    
+    @Override
+    @Transactional
+    public void updateLastConfigTime(Long id) {
+        // 检查引擎是否存在
+        Engine engine = engineMapper.findById(id);
+        if (engine == null) {
+            throw new ResourceNotFoundException("引擎不存在");
+        }
+        
+        engineMapper.updateLastConfigTime(id);
+    }
 } 

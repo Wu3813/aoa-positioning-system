@@ -22,8 +22,9 @@ spring:
   # 配置文件上传大小限制
   servlet:
     multipart:
-      max-file-size: 10MB       # 单个文件最大大小
-      max-request-size: 15MB    # 单次请求最大大小
+      max-file-size: 200MB      # 单个文件最大大小（支持大型模型文件）
+      max-request-size: 250MB   # 单次请求最大大小
+      enabled: true             # 确保multipart功能启用
       
   datasource:
     username: ${SPRING_DATASOURCE_USERNAME:root}
