@@ -292,13 +292,13 @@
 
 /* 经典引擎配置样式 */
 .engine-dialog .classic-engine-config {
-  background: #f0f8ff;
-  border: 1px solid #b3d9ff;
+  background: #f8f9fa;
+  border: 1px solid #e4e7ed;
 }
 
 .engine-dialog .classic-engine-config h3 {
-  color: #1f2937;
-  border-bottom-color: #b3d9ff;
+  color: #303133;
+  border-bottom-color: #e4e7ed;
 }
 
 .engine-dialog .current-model-item {
