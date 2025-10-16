@@ -85,9 +85,9 @@ export function createGeofenceManager(mapStore, coordinateUtils, t) {
         type: 'warning',
         duration: 0, // 不自动关闭
         position: 'bottom-right',
-        showClose: false, // 禁用手动关闭
+        showClose: true, // 启用手动关闭
         closeOnClick: false, // 点击通知内容不关闭
-        closeOnPressEscape: false // 按ESC键不关闭
+        closeOnPressEscape: true // 按ESC键可以关闭
       })
       
       // 保存通知引用以便后续关闭
@@ -211,9 +211,9 @@ export function createGeofenceManager(mapStore, coordinateUtils, t) {
           type: 'warning',
           duration: 0, // 不自动关闭
           position: 'bottom-right',
-          showClose: false, // 禁用手动关闭
+          showClose: true, // 启用手动关闭
           closeOnClick: false, // 点击通知内容不关闭
-          closeOnPressEscape: false // 按ESC键不关闭
+          closeOnPressEscape: true // 按ESC键可以关闭
         })
         
         // 更新通知引用

@@ -80,7 +80,9 @@ export default {
     goToMapManagement: 'Go to Map Management',
     monitorMap: 'Monitor Map',
     fetchMapListFailed: 'Failed to fetch map list',
-    switchMapFailed: 'Failed to switch map'
+    switchMapFailed: 'Failed to switch map',
+    enterFullscreen: 'Enter Fullscreen Mode',
+    exitFullscreen: 'Exit Fullscreen Mode'
   },
 
   // Historical Trajectory page
@@ -287,6 +289,7 @@ export default {
     enterMapId: 'Please enter map ID',
     mapIdFormatError: 'Map ID can only contain letters, numbers, underscores and hyphens',
     enterMapName: 'Please enter map name',
+    mapNameExists: 'Map name already exists, please use a different name',
     pixels: 'pixels'
   },
 
@@ -851,6 +854,10 @@ export default {
     timeoutManagement: 'Timeout Management',
     timeoutInterval: 'Timeout:',
     timeoutTaskWarning: 'Note: This feature manages tag timeout. After timeout, the system will automatically close alarms for that tag',
+    displayConfig: 'Display Configuration',
+    tagIconSize: 'Tag Icon Size:',
+    pixels: 'pixels',
+    displayConfigWarning: 'Adjusting tag icon size will affect the display effect of tags in the real-time monitoring page',
     enabled: 'Enabled',
     disabled: 'Disabled',
     saveConfig: 'Save Configuration',

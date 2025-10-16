@@ -21,7 +21,7 @@ export const createMapData = () => {
 
   // 添加/编辑表单
   const mapForm = reactive({
-    mapId: '',
+    mapId: null,
     name: '',
     file: null,
     width: 0,
@@ -79,13 +79,40 @@ export const createMapData = () => {
   const previewLoading = ref(false)
   const previewImageUrl = ref(null)
 
+  // 自动生成 mapId 的函数
+  const generateMapId = () => {
+    // 生成一个基于时间戳的随机数字
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000)
+    return timestamp + random
+  }
+
   // 表单校验规则
   const rules = {
-    mapId: [
-      { required: true, message: t('maps.enterMapId'), trigger: 'blur' },
-      { pattern: /^[A-Za-z0-9_-]+$/, message: t('maps.mapIdFormatError'), trigger: 'blur' }
+    name: [
+      { required: true, message: t('maps.enterMapName'), trigger: 'blur' },
+      {
+        validator: (rule, value, callback) => {
+          if (!value) {
+            callback()
+            return
+          }
+          
+          // 检查是否有重复的地图名称
+          const existingMap = mapList.value.find(map => 
+            map.name === value && 
+            (dialogType.value === 'add' || map.mapId !== mapForm.mapId)
+          )
+          
+          if (existingMap) {
+            callback(new Error(t('maps.mapNameExists')))
+          } else {
+            callback()
+          }
+        },
+        trigger: 'blur'
+      }
     ],
-    name: [{ required: true, message: t('maps.enterMapName'), trigger: 'blur' }],
   }
 
   // 状态管理

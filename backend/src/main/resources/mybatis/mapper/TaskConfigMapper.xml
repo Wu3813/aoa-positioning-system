@@ -16,6 +16,8 @@
         <!-- 超时管理配置 -->
         <result column="timeout_enabled" property="timeoutTask.enabled" />
         <result column="timeout_ms" property="timeoutTask.timeoutMs" />
+        <!-- 显示配置 -->
+        <result column="tag_icon_size" property="displayConfig.tagIconSize" />
     </resultMap>
     
     <select id="selectTaskConfig" resultMap="TaskConfigResultMap">
@@ -29,7 +31,8 @@
             storage_interval_ms,
             storage_enabled,
             timeout_enabled,
-            timeout_ms
+            timeout_ms,
+            tag_icon_size
         FROM task_config
         LIMIT 1
     </select>
@@ -44,7 +47,8 @@
             storage_interval_ms,
             storage_enabled,
             timeout_enabled,
-            timeout_ms
+            timeout_ms,
+            tag_icon_size
         ) VALUES (
             #{stationTask.intervalMs},
             #{stationTask.enabled},
@@ -54,7 +58,8 @@
             #{storageTask.intervalMs},
             #{storageTask.enabled},
             #{timeoutTask.enabled},
-            #{timeoutTask.timeoutMs}
+            #{timeoutTask.timeoutMs},
+            #{displayConfig.tagIconSize}
         )
     </insert>
     
@@ -72,7 +77,8 @@
             storage_interval_ms = #{storageTask.intervalMs},
             storage_enabled = #{storageTask.enabled},
             timeout_enabled = #{timeoutTask.enabled},
-            timeout_ms = #{timeoutTask.timeoutMs}
+            timeout_ms = #{timeoutTask.timeoutMs},
+            tag_icon_size = #{displayConfig.tagIconSize}
         WHERE id = #{id}
     </update>
 </mapper> 

@@ -80,7 +80,9 @@ export default {
     goToMapManagement: '前往地图管理',
     monitorMap: '监控地图',
     fetchMapListFailed: '获取地图列表失败',
-    switchMapFailed: '切换地图失败'
+    switchMapFailed: '切换地图失败',
+    enterFullscreen: '进入全屏模式',
+    exitFullscreen: '退出全屏模式'
   },
 
   // 历史轨迹页面
@@ -287,6 +289,7 @@ export default {
     enterMapId: '请输入地图ID',
     mapIdFormatError: '地图ID只能包含字母、数字、下划线和横线',
     enterMapName: '请输入地图名称',
+    mapNameExists: '地图名称已存在，请使用其他名称',
     pixels: '像素'
   },
 
@@ -862,6 +865,10 @@ export default {
     timeoutManagement: '超时管理',
     timeoutInterval: '超时时间:',
     timeoutTaskWarning: '注意: 此功能用于管理标签超时，超时后系统将自动关闭该标签的告警',
+    displayConfig: '显示配置',
+    tagIconSize: '标签图标大小:',
+    pixels: '像素',
+    displayConfigWarning: '调整标签图标大小会影响实时监控页面中标签的显示效果',
     enabled: '启用',
     disabled: '禁用',
     saveConfig: '保存配置',

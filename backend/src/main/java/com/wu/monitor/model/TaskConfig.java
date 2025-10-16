@@ -112,10 +112,26 @@ public class TaskConfig {
         }
     }
     
+    /**
+     * 显示配置
+     */
+    public static class DisplayConfig {
+        private int tagIconSize = 10;       // 标签图标大小（像素），默认10像素
+
+        public int getTagIconSize() {
+            return tagIconSize;
+        }
+        
+        public void setTagIconSize(int tagIconSize) {
+            this.tagIconSize = tagIconSize;
+        }
+    }
+    
     private StationTask stationTask = new StationTask();
     private TrajectoryTask trajectoryTask = new TrajectoryTask();
     private StorageTask storageTask = new StorageTask();
     private TimeoutTask timeoutTask = new TimeoutTask();
+    private DisplayConfig displayConfig = new DisplayConfig();
     
     public Long getId() {
         return id;
@@ -155,5 +171,13 @@ public class TaskConfig {
     
     public void setTimeoutTask(TimeoutTask timeoutTask) {
         this.timeoutTask = timeoutTask;
+    }
+    
+    public DisplayConfig getDisplayConfig() {
+        return displayConfig;
+    }
+    
+    public void setDisplayConfig(DisplayConfig displayConfig) {
+        this.displayConfig = displayConfig;
     }
 } 

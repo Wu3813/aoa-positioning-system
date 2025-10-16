@@ -157,6 +157,39 @@
             </div>
           </el-card>
 
+          <!-- 显示配置 -->
+          <el-card class="config-card" shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <div class="header-left">
+                  <el-icon><View /></el-icon>
+                  <span>{{ $t('admin.displayConfig') }}</span>
+                </div>
+              </div>
+            </template>
+            
+            <div class="card-content">
+              <el-form label-position="left" label-width="120px">
+                <el-form-item :label="$t('admin.tagIconSize')">
+                  <el-input-number 
+                    v-model="taskConfig.displayConfig.tagIconSize"
+                    :min="5"
+                    :max="30"
+                    :step="1"
+                    controls-position="right"
+                    style="width: 200px" />
+                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.pixels') }}</span>
+                </el-form-item>
+              </el-form>
+              <el-alert
+                :title="$t('admin.displayConfigWarning')"
+                type="info"
+                show-icon
+                :closable="false"
+              />
+            </div>
+          </el-card>
+
           <div class="actions">
             <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">{{ $t('admin.saveConfig') }}</el-button>
             <el-button @click="handleResetTaskConfig">{{ $t('admin.resetConfig') }}</el-button>
@@ -170,7 +203,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Monitor, Position, Clock } from '@element-plus/icons-vue'
+import { Monitor, Position, Clock, View } from '@element-plus/icons-vue'
 import { useAdminView } from './adminview-js'
 
 // 获取国际化函数

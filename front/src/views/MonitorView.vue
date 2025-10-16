@@ -18,6 +18,13 @@
               :value="map.mapId"
             />
           </el-select>
+          <el-button 
+            @click="toggleFullscreen"
+            :title="isFullscreen ? t('monitor.exitFullscreen') : t('monitor.enterFullscreen')"
+            style="margin-left: 10px;"
+          >
+            {{ isFullscreen ? t('monitor.exitFullscreen') : t('monitor.enterFullscreen') }}
+          </el-button>
           <div class="trace-control">
             <span style="margin-right: 8px;">{{ t('monitor.traceControl') }}</span>
             <el-switch
@@ -107,7 +114,7 @@
              <el-button type="primary" @click="goToMapManagement">{{ t('monitor.goToMapManagement') }}</el-button>
           </el-empty>
         </div>
-        <div v-else class="map-display">
+        <div v-else class="map-display" ref="fullscreenContainer">
           <div class="image-wrapper">
             <img 
               :src="mapStore.mapUrl" 
@@ -140,9 +147,9 @@
 </template>
 
 <script setup>
-import { onMounted, watch, onUnmounted } from 'vue'
+import { onMounted, watch, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Delete, Search } from '@element-plus/icons-vue'
+import { Delete, Search, FullScreen, Close } from '@element-plus/icons-vue'
 import '@/assets/styles/monitor-view.css'
 import { useMonitorView } from './monitorview-js/index.js'
 
@@ -180,8 +187,40 @@ const {
   onUnmountedHandler
 } = useMonitorView()
 
+// 全屏控制
+const fullscreenContainer = ref(null)
+const isFullscreen = ref(false)
+
+const onFullscreenChange = () => {
+  const fsElement = document.fullscreenElement
+  isFullscreen.value = !!fsElement && (fsElement === fullscreenContainer.value)
+  // 切换后更新缩放并重绘，延迟确保布局完成
+  setTimeout(() => {
+    updateScaleFactor()
+  }, 100)
+}
+
+const toggleFullscreen = async () => {
+  try {
+    if (!document.fullscreenElement) {
+      if (fullscreenContainer.value?.requestFullscreen) {
+        await fullscreenContainer.value.requestFullscreen()
+      }
+    } else {
+      await document.exitFullscreen()
+    }
+  } catch (e) {
+    console.error('切换全屏失败', e)
+  }
+}
+
 // 组件挂载
 onMounted(onMountedHandler)
+
+// 监听全屏变化
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange)
+})
 
 // 监听地图变化
 watch(() => mapStore.selectedMap, watchMapChange, { deep: true })
@@ -191,4 +230,8 @@ watch(() => trackingStore.forceUpdateFlag, watchTrackingData)
 
 // 组件卸载时清除缓存和定时器
 onUnmounted(onUnmountedHandler)
+
+onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
+})
 </script>

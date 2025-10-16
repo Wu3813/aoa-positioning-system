@@ -17,6 +17,14 @@ export const createUIHandler = (data) => {
     hasCompletedScale 
   } = data
 
+  // 自动生成 mapId 的函数
+  const generateMapId = () => {
+    // 生成一个基于时间戳的随机数字
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000)
+    return timestamp + random
+  }
+
   // 搜索
   const handleSearch = (fetchMapList) => {
     fetchMapList(searchForm)
@@ -43,7 +51,7 @@ export const createUIHandler = (data) => {
     if (mapFormRef.value) {
       mapFormRef.value.resetFields();
     }
-    mapForm.mapId = '';
+    mapForm.mapId = null;
     mapForm.file = null;
     mapForm.name = '';
     mapForm.originX = 0;
@@ -148,6 +156,8 @@ export const createUIHandler = (data) => {
   // 新增地图
   const handleAdd = () => {
     resetForm()
+    // 为新建地图自动生成 mapId
+    mapForm.mapId = generateMapId()
     dialogType.value = 'add'
     dialogVisible.value = true
     

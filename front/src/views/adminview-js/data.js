@@ -22,6 +22,9 @@ export function createAdminData() {
     timeoutTask: {
       enabled: true,
       timeoutMs: 30000
+    },
+    displayConfig: {
+      tagIconSize: 10
     }
   })
 
@@ -44,6 +47,9 @@ export function createAdminData() {
       timeoutTask: {
         enabled: true,
         timeoutMs: 30000
+      },
+      displayConfig: {
+        tagIconSize: 10
       }
     })
   }

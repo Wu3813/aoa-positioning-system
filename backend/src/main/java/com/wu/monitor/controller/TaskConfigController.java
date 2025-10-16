@@ -92,6 +92,7 @@ public class TaskConfigController {
             status.put("storageTaskInterval", config.getStorageTask().getIntervalMs());
             status.put("timeoutTaskEnabled", config.getTimeoutTask().isEnabled());
             status.put("timeoutTaskInterval", config.getTimeoutTask().getTimeoutMs());
+            status.put("tagIconSize", config.getDisplayConfig().getTagIconSize());
             
             return ResponseEntity.ok(status);
         } catch (Exception e) {

@@ -80,7 +80,9 @@ export const createRenderHandler = (data) => {
           ctx.strokeStyle = '#fff'
           ctx.lineWidth = 3
           ctx.fillStyle = sensor.color
-          ctx.arc(x, y, 10, 0, Math.PI * 2) // 增大半径从5到8
+          // 从配置中获取标签图标大小，默认为10
+          const tagIconSize = data.trackingStore.tagIconSize || 10
+          ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
           ctx.fill()
           ctx.stroke()
           ctx.shadowBlur = 0

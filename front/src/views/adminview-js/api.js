@@ -31,6 +31,14 @@ export function createAdminAPI(data, t) {
       // 同时保存到localStorage，供前端其他组件使用
       try {
         localStorage.setItem('taskConfig', JSON.stringify(data.taskConfig))
+        
+        // 如果配置中包含显示配置，触发标签图标大小更新
+        if (data.taskConfig.displayConfig && data.taskConfig.displayConfig.tagIconSize) {
+          // 触发自定义事件，通知其他组件配置已更新
+          window.dispatchEvent(new CustomEvent('taskConfigUpdated', {
+            detail: { displayConfig: data.taskConfig.displayConfig }
+          }))
+        }
       } catch (e) {
         console.error('保存配置到localStorage失败:', e)
       }

@@ -48,12 +48,6 @@
           @sort-change="handleSortChange"
         >
           <el-table-column type="selection" width="40" fixed="left" />
-          <el-table-column :label="$t('maps.serialNumber')" width="60" align="center" fixed="left">
-            <template #default="scope">
-              {{ scope.$index + 1 }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="mapId" :label="$t('maps.mapId')" min-width="120" show-overflow-tooltip sortable="custom" />
           <el-table-column prop="name" :label="$t('maps.mapName')" min-width="180" show-overflow-tooltip sortable="custom" />
           <el-table-column :label="$t('maps.mapImage')" width="120">
             <template #default="scope">
@@ -154,12 +148,6 @@
               <!-- 基本信息 -->
               <div class="form-section">
                 <h3>{{ $t('maps.basicInfo') }}</h3>
-                <el-form-item :label="$t('maps.mapId')" prop="mapId" label-width="120px">
-                  <template #label>
-                    {{ $t('maps.mapId') }} <span class="required-mark-right">*</span>
-                  </template>
-                  <el-input v-model="mapForm.mapId" :placeholder="$t('maps.searchMapNamePlaceholder')" :disabled="dialogType === 'edit'" />
-                </el-form-item>
                 <el-form-item :label="$t('maps.mapName')" prop="name" label-width="120px">
                   <template #label>
                     {{ $t('maps.mapName') }} <span class="required-mark-right">*</span>
