@@ -101,6 +101,9 @@ export const useTrackingStore = defineStore('tracking', () => {
       // 清理所有围栏告警
       geofenceManager.clearAllAlerts()
       
+      // 清理WebSocket数据缓冲区，防止旧地图数据残留
+      wsManager.clearDataBuffer()
+      
       // 处理传感器数据
       await sensorManager.handleMapChange(newMapId)
       
@@ -135,6 +138,7 @@ export const useTrackingStore = defineStore('tracking', () => {
     disconnect: wsManager.disconnect,
     startAutoConnect: wsManager.startAutoConnect,
     stopAutoConnect: wsManager.stopAutoConnect,
+    clearDataBuffer: wsManager.clearDataBuffer,
     stompClient: wsManager.stompClient, // 导出stompClient供组件使用
     
     // 从传感器管理器导出

@@ -189,6 +189,20 @@ export function createWebSocketManager(mapStore, sensorManager, geofenceManager)
     disconnect()
   }
   
+  // 清理数据缓冲区
+  function clearDataBuffer() {
+    // 清除数据处理定时器
+    if (processingTimer) {
+      clearTimeout(processingTimer)
+      processingTimer = null
+    }
+    
+    // 清空数据缓冲区
+    dataBuffer.value = []
+    
+    console.log('WebSocket数据缓冲区已清理')
+  }
+
   // 清理资源
   function cleanup() {
     // 清除数据处理定时器
@@ -211,6 +225,7 @@ export function createWebSocketManager(mapStore, sensorManager, geofenceManager)
     disconnect,
     startAutoConnect,
     stopAutoConnect,
+    clearDataBuffer,
     cleanup,
     stompClient // 导出stompClient以便其他组件可以使用
   }

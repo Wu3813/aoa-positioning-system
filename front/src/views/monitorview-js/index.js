@@ -92,6 +92,12 @@ export function useMonitorView() {
   const watchMapChange = () => {
     data.geofenceCenters.clear();
     
+    // 🎯 地图变化时，先重置所有传感器动画状态
+    if (renderHandler.resetAllSensorAnimations) {
+      renderHandler.resetAllSensorAnimations();
+      console.log('地图变化，已重置所有传感器动画状态');
+    }
+    
     // 当地图变化时，重置图片信息状态
     data.imageInfo.loaded = false;
     data.imageInfo.width = 0;

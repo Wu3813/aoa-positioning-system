@@ -84,20 +84,13 @@ export const createRenderHandler = (data) => {
   // 初始化传感器动画状态
   const initSensorAnimation = (sensor) => {
     if (!sensor.animationState) {
-      // 获取标签的实际位置作为初始位置，避免从(0,0)飞过来的动画
-      let initialX = 0, initialY = 0
-      if (sensor.lastPoint) {
-        initialX = convertToDisplayX(data.mapStore.meterToPixelX(sensor.lastPoint.x))
-        initialY = convertToDisplayY(data.mapStore.meterToPixelY(sensor.lastPoint.y))
-      }
-      
       sensor.animationState = {
-        targetX: initialX,
-        targetY: initialY,
-        currentX: initialX,
-        currentY: initialY,
-        startX: initialX,
-        startY: initialY,
+        targetX: 0,
+        targetY: 0,
+        currentX: 0,
+        currentY: 0,
+        startX: 0,
+        startY: 0,
         startTime: 0,
         duration: ANIMATION_CONFIG.duration,
         isAnimating: false,
@@ -496,6 +489,17 @@ export const createRenderHandler = (data) => {
     return data.geofenceCenters.get(id).y
   }
 
+  // 重置所有传感器的动画状态（用于画布重新加载、大小变化等场景）
+  const resetAllSensorAnimations = () => {
+    data.trackingStore.visibleSensorsList.forEach(sensor => {
+      if (sensor.animationState) {
+        // 清除动画状态，下次更新时会重新初始化
+        delete sensor.animationState
+      }
+    })
+    console.log('已重置所有传感器动画状态')
+  }
+
   // 处理传感器位置更新（触发动画）
   const handleSensorPositionUpdate = (sensor, newPoint) => {
     if (!newPoint) return
@@ -505,13 +509,31 @@ export const createRenderHandler = (data) => {
     const newY = convertToDisplayY(data.mapStore.meterToPixelY(newPoint.y))
     
     if (!isNaN(newX) && !isNaN(newY)) {
-      // 更新动画目标位置
-      updateSensorAnimation(sensor, newX, newY)
+      // 检查是否是首次位置设置
+      const isFirstPosition = !sensor.animationState || 
+                              (sensor.animationState.targetX === 0 && sensor.animationState.targetY === 0)
+      
+      if (isFirstPosition) {
+        // 首次设置位置，直接设置，不播放动画
+        initSensorAnimation(sensor)
+        sensor.animationState.targetX = newX
+        sensor.animationState.targetY = newY
+        sensor.animationState.currentX = newX
+        sensor.animationState.currentY = newY
+        sensor.animationState.isAnimating = false
+        sensor.animationState.velocityX = 0
+        sensor.animationState.velocityY = 0
+        console.log(`传感器 ${sensor.mac} 首次位置设置: (${newX}, ${newY})`)
+      } else {
+        // 后续位置更新，播放动画
+        updateSensorAnimation(sensor, newX, newY)
+      }
     }
   }
 
   // 注册全局动画处理器
   window.sensorAnimationHandler = handleSensorPositionUpdate
+  window.resetAllSensorAnimations = resetAllSensorAnimations
 
   return {
     renderCanvas,
@@ -521,6 +543,7 @@ export const createRenderHandler = (data) => {
     convertToDisplayX,
     convertToDisplayY,
     handleSensorPositionUpdate,
-    updateSensorAnimation
+    updateSensorAnimation,
+    resetAllSensorAnimations
   }
 }
