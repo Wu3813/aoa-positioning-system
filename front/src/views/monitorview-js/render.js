@@ -84,13 +84,20 @@ export const createRenderHandler = (data) => {
   // 初始化传感器动画状态
   const initSensorAnimation = (sensor) => {
     if (!sensor.animationState) {
+      // 获取标签的实际位置作为初始位置，避免从(0,0)飞过来的动画
+      let initialX = 0, initialY = 0
+      if (sensor.lastPoint) {
+        initialX = convertToDisplayX(data.mapStore.meterToPixelX(sensor.lastPoint.x))
+        initialY = convertToDisplayY(data.mapStore.meterToPixelY(sensor.lastPoint.y))
+      }
+      
       sensor.animationState = {
-        targetX: 0,
-        targetY: 0,
-        currentX: 0,
-        currentY: 0,
-        startX: 0,
-        startY: 0,
+        targetX: initialX,
+        targetY: initialY,
+        currentX: initialX,
+        currentY: initialY,
+        startX: initialX,
+        startY: initialY,
         startTime: 0,
         duration: ANIMATION_CONFIG.duration,
         isAnimating: false,

@@ -109,6 +109,24 @@ export const createUIHandler = (data, renderHandler) => {
       console.log("更新显示尺寸:", data.imageInfo.displayWidth, "x", data.imageInfo.displayHeight);
       console.log("更新图片位置:", data.imageInfo.domInfo.offsetX, ",", data.imageInfo.domInfo.offsetY);
       
+      // 更新所有传感器的动画状态位置，避免全屏切换时的飞行动画
+      data.trackingStore.visibleSensorsList.forEach(sensor => {
+        if (sensor.lastPoint && sensor.animationState) {
+          // 计算新的显示位置
+          const newX = data.imageInfo.scaleX * data.mapStore.meterToPixelX(sensor.lastPoint.x);
+          const newY = data.imageInfo.scaleY * data.mapStore.meterToPixelY(sensor.lastPoint.y);
+          
+          // 直接更新动画状态到新位置，不触发动画
+          sensor.animationState.targetX = newX;
+          sensor.animationState.targetY = newY;
+          sensor.animationState.currentX = newX;
+          sensor.animationState.currentY = newY;
+          sensor.animationState.isAnimating = false;
+          sensor.animationState.velocityX = 0;
+          sensor.animationState.velocityY = 0;
+        }
+      });
+      
       // 缩放比例更新后重新渲染Canvas
       renderHandler.renderCanvas();
     }
