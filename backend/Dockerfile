@@ -1,8 +1,12 @@
-From maven:3-amazoncorretto-8 AS builder
+FROM maven:3-amazoncorretto-8 AS builder
 
 WORKDIR /app
 
 COPY ./pom.xml /app/
+COPY ./backend/pom.xml /app/backend/
+
+RUN mvn dependency:go-offline -B
+
 COPY ./backend /app/backend
 
 RUN mvn clean package -DskipTests
