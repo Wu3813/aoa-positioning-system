@@ -20,11 +20,12 @@ export function useMonitorView() {
   // 自动刷新相关
   let autoRefreshInterval = null
   let renderRequestId = null
-  const AUTO_REFRESH_INTERVAL = 1000 // 1秒刷新一次
+  const AUTO_REFRESH_INTERVAL = 16 // 16ms (约60fps)，与数据处理频率保持一致
 
   // Canvas渲染动画帧
   const renderFrame = () => {
     renderHandler.renderCanvas();
+    // 继续渲染循环，让动画能够持续进行
     renderRequestId = requestAnimationFrame(renderFrame);
   }
 

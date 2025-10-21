@@ -11,7 +11,7 @@ export function createWebSocketManager(mapStore, sensorManager, geofenceManager)
   const dataBuffer = ref([]) // 存储接收到的数据
   const processingData = ref(false) // 标记是否正在处理数据
   const BUFFER_SIZE = 200 // 缓冲区大小，每批处理200条数据，减少单次处理量
-  const PROCESSING_INTERVAL = 32 // 32ms (约30fps)，降低处理频率以减轻CPU负担
+  const PROCESSING_INTERVAL = 16 // 16ms (约60fps)，提高处理频率以获得更流畅的动画效果
   let processingTimer = null // 处理定时器
   
   // 自动连接相关的变量和函数

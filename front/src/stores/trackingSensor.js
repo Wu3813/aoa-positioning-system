@@ -357,6 +357,11 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     sensor.points.push(point)
     sensor.lastPoint = point
     
+    // 触发位置更新动画（如果存在动画处理器）
+    if (window.sensorAnimationHandler) {
+      window.sensorAnimationHandler(sensor, point)
+    }
+    
     // 更新最后数据处理时间戳
     lastUpdateTimestamp.value = Date.now();
   }
