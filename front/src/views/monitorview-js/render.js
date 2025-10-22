@@ -1,6 +1,10 @@
 // 渲染相关
 export const createRenderHandler = (data) => {
-  // 坐标转换函数 - 将原始像素坐标转换为显示尺寸坐标
+  // 坐标转换缓存
+  const coordinateCache = new Map()
+  const CACHE_SIZE_LIMIT = 1000 // 限制缓存大小
+  
+  // 坐标转换函数 - 将原始像素坐标转换为显示尺寸坐标（带缓存）
   const convertToDisplayX = (x) => {
     return x * data.imageInfo.scaleX;
   }
@@ -9,70 +13,59 @@ export const createRenderHandler = (data) => {
     return y * data.imageInfo.scaleY;
   }
 
+  // 带缓存的坐标转换函数
+  const convertToDisplayCached = (x, y) => {
+    const key = `${x},${y}`
+    if (coordinateCache.has(key)) {
+      return coordinateCache.get(key)
+    }
+    
+    // 如果缓存太大，清理一半
+    if (coordinateCache.size > CACHE_SIZE_LIMIT) {
+      const keys = Array.from(coordinateCache.keys())
+      for (let i = 0; i < keys.length / 2; i++) {
+        coordinateCache.delete(keys[i])
+      }
+    }
+    
+    const result = {
+      x: convertToDisplayX(x),
+      y: convertToDisplayY(y)
+    }
+    coordinateCache.set(key, result)
+    return result
+  }
+
+  // 清理坐标缓存
+  const clearCoordinateCache = () => {
+    coordinateCache.clear()
+  }
+
   // 动画相关配置
   const ANIMATION_CONFIG = {
-    duration: 300, // 基础动画持续时间(ms) - 减少基础时间
-    easing: 'springOvershoot', // 使用带过冲的弹性动画
-    minDistance: 2, // 最小移动距离(像素)，小于此距离不播放动画
-    maxDistance: 200, // 最大移动距离(像素)
+    duration: 150, // 进一步减少动画时间，提高响应速度
+    easing: 'easeOutCubic', // 使用更简单的缓动函数
+    minDistance: 2, // 减少最小移动距离，让动画更敏感
+    maxDistance: 100, // 减少最大移动距离
+    // 简化弹性配置
     springConfig: {
-      tension: 0.4, // 弹性张力 (0-1) - 增加张力让动画更有活力
-      friction: 0.7, // 摩擦力 (0-1) - 减少摩擦力增加弹性
-      mass: 0.8 // 质量 - 减少质量让动画更轻盈
+      tension: 0.5,
+      friction: 0.8,
+      mass: 1.0
     }
   }
 
-  // 缓动函数
+  // 简化的缓动函数 - 只保留最常用的
   const easingFunctions = {
     linear: t => t,
     easeOutCubic: t => 1 - Math.pow(1 - t, 3),
     easeInOutCubic: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
     easeOutQuart: t => 1 - Math.pow(1 - t, 4),
     easeOutExpo: t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
-    easeOutBack: t => {
-      const c1 = 1.70158;
-      const c3 = c1 + 1;
-      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-    },
-    // 弹性动画函数
-    spring: (t, config = ANIMATION_CONFIG.springConfig) => {
-      const { tension, friction } = config;
-      // 使用更自然的弹性公式
-      const damping = 1 - friction;
-      const frequency = tension * 2;
-      return 1 - Math.exp(-damping * frequency * t) * Math.cos(frequency * Math.sqrt(1 - damping * damping) * t);
-    },
-    // 高级弹性动画（带过冲效果）
-    springOvershoot: (t, config = ANIMATION_CONFIG.springConfig) => {
-      const { tension, friction } = config;
-      const damping = friction;
-      const frequency = tension * 3;
-      
-      if (damping >= 1) {
-        // 临界阻尼，无振荡
-        return 1 - Math.exp(-frequency * t) * (1 + frequency * t);
-      } else {
-        // 欠阻尼，有振荡
-        const omega = frequency * Math.sqrt(1 - damping * damping);
-        return 1 - Math.exp(-damping * frequency * t) * Math.cos(omega * t);
-      }
-    },
-    // 先快后慢的指数缓动
-    easeOutExpo: t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
-    // 带反弹的缓动
-    easeOutBounce: t => {
-      const n1 = 7.5625;
-      const d1 = 2.75;
-      
-      if (t < 1 / d1) {
-        return n1 * t * t;
-      } else if (t < 2 / d1) {
-        return n1 * (t -= 1.5 / d1) * t + 0.75;
-      } else if (t < 2.5 / d1) {
-        return n1 * (t -= 2.25 / d1) * t + 0.9375;
-      } else {
-        return n1 * (t -= 2.625 / d1) * t + 0.984375;
-      }
+    // 简化的弹性动画
+    spring: t => {
+      // 使用简化的弹性公式，避免复杂的数学计算
+      return 1 - Math.pow(1 - t, 3) * Math.cos(t * Math.PI * 2);
     }
   }
 
@@ -81,7 +74,7 @@ export const createRenderHandler = (data) => {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
   }
 
-  // 初始化传感器动画状态
+  // 简化的传感器动画状态初始化
   const initSensorAnimation = (sensor) => {
     if (!sensor.animationState) {
       sensor.animationState = {
@@ -94,24 +87,12 @@ export const createRenderHandler = (data) => {
         startTime: 0,
         duration: ANIMATION_CONFIG.duration,
         isAnimating: false,
-        easing: ANIMATION_CONFIG.easing,
-        // 新增：速度和惯性相关
-        velocityX: 0,
-        velocityY: 0,
-        lastUpdateTime: 0,
-        springConfig: { ...ANIMATION_CONFIG.springConfig },
-        // 惯性效果
-        momentum: {
-          enabled: true,
-          decay: 0.92, // 惯性衰减系数 - 减少衰减让惯性更明显
-          maxVelocity: 8, // 最大惯性速度 - 增加最大速度
-          minVelocity: 0.05 // 最小惯性速度，低于此值停止惯性
-        }
+        easing: ANIMATION_CONFIG.easing
       }
     }
   }
 
-  // 更新传感器动画目标位置
+  // 简化的传感器动画目标位置更新
   const updateSensorAnimation = (sensor, newX, newY) => {
     initSensorAnimation(sensor)
     
@@ -129,29 +110,7 @@ export const createRenderHandler = (data) => {
       state.currentX = newX
       state.currentY = newY
       state.isAnimating = false
-      state.velocityX = 0
-      state.velocityY = 0
       return
-    }
-    
-    // 计算当前速度（用于惯性效果）
-    const now = Date.now()
-    if (state.lastUpdateTime > 0) {
-      const deltaTime = (now - state.lastUpdateTime) / 1000 // 转换为秒
-      if (deltaTime > 0) {
-        const deltaX = newX - currentX
-        const deltaY = newY - currentY
-        state.velocityX = deltaX / deltaTime
-        state.velocityY = deltaY / deltaTime
-        
-        // 限制最大速度
-        const maxVel = state.momentum.maxVelocity
-        const velMagnitude = Math.sqrt(state.velocityX * state.velocityX + state.velocityY * state.velocityY)
-        if (velMagnitude > maxVel) {
-          state.velocityX = (state.velocityX / velMagnitude) * maxVel
-          state.velocityY = (state.velocityY / velMagnitude) * maxVel
-        }
-      }
     }
     
     // 设置动画参数
@@ -159,31 +118,16 @@ export const createRenderHandler = (data) => {
     state.startY = currentY
     state.targetX = newX
     state.targetY = newY
-    state.startTime = now
-    state.lastUpdateTime = now
+    state.startTime = Date.now()
     
-    // 根据距离和速度调整动画参数
+    // 根据距离调整动画时长
     const normalizedDistance = Math.min(distance / ANIMATION_CONFIG.maxDistance, 1)
-    const speedFactor = Math.min(Math.sqrt(state.velocityX * state.velocityX + state.velocityY * state.velocityY) / 10, 1)
-    
-    // 动态调整动画时长和弹性参数
-    // 基础300ms + 距离比例 * 400ms，最大700ms
-    state.duration = Math.min(ANIMATION_CONFIG.duration + (normalizedDistance * 400), 700)
-    
-    // 根据速度调整弹性参数
-    if (speedFactor > 0.5) {
-      // 高速移动时增加弹性
-      state.springConfig.tension = Math.min(0.5, ANIMATION_CONFIG.springConfig.tension + speedFactor * 0.2)
-      state.springConfig.friction = Math.max(0.6, ANIMATION_CONFIG.springConfig.friction - speedFactor * 0.1)
-    } else {
-      // 低速移动时使用默认参数
-      state.springConfig = { ...ANIMATION_CONFIG.springConfig }
-    }
+    state.duration = ANIMATION_CONFIG.duration + (normalizedDistance * 50) // 最多增加50ms
     
     state.isAnimating = true
   }
 
-  // 更新动画状态
+  // 简化的动画状态更新
   const updateAnimations = () => {
     const now = Date.now()
     let hasAnimatingSensors = false
@@ -196,37 +140,13 @@ export const createRenderHandler = (data) => {
       const progress = Math.min(elapsed / state.duration, 1)
       
       if (progress >= 1) {
-        // 动画完成，应用惯性效果
+        // 动画完成
         state.currentX = state.targetX
         state.currentY = state.targetY
-        
-        // 如果启用了惯性效果，继续应用惯性
-        if (state.momentum.enabled && (Math.abs(state.velocityX) > state.momentum.minVelocity || Math.abs(state.velocityY) > state.momentum.minVelocity)) {
-          // 应用惯性
-          state.currentX += state.velocityX * 0.1
-          state.currentY += state.velocityY * 0.1
-          
-          // 衰减速度
-          state.velocityX *= state.momentum.decay
-          state.velocityY *= state.momentum.decay
-          
-          hasAnimatingSensors = true
-        } else {
-          state.isAnimating = false
-          state.velocityX = 0
-          state.velocityY = 0
-        }
+        state.isAnimating = false
       } else {
         // 继续动画
-        let easedProgress
-        
-        if (state.easing === 'spring' || state.easing === 'springOvershoot') {
-          // 使用弹性动画
-          easedProgress = easingFunctions[state.easing](progress, state.springConfig)
-        } else {
-          // 使用传统缓动函数
-          easedProgress = easingFunctions[state.easing](progress)
-        }
+        const easedProgress = easingFunctions[state.easing](progress)
         
         // 计算当前位置
         const deltaX = state.targetX - state.startX
@@ -235,22 +155,6 @@ export const createRenderHandler = (data) => {
         state.currentX = state.startX + deltaX * easedProgress
         state.currentY = state.startY + deltaY * easedProgress
         
-        // 更新速度（用于惯性计算）
-        const deltaTime = (now - state.lastUpdateTime) / 1000
-        if (deltaTime > 0) {
-          const prevX = state.currentX
-          const prevY = state.currentY
-          
-          // 计算瞬时速度
-          const instantVelX = (state.currentX - prevX) / deltaTime
-          const instantVelY = (state.currentY - prevY) / deltaTime
-          
-          // 平滑速度更新
-          state.velocityX = state.velocityX * 0.7 + instantVelX * 0.3
-          state.velocityY = state.velocityY * 0.7 + instantVelY * 0.3
-        }
-        
-        state.lastUpdateTime = now
         hasAnimatingSensors = true
       }
     })
@@ -258,7 +162,7 @@ export const createRenderHandler = (data) => {
     return hasAnimatingSensors
   }
 
-  // 使用Canvas绘制轨迹点函数
+  // 优化的Canvas绘制函数
   const renderCanvas = () => {
     if (!data.mapCanvas.value || !data.imageInfo.loaded) return
     
@@ -274,129 +178,135 @@ export const createRenderHandler = (data) => {
     // 更新动画状态
     const hasAnimatingSensors = updateAnimations()
     
-    // 绘制传感器轨迹和当前位置点
-    data.trackingStore.visibleSensorsList.forEach(sensor => {
-      if (!sensor.points || sensor.points.length === 0) return
+    // 批量绘制传感器
+    const sensors = data.trackingStore.visibleSensorsList
+    if (sensors.length === 0) return
+    
+    // 预计算标签图标大小
+    const tagIconSize = data.trackingStore.tagIconSize || 10
+    
+    // 批量绘制轨迹线
+    if (data.trackingStore.limitTraceEnabled) {
+      ctx.lineWidth = 2
+      ctx.globalAlpha = 0.6
       
-      // 绘制轨迹线（仅在开关开启时）
-      if (data.trackingStore.limitTraceEnabled) {
-        // 直接使用传感器存储的点，因为数量限制已经在数据处理时应用
-        let displayPoints = sensor.points
+      sensors.forEach(sensor => {
+        if (!sensor.points || sensor.points.length < 2) return
         
-        // 绘制轨迹线
-        if (displayPoints.length > 1) {
-        ctx.beginPath()
-        ctx.strokeStyle = sensor.color
-        ctx.lineWidth = 2
-        ctx.globalAlpha = 0.6
-        
-        // 确保第一个点是有效的
-        let validPoints = displayPoints.filter(p => {
-          const x = data.mapStore.meterToPixelX(p.x)
-          const y = data.mapStore.meterToPixelY(p.y)
-          return !isNaN(x) && !isNaN(y)
+        // 预过滤有效点
+        const validPoints = sensor.points.filter(p => {
+          const pixelX = data.mapStore.meterToPixelX(p.x)
+          const pixelY = data.mapStore.meterToPixelY(p.y)
+          return !isNaN(pixelX) && !isNaN(pixelY)
         })
         
-        if (validPoints.length > 0) {
-          const firstPoint = validPoints[0]
-          // 转换到显示坐标
-          const x = convertToDisplayX(data.mapStore.meterToPixelX(firstPoint.x))
-          const y = convertToDisplayY(data.mapStore.meterToPixelY(firstPoint.y))
-          ctx.moveTo(x, y)
+        if (validPoints.length < 2) return
+        
+        // 绘制轨迹线
+        ctx.beginPath()
+        ctx.strokeStyle = sensor.color
+        
+        const firstPoint = validPoints[0]
+        const firstDisplay = convertToDisplayCached(
+          data.mapStore.meterToPixelX(firstPoint.x),
+          data.mapStore.meterToPixelY(firstPoint.y)
+        )
+        ctx.moveTo(firstDisplay.x, firstDisplay.y)
+        
+        // 绘制后续点
+        for (let i = 1; i < validPoints.length; i++) {
+          const p = validPoints[i]
+          let x, y
           
-          // 绘制后续点，但最后一个点要使用动画位置
-          for (let i = 1; i < validPoints.length; i++) {
-            const p = validPoints[i]
-            let x, y
-            
-            // 如果是最后一个点且正在动画中，使用动画位置
-            if (i === validPoints.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
-              x = sensor.animationState.currentX
-              y = sensor.animationState.currentY
-            } else {
-              // 转换到显示坐标
-              x = convertToDisplayX(data.mapStore.meterToPixelX(p.x))
-              y = convertToDisplayY(data.mapStore.meterToPixelY(p.y))
-            }
-            
-            ctx.lineTo(x, y)
+          if (i === validPoints.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
+            x = sensor.animationState.currentX
+            y = sensor.animationState.currentY
+          } else {
+            const display = convertToDisplayCached(
+              data.mapStore.meterToPixelX(p.x),
+              data.mapStore.meterToPixelY(p.y)
+            )
+            x = display.x
+            y = display.y
           }
-          ctx.stroke()
           
-          // 绘制轨迹点标记
-          ctx.globalAlpha = 0.8
-          ctx.fillStyle = sensor.color
-          for (let i = 0; i < validPoints.length; i++) {
-            const p = validPoints[i]
-            let x, y
-            
-            // 如果是最后一个点且正在动画中，使用动画位置
-            if (i === validPoints.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
-              x = sensor.animationState.currentX
-              y = sensor.animationState.currentY
-            } else {
-              // 转换到显示坐标
-              x = convertToDisplayX(data.mapStore.meterToPixelX(p.x))
-              y = convertToDisplayY(data.mapStore.meterToPixelY(p.y))
-            }
-            
-            // 绘制比线稍微粗一点的圆点
+          ctx.lineTo(x, y)
+        }
+        ctx.stroke()
+      })
+      
+      // 批量绘制轨迹点
+      ctx.globalAlpha = 0.8
+      sensors.forEach(sensor => {
+        if (!sensor.points || sensor.points.length === 0) return
+        
+        ctx.fillStyle = sensor.color
+        sensor.points.forEach((p, i) => {
+          let x, y
+          
+          if (i === sensor.points.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
+            x = sensor.animationState.currentX
+            y = sensor.animationState.currentY
+          } else {
+            const display = convertToDisplayCached(
+              data.mapStore.meterToPixelX(p.x),
+              data.mapStore.meterToPixelY(p.y)
+            )
+            x = display.x
+            y = display.y
+          }
+          
+          if (!isNaN(x) && !isNaN(y)) {
             ctx.beginPath()
             ctx.arc(x, y, 2.5, 0, Math.PI * 2)
             ctx.fill()
           }
-        }
-        ctx.globalAlpha = 1.0
-      }
+        })
+      })
+      
+      ctx.globalAlpha = 1.0
+    }
+    
+    // 批量绘制当前位置点
+    ctx.font = 'bold 12px Arial'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    
+    sensors.forEach(sensor => {
+      if (!sensor.lastPoint) return
+      
+      let x, y
+      
+      if (sensor.animationState && sensor.animationState.isAnimating) {
+        x = sensor.animationState.currentX
+        y = sensor.animationState.currentY
+      } else {
+        const display = convertToDisplayCached(
+          data.mapStore.meterToPixelX(sensor.lastPoint.x),
+          data.mapStore.meterToPixelY(sensor.lastPoint.y)
+        )
+        x = display.x
+        y = display.y
       }
       
-      // 绘制当前位置点（使用动画位置）
-      if (sensor.lastPoint) {
-        let x, y
+      if (!isNaN(x) && !isNaN(y)) {
+        // 绘制标签点
+        ctx.beginPath()
+        ctx.shadowBlur = 4
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 3
+        ctx.fillStyle = sensor.color
+        ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        ctx.shadowBlur = 0
         
-        // 检查是否有动画状态
-        if (sensor.animationState && sensor.animationState.isAnimating) {
-          // 使用动画位置
-          x = sensor.animationState.currentX
-          y = sensor.animationState.currentY
-        } else {
-          // 使用实际位置
-          x = convertToDisplayX(data.mapStore.meterToPixelX(sensor.lastPoint.x))
-          y = convertToDisplayY(data.mapStore.meterToPixelY(sensor.lastPoint.y))
-        }
-        
-        if (!isNaN(x) && !isNaN(y)) {
-          // 绘制外圈阴影
-          ctx.beginPath()
-          ctx.shadowBlur = 4
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-          ctx.strokeStyle = '#fff'
-          ctx.lineWidth = 3
-          ctx.fillStyle = sensor.color
-          // 从配置中获取标签图标大小，默认为10
-          const tagIconSize = data.trackingStore.tagIconSize || 10
-          ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.stroke()
-          ctx.shadowBlur = 0
-          
-          // 绘制标签名称
-          ctx.font = 'bold 12px Arial'
-          ctx.fillStyle = '#333'
-          ctx.textAlign = 'left'
-          ctx.textBaseline = 'middle'
-          
-          // 在轨迹点右侧显示标签名称
-          ctx.fillText(sensor.name, x + 12, y)
-          
-        }
+        // 绘制标签名称
+        ctx.fillStyle = '#333'
+        ctx.fillText(sensor.name, x + 12, y)
       }
     })
-    
-    // 如果有动画进行中，继续渲染循环
-    if (hasAnimatingSensors) {
-      requestAnimationFrame(() => renderCanvas())
-    }
   }
 
   // 绘制围栏函数
@@ -542,6 +452,8 @@ export const createRenderHandler = (data) => {
     getGeofenceCenterY,
     convertToDisplayX,
     convertToDisplayY,
+    convertToDisplayCached,
+    clearCoordinateCache,
     handleSensorPositionUpdate,
     updateSensorAnimation,
     resetAllSensorAnimations

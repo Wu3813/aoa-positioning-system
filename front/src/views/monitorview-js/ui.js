@@ -74,10 +74,16 @@ export const createUIHandler = (data, renderHandler) => {
           });
         }
         
-        // 🎯 画布重新加载时，先重置所有传感器动画状态
+        // 🎯 画布重新加载时，先重置所有传感器动画状态和清理缓存
         if (renderHandler.resetAllSensorAnimations) {
           renderHandler.resetAllSensorAnimations();
           console.log('画布重新加载，已重置所有传感器动画状态');
+        }
+        
+        // 清理坐标缓存
+        if (renderHandler.clearCoordinateCache) {
+          renderHandler.clearCoordinateCache();
+          console.log('已清理坐标缓存');
         }
         
         // 图片加载完成后，初始化Canvas并首次渲染
@@ -115,10 +121,16 @@ export const createUIHandler = (data, renderHandler) => {
       console.log("更新显示尺寸:", data.imageInfo.displayWidth, "x", data.imageInfo.displayHeight);
       console.log("更新图片位置:", data.imageInfo.domInfo.offsetX, ",", data.imageInfo.domInfo.offsetY);
       
-      // 🎯 画布大小变化时，先重置所有传感器动画状态
+      // 🎯 画布大小变化时，先重置所有传感器动画状态和清理缓存
       if (renderHandler.resetAllSensorAnimations) {
         renderHandler.resetAllSensorAnimations();
         console.log('画布大小变化，已重置所有传感器动画状态');
+      }
+      
+      // 清理坐标缓存
+      if (renderHandler.clearCoordinateCache) {
+        renderHandler.clearCoordinateCache();
+        console.log('已清理坐标缓存');
       }
       
       // 缩放比例更新后重新渲染Canvas

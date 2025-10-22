@@ -20,22 +20,47 @@ export function useMonitorView() {
   // 自动刷新相关
   let autoRefreshInterval = null
   let renderRequestId = null
-  const AUTO_REFRESH_INTERVAL = 16 // 16ms (约60fps)，与数据处理频率保持一致
+  let isRendering = false
+  let needsRender = false
+  const AUTO_REFRESH_INTERVAL = 8 // 8ms (约120fps)，提高数据检查频率
 
-  // Canvas渲染动画帧
-  const renderFrame = () => {
-    renderHandler.renderCanvas();
-    // 继续渲染循环，让动画能够持续进行
-    renderRequestId = requestAnimationFrame(renderFrame);
+  // 智能渲染函数 - 确保动画期间持续渲染
+  const smartRender = () => {
+    if (isRendering) return
+    
+    isRendering = true
+    needsRender = false
+    
+    // 检查是否有动画或数据更新需要渲染
+    const hasAnimatingSensors = data.trackingStore.visibleSensorsList.some(sensor => 
+      sensor.animationState && sensor.animationState.isAnimating
+    )
+    
+    // 总是渲染，确保流畅度
+    renderHandler.renderCanvas()
+    
+    // 如果还有动画在进行，继续渲染循环
+    if (hasAnimatingSensors) {
+      renderRequestId = requestAnimationFrame(smartRender)
+    } else {
+      renderRequestId = null
+    }
+    
+    isRendering = false
+  }
+
+  // 触发渲染（外部调用）
+  const triggerRender = () => {
+    needsRender = true
+    if (!isRendering && !renderRequestId) {
+      renderRequestId = requestAnimationFrame(smartRender)
+    }
   }
 
   // 设置自动刷新
   const setupAutoRefresh = () => {
     // 先清除已有的定时器
     clearAutoRefresh();
-    
-    // 使用requestAnimationFrame进行Canvas渲染
-    renderRequestId = requestAnimationFrame(renderFrame);
     
     // 设置新的定时器用于数据检查
     autoRefreshInterval = setInterval(() => {
@@ -44,10 +69,21 @@ export function useMonitorView() {
         // 检查轨迹数据是否有更新
         const hasNewData = data.trackingStore.hasDataUpdates();
         
-        // 如果有新数据，触发Vue更新
+        // 如果有新数据，触发Vue更新和渲染
         if (hasNewData) {
           // 通知Vue更新DOM
           data.trackingStore.notifyUpdate();
+          // 触发渲染
+          triggerRender();
+        }
+        
+        // 检查是否有动画在进行，如果有则持续渲染
+        const hasAnimatingSensors = data.trackingStore.visibleSensorsList.some(sensor => 
+          sensor.animationState && sensor.animationState.isAnimating
+        )
+        
+        if (hasAnimatingSensors && !renderRequestId) {
+          triggerRender();
         }
       }
     }, AUTO_REFRESH_INTERVAL);
@@ -118,7 +154,7 @@ export function useMonitorView() {
   const watchTrackingData = () => {
     // 轨迹数据更新时，触发Canvas重绘
     if (data.imageInfo.loaded && data.mapCanvas.value) {
-      renderHandler.renderCanvas();
+      triggerRender();
     }
   }
 
@@ -176,6 +212,7 @@ export function useMonitorView() {
     convertToDisplayY: renderHandler.convertToDisplayY,
     setupAutoRefresh,
     clearAutoRefresh,
+    triggerRender,
     
     // lifecycle
     onMountedHandler,
