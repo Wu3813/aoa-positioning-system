@@ -43,7 +43,7 @@ export const createRenderHandler = (data) => {
 
   // 动画相关配置
   const ANIMATION_CONFIG = {
-    duration: 150, // 进一步减少动画时间，提高响应速度
+    duration: 500, // 进一步减少动画时间，提高响应速度
     easing: 'easeOutCubic', // 使用更简单的缓动函数
     minDistance: 2, // 减少最小移动距离，让动画更敏感
     maxDistance: 100, // 减少最大移动距离
