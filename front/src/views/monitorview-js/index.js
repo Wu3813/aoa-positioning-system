@@ -22,7 +22,7 @@ export function useMonitorView() {
   let renderRequestId = null
   let isRendering = false
   let needsRender = false
-  const AUTO_REFRESH_INTERVAL = 8 // 8ms (约120fps)，提高数据检查频率
+  const AUTO_REFRESH_INTERVAL = 16 // 16ms (约60fps)，平衡性能与流畅度
 
   // 智能渲染函数 - 确保动画期间持续渲染
   const smartRender = () => {
