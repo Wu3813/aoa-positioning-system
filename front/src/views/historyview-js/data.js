@@ -36,9 +36,7 @@ export function createHistoryData() {
 
   // 计算当前显示的轨迹
   const displayTrajectory = computed(() => {
-    if (!isPlaying.value) {
-      return trajectoryData.value
-    }
+    // 始终只显示到当前播放位置的部分轨迹
     return trajectoryData.value.slice(0, currentPlayIndex.value + 1)
   })
 

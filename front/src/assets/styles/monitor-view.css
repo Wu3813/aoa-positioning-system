@@ -31,14 +31,18 @@
 }
 
 .sensor-list-container {
-  width: 350px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  background: #fff;
+  min-width: 350px;
+  width: auto;
+  transition: width 0.3s ease;
+}
+
+.sensor-list-collapsed {
+  width: 60px !important;
+  min-width: 60px;
 }
 
 .sensor-list-wrapper {
-  background: #fff;
   padding: 16px;
   border-radius: 4px;
   height: 100%;
@@ -46,6 +50,34 @@
   flex-direction: column;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
+
+.sensor-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sensor-list-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #303133;
+}
+
+
+.collapse-btn {
+  flex-shrink: 0;
+}
+
+.sensor-list-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease;
+}
+
+
+
 
 .map-container {
   flex: 1;

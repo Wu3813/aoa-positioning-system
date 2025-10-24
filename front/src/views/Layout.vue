@@ -1,9 +1,10 @@
 <template>
   <el-container class="layout">
     <!-- 侧边栏 -->
-    <el-aside class="sidebar">
+    <el-aside class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
       <div class="logo">
-        <h3>{{ $t('system.titleShort') }}</h3>
+        <h3 v-show="!isCollapsed">{{ $t('system.titleShort') }}</h3>
+        <h3 v-show="isCollapsed" class="logo-collapsed">AOA</h3>
       </div>
       
       <el-menu
@@ -13,7 +14,7 @@
         background-color="#fff"
         text-color="#333"
         active-text-color="#409EFF"
-        :collapse="false"
+        :collapse="isCollapsed"
       >
         <el-menu-item index="/home">
           <el-icon><Monitor /></el-icon>
@@ -72,7 +73,23 @@
       <!-- 顶部栏 -->
       <el-header class="header">
         <div class="header-left">
-          <!-- 左侧区域，可以放置其他内容 -->
+          <el-tooltip 
+            :content="isCollapsed ? t('common.expandSidebar') : t('common.collapseSidebar')" 
+            placement="bottom"
+            ref="sidebarTooltip"
+          >
+            <el-button 
+              @click="handleSidebarToggle"
+              size="small"
+              circle
+              class="sidebar-toggle-btn"
+            >
+              <el-icon :size="18">
+                <Expand v-if="isCollapsed" />
+                <Fold v-else />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
         </div>
         
         <div class="header-right">
@@ -108,7 +125,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Monitor, User, Location, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
+import { Monitor, User, Location, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell, Expand, Fold } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { createGeofenceTranslationFunction } from '@/utils/geofenceTranslations'
 
@@ -120,6 +137,8 @@ const userInfo = ref({
   role: ''
 })
 const currentLocale = ref(locale.value)
+const isCollapsed = ref(false)
+const sidebarTooltip = ref(null)
 
 // 初始化用户信息
 onMounted(() => {
@@ -129,6 +148,13 @@ onMounted(() => {
   } catch (e) {
     // 忽略环境不支持的情况
   }
+  
+  // 从本地存储恢复侧边栏状态
+  const savedCollapsed = localStorage.getItem('sidebarCollapsed')
+  if (savedCollapsed !== null) {
+    isCollapsed.value = JSON.parse(savedCollapsed)
+  }
+  
   const userStr = localStorage.getItem('user')
   if (userStr) {
     try {
@@ -160,6 +186,26 @@ const changeLocale = async (newLocale) => {
   trackingStore.setGeofenceTranslation(translationFunction)
 }
 
+// 切换侧边栏
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
+  localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed.value))
+  
+  // 触发自定义事件，通知其他组件侧边栏状态变化
+  window.dispatchEvent(new CustomEvent('sidebarToggle', {
+    detail: { collapsed: isCollapsed.value }
+  }))
+}
+
+// 处理侧边栏切换，同时隐藏tooltip
+const handleSidebarToggle = () => {
+  toggleSidebar()
+  // 强制隐藏tooltip
+  if (sidebarTooltip.value) {
+    sidebarTooltip.value.hide()
+  }
+}
+
 // 登出
 const handleLogout = () => {
   ElMessageBox.confirm(t('user.logoutConfirm'), t('user.tip'), {
@@ -182,6 +228,12 @@ const handleLogout = () => {
   background: #fff;
   min-width: 140px;
   width: auto;
+  transition: width 0.3s ease;
+}
+
+.sidebar-collapsed {
+  width: 64px !important;
+  min-width: 64px;
 }
 
 .logo {
@@ -195,6 +247,11 @@ const handleLogout = () => {
   margin: 0;
   color: #333;
   font-size: 16px;
+}
+
+.logo-collapsed {
+  font-size: 12px;
+  text-align: center;
 }
 
 .menu {
@@ -222,7 +279,21 @@ const handleLogout = () => {
 }
 
 .header-left {
-  /* 左侧区域样式 */
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-toggle-btn {
+  flex-shrink: 0;
+  border: 1px solid #dcdfe6;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  border-color: #409EFF;
+  color: #409EFF;
+  background-color: #f0f9ff;
 }
 
 .header-right {

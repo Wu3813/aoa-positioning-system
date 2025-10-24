@@ -11,7 +11,9 @@ export default {
     to: '至',
     warning: '警告',
     locale: 'zh-CN',
-    meter: 'm'
+    meter: 'm',
+    expandSidebar: '展开侧边栏',
+    collapseSidebar: '收起侧边栏'
   },
   
   // 系统标题
@@ -85,7 +87,9 @@ export default {
     enterFullscreen: '进入全屏模式',
     exitFullscreen: '退出全屏模式',
     tagIconOpacity: '标签图标透明度',
-    tagIconOpacityRange: '40-100'
+    tagIconOpacityRange: '40-100',
+    expandTagList: '展开标签列表',
+    collapseTagList: '折叠标签列表'
   },
 
   // 历史轨迹页面

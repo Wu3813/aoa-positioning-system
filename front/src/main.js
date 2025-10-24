@@ -12,6 +12,7 @@ import axios from 'axios'
 import { useTrackingStore } from './stores/trackingStore'
 import i18n from './i18n'
 import { createGeofenceTranslationFunction } from './utils/geofenceTranslations'
+import { Expand, Fold } from '@element-plus/icons-vue'
 
 // 设置基础URL
 // 开发环境中，设置为本地开发服务器地址
@@ -26,6 +27,10 @@ app.use(i18n)
 app.use(ElementPlus, {
   locale: i18n.global.locale.value === 'zh-CN' ? zhCn : en,
 })
+
+// 全局注册图标组件
+app.component('Expand', Expand)
+app.component('Fold', Fold)
 
 // 确保在应用启动时就设置根节点语言，配合 base.css 中的 :lang 选择器统一字体回退
 try {

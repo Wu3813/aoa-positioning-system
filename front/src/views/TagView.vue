@@ -4,6 +4,7 @@
     <div class="control-panel">
       <div class="control-wrapper">
         <h2>{{ $t('tags.title') }}</h2>
+        
         <!-- 搜索/过滤栏 - 调整布局以保持一行 -->
         <div class="search-bar">
          <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch" class="search-form-inline">
@@ -28,27 +29,37 @@
             </el-form-item>
           </el-form>
         </div>
-        <!-- 操作栏 -->
-        <div class="action-bar">
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon> {{ $t('tags.add') }}
-          </el-button>
-          <el-button type="success" @click="handleBatchImport">
-            <el-icon><Upload /></el-icon> {{ $t('tags.batchImport') }}
-          </el-button>
-          <el-button type="info" @click="handleDownloadTemplate">
-            <el-icon><Download /></el-icon> {{ $t('tags.downloadTemplate') }}
-          </el-button>
-          <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <el-icon><Delete /></el-icon> {{ $t('tags.batchDelete') }}
-          </el-button>
-          <input
-            type="file"
-            ref="fileInput"
-            style="display: none"
-            accept=".json,.csv"
-            @change="handleFileChange"
-          />
+        <!-- 操作栏和统计信息 -->
+        <div class="action-stats-container">
+          <div class="action-bar">
+            <el-button type="primary" @click="handleAdd">
+              <el-icon><Plus /></el-icon> {{ $t('tags.add') }}
+            </el-button>
+            <el-button type="success" @click="handleBatchImport">
+              <el-icon><Upload /></el-icon> {{ $t('tags.batchImport') }}
+            </el-button>
+            <el-button type="success" @click="handleDownloadTemplate">
+              <el-icon><Download /></el-icon> {{ $t('tags.downloadTemplate') }}
+            </el-button>
+            <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
+              <el-icon><Delete /></el-icon> {{ $t('tags.batchDelete') }}
+            </el-button>
+            <input
+              type="file"
+              ref="fileInput"
+              style="display: none"
+              accept=".json,.csv"
+              @change="handleFileChange"
+            />
+          </div>
+          
+          <!-- 统计信息栏 - 右侧对齐 -->
+          <div class="stats-bar">
+            <el-tag type="success" size="small">{{ $t('tags.statistics.total') }}: {{ tagStatistics.total }}</el-tag>
+            <el-tag type="success" size="small">{{ $t('tags.statistics.online') }}: {{ tagStatistics.online }}</el-tag>
+            <el-tag type="danger" size="small">{{ $t('tags.statistics.offline') }}: {{ tagStatistics.offline }}</el-tag>
+            <el-tag type="warning" size="small">{{ $t('tags.statistics.lowBattery') }}: {{ tagStatistics.lowBattery }}</el-tag>
+          </div>
         </div>
       </div>
     </div>
@@ -233,6 +244,7 @@ const {
   tagForm,
   rules,
   filteredTagList,
+  tagStatistics,
   
   // 工具方法
   getBatteryStatus,

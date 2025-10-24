@@ -11,7 +11,9 @@ export default {
     to: 'to',
     warning: 'Warning',
     locale: 'en-US',
-    meter: 'm'
+    meter: 'm',
+    expandSidebar: 'Expand Sidebar',
+    collapseSidebar: 'Collapse Sidebar'
   },
   
   // System title
@@ -85,7 +87,9 @@ export default {
     enterFullscreen: 'Enter Fullscreen Mode',
     exitFullscreen: 'Exit Fullscreen Mode',
     tagIconOpacity: 'Tag Icon Opacity',
-    tagIconOpacityRange: '40-100'
+    tagIconOpacityRange: '40-100',
+    expandTagList: 'Expand Tag List',
+    collapseTagList: 'Collapse Tag List'
   },
 
   // Historical Trajectory page

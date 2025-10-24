@@ -107,6 +107,24 @@ export function createTagData() {
     return list;
   })
 
+  // 计算属性：标签统计信息
+  const tagStatistics = computed(() => {
+    const total = tagList.value.length;
+    const online = tagList.value.filter(tag => tag.status === 1).length;
+    const offline = tagList.value.filter(tag => tag.status === 0).length;
+    const lowBattery = tagList.value.filter(tag => {
+      const batteryLevel = tag.batteryLevel;
+      return batteryLevel !== null && batteryLevel !== undefined && batteryLevel < 20;
+    }).length;
+    
+    return {
+      total,
+      online,
+      offline,
+      lowBattery
+    };
+  })
+
   // 工具方法
   const getBatteryStatus = (batteryLevel) => {
     if (!batteryLevel) return '';
@@ -200,6 +218,7 @@ export function createTagData() {
     rules,
     sortOrder,
     filteredTagList,
+    tagStatistics,
     
     // 工具方法
     getBatteryStatus,

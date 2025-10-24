@@ -182,15 +182,17 @@ export const createRenderHandler = (data) => {
     const sensors = data.trackingStore.visibleSensorsList
     if (sensors.length === 0) return
     
-    // 预计算标签图标大小
-    const tagIconSize = data.trackingStore.tagIconSize || 10
+    // 预计算标签图标大小 - 根据缩放比例调整
+    const baseTagIconSize = data.trackingStore.tagIconSize || 10
+    const tagIconSize = baseTagIconSize * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
     
     // 预计算标签图标透明度 (40-100)
     const tagIconOpacity = (data.trackingStore.tagIconOpacity || 100) / 100
     
     // 批量绘制轨迹线
     if (data.trackingStore.limitTraceEnabled) {
-      ctx.lineWidth = 2
+      // 轨迹线宽度也根据缩放比例调整，提高默认宽度
+      ctx.lineWidth = 3 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
       ctx.globalAlpha = 0.6
       
       sensors.forEach(sensor => {
@@ -262,7 +264,9 @@ export const createRenderHandler = (data) => {
             
             if (!isNaN(x) && !isNaN(y)) {
               ctx.beginPath()
-              ctx.arc(x, y, 2.5, 0, Math.PI * 2)
+      // 轨迹点大小也根据缩放比例调整，提高默认大小
+      const tracePointSize = 3.5 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+      ctx.arc(x, y, tracePointSize, 0, Math.PI * 2)
               ctx.fill()
             }
           })
@@ -273,7 +277,9 @@ export const createRenderHandler = (data) => {
     }
     
     // 批量绘制当前位置点
-    ctx.font = 'bold 12px Arial'
+    // 标签名称字体大小也根据缩放比例调整，提高默认字体大小
+    const labelFontSize = 25 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+    ctx.font = `bold ${labelFontSize}px Arial`
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
     
@@ -306,7 +312,7 @@ export const createRenderHandler = (data) => {
           return `rgba(${r}, ${g}, ${b}, ${alpha})`
         }
         
-        // 绘制标签图标（带阴影和白色边框）
+        // 绘制标签图标（带阴影、白色边框和灰色描边）
         ctx.shadowBlur = 3
         ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
         ctx.shadowOffsetX = 1
@@ -315,17 +321,26 @@ export const createRenderHandler = (data) => {
         ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
         ctx.fill()
         
-        // 重置阴影，绘制白色边框
+        // 重置阴影，绘制白色边框（内圈）
         ctx.shadowBlur = 0
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
-        ctx.strokeStyle = '#fff'
-        ctx.lineWidth = 2
+        ctx.strokeStyle = `rgba(255, 255, 255, ${tagIconOpacity})` // 白色边框，跟随透明度
+        // 白色边框宽度为原来的两倍
+        ctx.lineWidth = 12 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+        ctx.stroke()
+        
+        // 绘制灰色描边（外圈，在白色边框外面）
+        ctx.strokeStyle = `rgba(64, 64, 64, ${tagIconOpacity})` // 深灰色描边，跟随透明度
+        // 灰色描边宽度
+        ctx.lineWidth = 1 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
         ctx.stroke()
         
         // 绘制标签名称 - 保持完全不透明
         ctx.fillStyle = '#333'
-        ctx.fillText(sensor.name, x + 12, y)
+        // 标签名称位置偏移也根据缩放比例调整
+        const nameOffset = 12 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+        ctx.fillText(sensor.name, x + nameOffset, y)
       }
     })
   }
@@ -340,10 +355,12 @@ export const createRenderHandler = (data) => {
       ctx.beginPath()
       ctx.fillStyle = 'rgba(255, 193, 7, 0.1)'
       ctx.strokeStyle = '#FFC107'
-      ctx.lineWidth = 2
+      // 围栏线宽也根据缩放比例调整，提高默认宽度
+      ctx.lineWidth = 3 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
       
-      // 使用虚线绘制
-      ctx.setLineDash([5, 5])
+      // 使用虚线绘制，虚线样式也根据缩放比例调整
+      const dashSize = 5 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+      ctx.setLineDash([dashSize, dashSize])
       
       const firstPoint = geofence.points[0]
       // 转换到显示坐标
@@ -367,7 +384,9 @@ export const createRenderHandler = (data) => {
       const centerX = convertToDisplayX(getGeofenceCenterX(geofence.points))
       const centerY = convertToDisplayY(getGeofenceCenterY(geofence.points))
       
-      ctx.font = 'bold 12px Arial'
+      // 围栏名称字体大小也根据缩放比例调整，提高默认字体大小
+      const fontSize = 25 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+      ctx.font = `bold ${fontSize}px Arial`
       ctx.fillStyle = '#E65100'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'

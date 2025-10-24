@@ -56,6 +56,7 @@ export function useTagView() {
     tagForm: data.tagForm,
     rules: data.rules,
     filteredTagList: data.filteredTagList,
+    tagStatistics: data.tagStatistics,
     
     // 工具方法
     getBatteryStatus: data.getBatteryStatus,
