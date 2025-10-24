@@ -43,7 +43,7 @@
             type="file"
             ref="fileInput"
             style="display: none"
-            accept=".json"
+            accept=".json,.csv"
             @change="handleFileChange"
           />
         </div>

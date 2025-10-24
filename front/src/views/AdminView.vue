@@ -11,13 +11,13 @@
     <div class="main-content">
       <div class="admin-content-wrapper">
         <el-scrollbar class="module-scrollbar">
-          <!-- 系统任务配置 -->
+          <!-- 实时轨迹设置 -->
           <el-card class="config-card" shadow="hover">
             <template #header>
               <div class="card-header">
                 <div class="header-left">
                   <el-icon><Monitor /></el-icon>
-                  <span>{{ $t('admin.systemTasks') }}</span>
+                  <span>{{ $t('admin.realtimeTrajectorySettings') }}</span>
                 </div>
               </div>
             </template>
@@ -50,29 +50,6 @@
                   show-icon
                   :closable="false"
                 />
-              </div>
-
-              <!-- 基站刷新任务 -->
-              <div class="task-section">
-                <div class="task-header">
-                  <span class="task-title">{{ $t('admin.stationRefreshTask') }}</span>
-                  <el-switch 
-                    v-model="taskConfig.stationTask.enabled"
-                    :active-text="$t('admin.enabled')" 
-                    :inactive-text="$t('admin.disabled')" />
-                </div>
-                <el-form label-position="left" label-width="100px">
-                  <el-form-item :label="$t('admin.refreshInterval')">
-                    <el-input-number 
-                      v-model="taskConfig.stationTask.intervalMs"
-                      :min="1000"
-                      :max="3600000"
-                      :step="1000"
-                      controls-position="right"
-                      style="width: 200px" />
-                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
-                  </el-form-item>
-                </el-form>
               </div>
               
               <!-- 轨迹发送任务 -->
@@ -107,19 +84,73 @@
                   </el-form-item>
                 </el-form>
               </div>
+
+              <!-- 超时管理 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.timeoutManagement') }}</span>
+                  <el-switch 
+                    v-model="taskConfig.timeoutTask.enabled"
+                    :active-text="$t('admin.enabled')" 
+                    :inactive-text="$t('admin.disabled')" />
+                </div>
+                <el-form label-position="left" label-width="100px">
+                  <el-form-item :label="$t('admin.timeoutInterval')">
+                    <el-input-number 
+                      v-model="taskConfig.timeoutTask.timeoutMs"
+                      :min="1000"
+                      :max="300000"
+                      :step="1000"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                  </el-form-item>
+                </el-form>
+                <el-alert
+                  :title="$t('admin.timeoutTaskWarning')"
+                  type="warning"
+                  show-icon
+                  :closable="false"
+                />
+              </div>
+
+              <!-- 显示配置 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.displayConfig') }}</span>
+                </div>
+                <el-form label-position="left" label-width="120px">
+                  <el-form-item :label="$t('admin.tagIconSize')">
+                    <el-input-number 
+                      v-model="taskConfig.displayConfig.tagIconSize"
+                      :min="5"
+                      :max="30"
+                      :step="1"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.pixels') }}</span>
+                  </el-form-item>
+                </el-form>
+                <el-alert
+                  :title="$t('admin.displayConfigWarning')"
+                  type="info"
+                  show-icon
+                  :closable="false"
+                />
+              </div>
             </div>
           </el-card>
 
-          <!-- 超时管理 -->
+          <!-- 基站刷新任务 -->
           <el-card class="config-card" shadow="hover">
             <template #header>
               <div class="card-header">
                 <div class="header-left">
-                  <el-icon><Clock /></el-icon>
-                  <span>{{ $t('admin.timeoutManagement') }}</span>
+                  <el-icon><Position /></el-icon>
+                  <span>{{ $t('admin.stationRefreshTask') }}</span>
                 </div>
                 <el-switch 
-                  v-model="taskConfig.timeoutTask.enabled"
+                  v-model="taskConfig.stationTask.enabled"
                   :active-text="$t('admin.enabled')" 
                   :inactive-text="$t('admin.disabled')" />
               </div>
@@ -127,58 +158,20 @@
             
             <div class="card-content">
               <el-form label-position="left" label-width="100px">
-                <el-form-item :label="$t('admin.timeoutInterval')">
+                <el-form-item :label="$t('admin.refreshInterval')">
                   <el-input-number 
-                    v-model="taskConfig.timeoutTask.timeoutMs"
+                    v-model="taskConfig.stationTask.intervalMs"
                     :min="1000"
-                    :max="300000"
+                    :max="3600000"
                     :step="1000"
                     controls-position="right"
                     style="width: 200px" />
                   <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
                 </el-form-item>
               </el-form>
-              <el-alert
-                :title="$t('admin.timeoutTaskWarning')"
-                type="warning"
-                show-icon
-                :closable="false"
-              />
             </div>
           </el-card>
 
-          <!-- 显示配置 -->
-          <el-card class="config-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <div class="header-left">
-                  <el-icon><View /></el-icon>
-                  <span>{{ $t('admin.displayConfig') }}</span>
-                </div>
-              </div>
-            </template>
-            
-            <div class="card-content">
-              <el-form label-position="left" label-width="120px">
-                <el-form-item :label="$t('admin.tagIconSize')">
-                  <el-input-number 
-                    v-model="taskConfig.displayConfig.tagIconSize"
-                    :min="5"
-                    :max="30"
-                    :step="1"
-                    controls-position="right"
-                    style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.pixels') }}</span>
-                </el-form-item>
-              </el-form>
-              <el-alert
-                :title="$t('admin.displayConfigWarning')"
-                type="info"
-                show-icon
-                :closable="false"
-              />
-            </div>
-          </el-card>
 
           <div class="actions">
             <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">{{ $t('admin.saveConfig') }}</el-button>

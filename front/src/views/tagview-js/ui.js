@@ -193,14 +193,66 @@ export function createTagUI(data, api) {
     }
   }
 
+  // CSV解析函数
+  const parseCSV = (csvText) => {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) {
+      throw new Error('CSV文件至少需要包含标题行和一行数据');
+    }
+    
+    // 解析标题行
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // 查找必需的列
+    const nameIndex = headers.findIndex(h => h.includes('name') || h.includes('名称'));
+    const macIndex = headers.findIndex(h => h.includes('mac') || h.includes('地址'));
+    const modelIndex = headers.findIndex(h => h.includes('model') || h.includes('型号'));
+    const firmwareIndex = headers.findIndex(h => h.includes('firmware') || h.includes('固件') || h.includes('version'));
+    const remarkIndex = headers.findIndex(h => h.includes('remark') || h.includes('备注') || h.includes('note'));
+    
+    if (nameIndex === -1 || macIndex === -1 || modelIndex === -1 || firmwareIndex === -1) {
+      throw new Error('CSV文件缺少必需的列：name, macAddress, model, firmwareVersion');
+    }
+    
+    const tagsData = [];
+    
+    // 解析数据行
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim());
+      
+      if (values.length < headers.length) {
+        console.warn(`第${i+1}行数据不完整，跳过`);
+        continue;
+      }
+      
+      const tag = {
+        name: values[nameIndex],
+        macAddress: values[macIndex].replace(/[:\-]/g, '').toLowerCase(), // 清理MAC地址格式
+        model: values[modelIndex],
+        firmwareVersion: values[firmwareIndex],
+        remark: remarkIndex !== -1 ? values[remarkIndex] : ''
+      };
+      
+      // 验证必需字段
+      if (tag.name && tag.macAddress && tag.model && tag.firmwareVersion) {
+        tagsData.push(tag);
+      }
+    }
+    
+    return tagsData;
+  }
+
   // 处理文件选择
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
     
     // 检查文件类型
-    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-      ElMessage.error(t('tags.uploadJSONFile'));
+    const isJSON = file.type === 'application/json' || file.name.endsWith('.json');
+    const isCSV = file.type === 'text/csv' || file.name.endsWith('.csv');
+    
+    if (!isJSON && !isCSV) {
+      ElMessage.error(t('tags.uploadJSONOrCSVFile'));
       event.target.value = null; // 清空选择
       return;
     }
@@ -208,20 +260,26 @@ export function createTagUI(data, api) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        // 解析JSON内容
-        const content = JSON.parse(e.target.result);
-        
-        // 确保JSON格式正确 - 支持数组格式或对象包含数组的格式
         let tagsData = [];
-        if (Array.isArray(content)) {
-          tagsData = content;
-        } else if (content.tags && Array.isArray(content.tags)) {
-          tagsData = content.tags;
-        } else if (content.data && Array.isArray(content.data)) {
-          tagsData = content.data;
-        } else {
-          ElMessage.error(t('tags.invalidJSONFormat'));
-          return;
+        
+        if (isJSON) {
+          // 解析JSON内容
+          const content = JSON.parse(e.target.result);
+          
+          // 确保JSON格式正确 - 支持数组格式或对象包含数组的格式
+          if (Array.isArray(content)) {
+            tagsData = content;
+          } else if (content.tags && Array.isArray(content.tags)) {
+            tagsData = content.tags;
+          } else if (content.data && Array.isArray(content.data)) {
+            tagsData = content.data;
+          } else {
+            ElMessage.error(t('tags.invalidJSONFormat'));
+            return;
+          }
+        } else if (isCSV) {
+          // 解析CSV内容
+          tagsData = parseCSV(e.target.result);
         }
         
         // 过滤出有效的标签数据
@@ -258,8 +316,12 @@ export function createTagUI(data, api) {
         }
         
       } catch (parseError) {
-        console.error('解析JSON文件错误:', parseError);
-        ElMessage.error(t('tags.invalidJSONFormat'));
+        console.error('解析文件错误:', parseError);
+        if (isJSON) {
+          ElMessage.error(t('tags.invalidJSONFormat'));
+        } else {
+          ElMessage.error(t('tags.invalidCSVFormat') + ': ' + parseError.message);
+        }
       }
     };
     

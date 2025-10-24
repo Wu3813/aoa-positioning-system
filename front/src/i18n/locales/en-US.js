@@ -677,7 +677,9 @@ export default {
     skippedCount: 'Skipped {count}',
     skipReason: 'MAC address already exists',
     uploadJSONFile: 'Please upload JSON format file',
+    uploadJSONOrCSVFile: 'Please upload JSON or CSV format file',
     invalidJSONFormat: 'Invalid JSON format',
+    invalidCSVFormat: 'Invalid CSV format',
     noValidTagData: 'No valid tag data',
     importConfirm: 'Are you sure to import {count} tags?'
   },
@@ -856,12 +858,13 @@ export default {
   // Admin panel page
   admin: {
     title: 'Admin Panel',
+    realtimeTrajectorySettings: 'Realtime Trajectory Settings',
     systemTasks: 'System Task Configuration',
     trajectoryStorageTask: 'Trajectory Storage Task',
     storageInterval: 'Interval:',
     milliseconds: 'milliseconds',
     storageTaskWarning: 'Note: This task is responsible for storing real-time trajectory data to the database. When disabled, the system will no longer record historical trajectories',
-    stationRefreshTask: 'Station Status Auto Refresh',
+    stationRefreshTask: 'Station Settings',
     refreshInterval: 'Interval:',
     trajectorySendTask: 'Send Demo Trajectory',
     sendInterval: 'Interval:',

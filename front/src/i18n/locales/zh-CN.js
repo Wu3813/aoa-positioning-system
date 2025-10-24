@@ -677,7 +677,9 @@ export default {
     skippedCount: '跳过 {count} 个',
     skipReason: 'MAC地址已存在',
     uploadJSONFile: '请上传JSON格式文件',
+    uploadJSONOrCSVFile: '请上传JSON或CSV格式文件',
     invalidJSONFormat: 'JSON格式不正确',
+    invalidCSVFormat: 'CSV格式不正确',
     noValidTagData: '没有有效的标签数据',
     importConfirm: '确定要导入 {count} 个标签吗？'
   },
@@ -867,12 +869,13 @@ export default {
   // 后台管理页面
   admin: {
     title: '系统设置',
+    realtimeTrajectorySettings: '实时轨迹设置',
     systemTasks: '系统任务配置',
     trajectoryStorageTask: '轨迹存储任务',
     storageInterval: '存储间隔:',
     milliseconds: '毫秒',
     storageTaskWarning: '注意: 此任务负责将实时轨迹数据存储到数据库中，禁用后系统将不再记录历史轨迹',
-    stationRefreshTask: '基站状态自动刷新',
+    stationRefreshTask: '基站设置',
     refreshInterval: '刷新间隔:',
     trajectorySendTask: '发送演示轨迹',
     sendInterval: '发送间隔:',

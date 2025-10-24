@@ -677,7 +677,9 @@ export default {
     skippedCount: '跳過 {count} 個',
     skipReason: 'MAC地址已存在',
     uploadJSONFile: '請上傳JSON格式文件',
+    uploadJSONOrCSVFile: '請上傳JSON或CSV格式文件',
     invalidJSONFormat: 'JSON格式不正確',
+    invalidCSVFormat: 'CSV格式不正確',
     noValidTagData: '沒有有效的標籤數據',
     importConfirm: '確定要導入 {count} 個標籤嗎？'
   },
@@ -870,12 +872,13 @@ export default {
   // 後台管理頁面
   admin: {
     title: '系統設定',
+    realtimeTrajectorySettings: '實時軌跡設置',
     systemTasks: '系統任務配置',
     trajectoryStorageTask: '軌跡存儲任務',
     storageInterval: '存儲間隔:',
     milliseconds: '毫秒',
     storageTaskWarning: '注意: 此任務負責將實時軌跡數據存儲到數據庫中，禁用後系統將不再記錄歷史軌跡',
-    stationRefreshTask: '基站狀態自動刷新',
+    stationRefreshTask: '基站設置',
     refreshInterval: '刷新間隔:',
     trajectorySendTask: '發送演示軌跡',
     sendInterval: '發送間隔:',
