@@ -33,9 +33,19 @@
           <el-button type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon> {{ $t('tags.add') }}
           </el-button>
+          <el-button type="success" @click="handleBatchImport">
+            <el-icon><Upload /></el-icon> {{ $t('tags.batchImport') }}
+          </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
             <el-icon><Delete /></el-icon> {{ $t('tags.batchDelete') }}
           </el-button>
+          <input
+            type="file"
+            ref="fileInput"
+            style="display: none"
+            accept=".json"
+            @change="handleFileChange"
+          />
         </div>
       </div>
     </div>
@@ -200,7 +210,7 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue'
-import { Search, Refresh, Plus, Delete, Edit, QuestionFilled } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Edit, QuestionFilled, Upload } from '@element-plus/icons-vue'
 import '@/assets/styles/tag-view.css'
 import { useTagView } from './tagview-js'
 
@@ -213,6 +223,7 @@ const {
   dialogVisible,
   dialogType,
   tagFormRef,
+  fileInput,
   tableMaxHeight,
   searchForm,
   multipleSelection,
@@ -232,6 +243,9 @@ const {
   handleSearch,
   handleResetSearch,
   handleSelectionChange,
+  handleBatchDelete,
+  handleBatchImport,
+  handleFileChange,
   handleAdd,
   handleEdit,
   handleDelete,

@@ -77,6 +77,13 @@ public interface TagService {
                                 Double positionY, Double positionZ, Integer batteryLevel, Integer mapId);
     
     /**
+     * 批量导入标签
+     * @param tags 标签列表
+     * @return 导入成功的标签列表
+     */
+    List<Tag> batchImportTags(List<Tag> tags);
+    
+    /**
      * 检查并更新长时间未更新的标签为离线状态
      * @param offlineThresholdMillis 离线阈值（毫秒）
      */

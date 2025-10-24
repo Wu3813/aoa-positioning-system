@@ -118,6 +118,36 @@ export function createTagAPI(data) {
     }
   }
 
+  // 批量导入标签
+  const batchImportTags = async (tagsData) => {
+    try {
+      const response = await axios.post('/api/tags/batch', tagsData);
+      const result = response.data;
+      
+      if (result.success) {
+        const { totalCount, importedCount, skippedCount } = result;
+        let message = t('tags.importSuccess');
+        
+        if (skippedCount > 0) {
+          message += ` (${t('tags.importedCount', { count: importedCount })}，${t('tags.skippedCount', { count: skippedCount })} - ${t('tags.skipReason')})`;
+        } else {
+          message += ` (${t('tags.importedCount', { count: importedCount })})`;
+        }
+        
+        ElMessage.success(message);
+        return true;
+      } else {
+        ElMessage.error(result.message || t('tags.importFailed'));
+        return false;
+      }
+    } catch (error) {
+      console.error('批量导入标签错误:', error);
+      const errorMessage = error.response?.data?.message || error.message || t('common.unknownError');
+      ElMessage.error(t('tags.importFailed') + ': ' + errorMessage);
+      return false;
+    }
+  }
+
   return {
     fetchTags,
     fetchMapsToCache,
@@ -125,6 +155,7 @@ export function createTagAPI(data) {
     updateTag,
     deleteTag,
     batchDeleteTags,
-    updateTagStatus
+    updateTagStatus,
+    batchImportTags
   }
 }

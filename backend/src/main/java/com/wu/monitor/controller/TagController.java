@@ -6,13 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签管理控制器
  */
 @RestController
 @RequestMapping("/api/tags")
+@CrossOrigin(origins = "*")
 public class TagController {
 
     @Autowired
@@ -105,5 +108,34 @@ public class TagController {
     @PutMapping("/{id}/status")
     public Tag updateTagStatus(@PathVariable Long id, @RequestBody Tag tag) {
         return tagService.updateTagStatus(id, tag);
+    }
+
+    /**
+     * 批量导入标签
+     * @param tags 标签列表
+     * @return 导入结果
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<Object> batchImportTags(@RequestBody List<Tag> tags) {
+        try {
+            List<Tag> importedTags = tagService.batchImportTags(tags);
+            int totalCount = tags != null ? tags.size() : 0;
+            int importedCount = importedTags.size();
+            int skippedCount = totalCount - importedCount;
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "批量导入完成");
+            response.put("totalCount", totalCount);
+            response.put("importedCount", importedCount);
+            response.put("skippedCount", skippedCount);
+            response.put("data", importedTags);
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "批量导入失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 } 

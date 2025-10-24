@@ -185,6 +185,9 @@ export const createRenderHandler = (data) => {
     // 预计算标签图标大小
     const tagIconSize = data.trackingStore.tagIconSize || 10
     
+    // 预计算标签图标透明度 (40-100)
+    const tagIconOpacity = (data.trackingStore.tagIconOpacity || 100) / 100
+    
     // 批量绘制轨迹线
     if (data.trackingStore.limitTraceEnabled) {
       ctx.lineWidth = 2
@@ -235,34 +238,36 @@ export const createRenderHandler = (data) => {
         ctx.stroke()
       })
       
-      // 批量绘制轨迹点
-      ctx.globalAlpha = 0.8
-      sensors.forEach(sensor => {
-        if (!sensor.points || sensor.points.length === 0) return
-        
-        ctx.fillStyle = sensor.color
-        sensor.points.forEach((p, i) => {
-          let x, y
+      // 批量绘制轨迹点（根据设置决定是否绘制）
+      if (data.trackingStore.showTracePoints) {
+        ctx.globalAlpha = 0.8
+        sensors.forEach(sensor => {
+          if (!sensor.points || sensor.points.length === 0) return
           
-          if (i === sensor.points.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
-            x = sensor.animationState.currentX
-            y = sensor.animationState.currentY
-          } else {
-            const display = convertToDisplayCached(
-              data.mapStore.meterToPixelX(p.x),
-              data.mapStore.meterToPixelY(p.y)
-            )
-            x = display.x
-            y = display.y
-          }
-          
-          if (!isNaN(x) && !isNaN(y)) {
-            ctx.beginPath()
-            ctx.arc(x, y, 2.5, 0, Math.PI * 2)
-            ctx.fill()
-          }
+          ctx.fillStyle = sensor.color
+          sensor.points.forEach((p, i) => {
+            let x, y
+            
+            if (i === sensor.points.length - 1 && sensor.animationState && sensor.animationState.isAnimating) {
+              x = sensor.animationState.currentX
+              y = sensor.animationState.currentY
+            } else {
+              const display = convertToDisplayCached(
+                data.mapStore.meterToPixelX(p.x),
+                data.mapStore.meterToPixelY(p.y)
+              )
+              x = display.x
+              y = display.y
+            }
+            
+            if (!isNaN(x) && !isNaN(y)) {
+              ctx.beginPath()
+              ctx.arc(x, y, 2.5, 0, Math.PI * 2)
+              ctx.fill()
+            }
+          })
         })
-      })
+      }
       
       ctx.globalAlpha = 1.0
     }
@@ -290,19 +295,23 @@ export const createRenderHandler = (data) => {
       }
       
       if (!isNaN(x) && !isNaN(y)) {
-        // 绘制标签点
+        // 绘制标签点 - 使用颜色透明度而不是globalAlpha避免毛玻璃效果
         ctx.beginPath()
-        ctx.shadowBlur = 4
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-        ctx.strokeStyle = '#fff'
-        ctx.lineWidth = 3
-        ctx.fillStyle = sensor.color
+        
+        // 将颜色转换为带透明度的RGBA格式
+        const hexToRgba = (hex, alpha) => {
+          const r = parseInt(hex.slice(1, 3), 16)
+          const g = parseInt(hex.slice(3, 5), 16)
+          const b = parseInt(hex.slice(5, 7), 16)
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`
+        }
+        
+        // 绘制标签图标（纯色圆形，无边框无阴影）
+        ctx.fillStyle = hexToRgba(sensor.color, tagIconOpacity)  // 填充色应用透明度
         ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
         ctx.fill()
-        ctx.stroke()
-        ctx.shadowBlur = 0
         
-        // 绘制标签名称
+        // 绘制标签名称 - 保持完全不透明
         ctx.fillStyle = '#333'
         ctx.fillText(sensor.name, x + 12, y)
       }

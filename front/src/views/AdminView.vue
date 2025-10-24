@@ -11,112 +11,102 @@
     <div class="main-content">
       <div class="admin-content-wrapper">
         <el-scrollbar class="module-scrollbar">
-          <!-- 轨迹存储任务 -->
+          <!-- 系统任务配置 -->
           <el-card class="config-card" shadow="hover">
             <template #header>
               <div class="card-header">
                 <div class="header-left">
                   <el-icon><Monitor /></el-icon>
-                  <span>{{ $t('admin.trajectoryStorageTask') }}</span>
+                  <span>{{ $t('admin.systemTasks') }}</span>
                 </div>
-                <el-switch 
-                  v-model="taskConfig.storageTask.enabled"
-                  :active-text="$t('admin.enabled')" 
-                  :inactive-text="$t('admin.disabled')" />
               </div>
             </template>
             
             <div class="card-content">
-              <el-form label-position="left" label-width="100px">
-                <el-form-item :label="$t('admin.storageInterval')">
-                  <el-input-number 
-                    v-model="taskConfig.storageTask.intervalMs"
-                    :min="1000"
-                    :max="30000"
-                    :step="1000"
-                    controls-position="right"
-                    style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
-                </el-form-item>
-              </el-form>
-              <el-alert
-                :title="$t('admin.storageTaskWarning')"
-                type="warning"
-                show-icon
-                :closable="false"
-              />
-            </div>
-          </el-card>
+              <!-- 轨迹存储任务 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.trajectoryStorageTask') }}</span>
+                  <el-switch 
+                    v-model="taskConfig.storageTask.enabled"
+                    :active-text="$t('admin.enabled')" 
+                    :inactive-text="$t('admin.disabled')" />
+                </div>
+                <el-form label-position="left" label-width="100px">
+                  <el-form-item :label="$t('admin.storageInterval')">
+                    <el-input-number 
+                      v-model="taskConfig.storageTask.intervalMs"
+                      :min="1000"
+                      :max="30000"
+                      :step="1000"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                  </el-form-item>
+                </el-form>
+                <el-alert
+                  :title="$t('admin.storageTaskWarning')"
+                  type="warning"
+                  show-icon
+                  :closable="false"
+                />
+              </div>
 
-          <!-- 基站刷新任务 -->
-          <el-card class="config-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <div class="header-left">
-                  <el-icon><Monitor /></el-icon>
-                  <span>{{ $t('admin.stationRefreshTask') }}</span>
+              <!-- 基站刷新任务 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.stationRefreshTask') }}</span>
+                  <el-switch 
+                    v-model="taskConfig.stationTask.enabled"
+                    :active-text="$t('admin.enabled')" 
+                    :inactive-text="$t('admin.disabled')" />
                 </div>
-                <el-switch 
-                  v-model="taskConfig.stationTask.enabled"
-                  :active-text="$t('admin.enabled')" 
-                  :inactive-text="$t('admin.disabled')" />
+                <el-form label-position="left" label-width="100px">
+                  <el-form-item :label="$t('admin.refreshInterval')">
+                    <el-input-number 
+                      v-model="taskConfig.stationTask.intervalMs"
+                      :min="1000"
+                      :max="3600000"
+                      :step="1000"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                  </el-form-item>
+                </el-form>
               </div>
-            </template>
-            
-            <div class="card-content">
-              <el-form label-position="left" label-width="100px">
-                <el-form-item :label="$t('admin.refreshInterval')">
-                  <el-input-number 
-                    v-model="taskConfig.stationTask.intervalMs"
-                    :min="1000"
-                    :max="3600000"
-                    :step="1000"
-                    controls-position="right"
-                    style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
-                </el-form-item>
-              </el-form>
-            </div>
-          </el-card>
-          
-          <!-- 轨迹发送任务 -->
-          <el-card class="config-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <div class="header-left">
-                  <el-icon><Position /></el-icon>
-                  <span>{{ $t('admin.trajectorySendTask') }}</span>
+              
+              <!-- 轨迹发送任务 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.trajectorySendTask') }}</span>
+                  <el-switch 
+                    v-model="taskConfig.trajectoryTask.enabled"
+                    :active-text="$t('admin.enabled')" 
+                    :inactive-text="$t('admin.disabled')" />
                 </div>
-                <el-switch 
-                  v-model="taskConfig.trajectoryTask.enabled"
-                  :active-text="$t('admin.enabled')" 
-                  :inactive-text="$t('admin.disabled')" />
+                <el-form label-position="left" label-width="100px">
+                  <el-form-item :label="$t('admin.sendInterval')">
+                    <el-input-number 
+                      v-model="taskConfig.trajectoryTask.sendIntervalMs"
+                      :min="100"
+                      :max="5000"
+                      :step="100"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                  </el-form-item>
+                  <el-form-item :label="$t('admin.pauseTime')">
+                    <el-input-number 
+                      v-model="taskConfig.trajectoryTask.pauseMs"
+                      :min="5000"
+                      :max="300000"
+                      :step="1000"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
+                  </el-form-item>
+                </el-form>
               </div>
-            </template>
-            
-            <div class="card-content">
-              <el-form label-position="left" label-width="100px">
-                <el-form-item :label="$t('admin.sendInterval')">
-                  <el-input-number 
-                    v-model="taskConfig.trajectoryTask.sendIntervalMs"
-                    :min="100"
-                    :max="5000"
-                    :step="100"
-                    controls-position="right"
-                    style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
-                </el-form-item>
-                <el-form-item :label="$t('admin.pauseTime')">
-                  <el-input-number 
-                    v-model="taskConfig.trajectoryTask.pauseMs"
-                    :min="5000"
-                    :max="300000"
-                    :step="1000"
-                    controls-position="right"
-                    style="width: 200px" />
-                  <span style="margin-left: 8px; color: #909399;">{{ $t('admin.milliseconds') }}</span>
-                </el-form-item>
-              </el-form>
             </div>
           </el-card>
 

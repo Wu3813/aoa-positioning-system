@@ -39,6 +39,26 @@
               style="width: 120px; margin-left: 10px;"
             />
           </div>
+          <div class="trace-point-control">
+            <span style="margin-right: 8px;">{{ t('monitor.showTracePoints') }}</span>
+            <el-switch
+              v-model="trackingStore.showTracePoints"
+              @change="handleTracePointsToggle"
+            />
+          </div>
+          <div class="tag-opacity-control">
+            <span style="margin-right: 8px;">{{ t('monitor.tagIconOpacity') }}</span>
+            <el-slider
+              v-model="trackingStore.tagIconOpacity"
+              :min="40"
+              :max="100"
+              :step="5"
+              :show-tooltip="true"
+              :format-tooltip="(val) => `${val}%`"
+              style="width: 120px; margin-left: 10px;"
+              @change="handleOpacityChange"
+            />
+          </div>
           <el-button @click="trackingStore.clearAllTraces" type="danger">
             <el-icon><Delete /></el-icon>{{ t('monitor.clearAllTraces') }}
           </el-button>
@@ -179,6 +199,8 @@ const {
   toggleAllVisible,
   handleColorChange,
   handleImageLoad,
+  handleTracePointsToggle,
+  handleOpacityChange,
   
   // lifecycle
   onMountedHandler,

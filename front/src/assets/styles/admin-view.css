@@ -79,6 +79,34 @@
   padding: 10px 0;
 }
 
+/* 任务区域样式 */
+.task-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+  background-color: var(--el-fill-color-lighter);
+}
+
+.task-section:last-child {
+  margin-bottom: 0;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
 .actions {
   display: flex;
   justify-content: center;

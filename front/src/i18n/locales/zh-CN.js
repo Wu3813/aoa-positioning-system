@@ -31,7 +31,7 @@ export default {
     tags: '标签管理',
     users: '用户管理',
     alarms: '报警记录',
-    admin: '后台管理'
+    admin: '系统设置'
   },
   
   // 登录页面
@@ -60,6 +60,7 @@ export default {
     selectMap: '选择地图：',
     selectMapPlaceholder: '请选择地图',
     traceControl: '保留轨迹数量',
+    showTracePoints: '显示轨迹点',
     clearAllTraces: '清空所有轨迹',
     wsStatus: 'WebSocket数据流状态',
     wsNormal: '数据流正常',
@@ -82,7 +83,9 @@ export default {
     fetchMapListFailed: '获取地图列表失败',
     switchMapFailed: '切换地图失败',
     enterFullscreen: '进入全屏模式',
-    exitFullscreen: '退出全屏模式'
+    exitFullscreen: '退出全屏模式',
+    tagIconOpacity: '标签图标透明度',
+    tagIconOpacityRange: '40-100'
   },
 
   // 历史轨迹页面
@@ -615,6 +618,7 @@ export default {
     query: '查询',
     reset: '重置',
     add: '新增',
+    batchImport: '批量导入',
     batchDelete: '批量删除',
     serialNumber: '序号',
     tagName: '标签名称',
@@ -665,7 +669,17 @@ export default {
     batchDeleteSuccess: '批量删除成功',
     batchDeleteFailed: '批量删除失败',
     statusUpdateSuccess: '状态更新成功',
-    statusUpdateFailed: '状态更新失败'
+    statusUpdateFailed: '状态更新失败',
+    // 批量导入相关翻译
+    importSuccess: '批量导入成功',
+    importFailed: '批量导入失败',
+    importedCount: '成功导入 {count} 个',
+    skippedCount: '跳过 {count} 个',
+    skipReason: 'MAC地址已存在',
+    uploadJSONFile: '请上传JSON格式文件',
+    invalidJSONFormat: 'JSON格式不正确',
+    noValidTagData: '没有有效的标签数据',
+    importConfirm: '确定要导入 {count} 个标签吗？'
   },
 
   // 用户管理页面
@@ -852,7 +866,8 @@ export default {
 
   // 后台管理页面
   admin: {
-    title: '后台管理',
+    title: '系统设置',
+    systemTasks: '系统任务配置',
     trajectoryStorageTask: '轨迹存储任务',
     storageInterval: '存储间隔:',
     milliseconds: '毫秒',

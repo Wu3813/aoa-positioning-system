@@ -30,6 +30,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   // 轨迹控制相关
   const limitTraceEnabled = ref(true) // 默认启用轨迹限制
   const traceLimit = ref(20) // 默认轨迹点数减少到20
+  const showTracePoints = ref(true) // 默认显示轨迹点
   
   // 初始化轨迹控制设置
   function initTraceSettings() {
@@ -37,10 +38,12 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       const storedSettings = JSON.parse(sessionStorage.getItem('traceSettings') || '{}')
       limitTraceEnabled.value = storedSettings.limitTraceEnabled !== undefined ? storedSettings.limitTraceEnabled : true
       traceLimit.value = storedSettings.traceLimit || 20
+      showTracePoints.value = storedSettings.showTracePoints !== undefined ? storedSettings.showTracePoints : true
     } catch (e) {
       console.error('无法从sessionStorage加载轨迹设置:', e)
       limitTraceEnabled.value = true
       traceLimit.value = 20
+      showTracePoints.value = true
     }
   }
   
@@ -49,7 +52,8 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     try {
       const settings = {
         limitTraceEnabled: limitTraceEnabled.value,
-        traceLimit: traceLimit.value
+        traceLimit: traceLimit.value,
+        showTracePoints: showTracePoints.value
       }
       sessionStorage.setItem('traceSettings', JSON.stringify(settings))
     } catch (e) {
@@ -57,9 +61,50 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     }
   }
   
+  // 立即应用轨迹限制到现有传感器
+  function applyTraceLimitToExistingSensors() {
+    console.log(`应用轨迹限制到现有传感器，启用状态: ${limitTraceEnabled.value}，限制数量: ${traceLimit.value}`)
+    
+    sensorList.value.forEach(sensor => {
+      if (limitTraceEnabled.value) {
+        // 启用轨迹限制：保留指定数量的轨迹点
+        if (sensor.points && sensor.points.length > traceLimit.value) {
+          const originalLength = sensor.points.length
+          sensor.points = sensor.points.slice(-traceLimit.value)
+          console.log(`传感器 ${sensor.mac}: 从 ${originalLength} 个点减少到 ${sensor.points.length} 个点`)
+        }
+      } else {
+        // 关闭轨迹限制：清空所有轨迹
+        if (sensor.points && sensor.points.length > 0) {
+          console.log(`传感器 ${sensor.mac}: 清空轨迹，原有点数: ${sensor.points.length}`)
+          sensor.points = []
+        }
+      }
+    })
+    
+    // 触发视图更新
+    notifyUpdate()
+  }
+  
   // 监听轨迹设置变化并保存
   watch(limitTraceEnabled, saveTraceSettings)
   watch(traceLimit, saveTraceSettings)
+  watch(showTracePoints, saveTraceSettings)
+  
+  // 监听轨迹限制变化，立即处理现有轨迹点
+  watch(traceLimit, (newLimit, oldLimit) => {
+    if (newLimit !== oldLimit && limitTraceEnabled.value) {
+      applyTraceLimitToExistingSensors()
+    }
+  })
+  
+  // 监听轨迹限制开关变化
+  watch(limitTraceEnabled, (newEnabled, oldEnabled) => {
+    if (newEnabled !== oldEnabled && newEnabled) {
+      // 当启用轨迹限制时，立即应用限制
+      applyTraceLimitToExistingSensors()
+    }
+  })
   
   // 传感器颜色映射
   const sensorColors = ref({})
@@ -347,14 +392,19 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       timestamp: data.timestamp
     }
     
-    // 如果启用了轨迹限制，在可能超出限制前进行处理
-    if (limitTraceEnabled.value && sensor.points.length >= traceLimit.value) {
-      // 直接去除多余的旧点
-      sensor.points = sensor.points.slice(-traceLimit.value + 1)
+    // 如果启用了轨迹限制，添加新点并限制数量
+    if (limitTraceEnabled.value) {
+      // 添加新点
+      sensor.points.push(point)
+      
+      // 确保轨迹点数量不超过限制
+      if (sensor.points.length > traceLimit.value) {
+        sensor.points = sensor.points.slice(-traceLimit.value)
+      }
+    } else {
+      // 如果关闭轨迹限制，不显示任何轨迹
+      sensor.points = []
     }
-    
-    // 添加新点
-    sensor.points.push(point)
     sensor.lastPoint = point
     
     // 触发位置更新动画（如果存在动画处理器）
@@ -463,17 +513,21 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       })
       
       // 2. 对非活跃传感器应用轨迹限制策略
-      // 注意：不进行采样压缩，保留全部轨迹点
-      if (limitTraceEnabled.value) {
-        sensorList.value.forEach(sensor => {
-          // 如果是非可见传感器且轨迹限制开启，则只保留轨迹限制数量的点
-          if (!visibleSensors.value.has(sensor.mac) && sensor.points && 
-              sensor.points.length > traceLimit.value) {
-            // 仅保留最新的traceLimit个点
-            sensor.points = sensor.points.slice(-traceLimit.value)
+      sensorList.value.forEach(sensor => {
+        if (!visibleSensors.value.has(sensor.mac)) {
+          if (limitTraceEnabled.value) {
+            // 启用轨迹限制：只保留轨迹限制数量的点
+            if (sensor.points && sensor.points.length > traceLimit.value) {
+              sensor.points = sensor.points.slice(-traceLimit.value)
+            }
+          } else {
+            // 关闭轨迹限制：清空所有轨迹
+            if (sensor.points && sensor.points.length > 0) {
+              sensor.points = []
+            }
           }
-        })
-      }
+        }
+      })
     } catch (e) {
       console.error('内存优化过程中出错:', e)
     }
@@ -549,6 +603,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     visibleSensorsList,
     limitTraceEnabled,
     traceLimit,
+    showTracePoints,
     registeredTags,
     sensorMap,
     forceUpdateFlag,
@@ -573,6 +628,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     cleanup,
     hasDataUpdates,
     notifyUpdate,
-    changeSensorColor
+    changeSensorColor,
+    applyTraceLimitToExistingSensors
   }
 } 

@@ -159,10 +159,10 @@ export function createTagUI(data, api) {
   // 自动刷新数据
   const startAutoRefresh = () => {
     data.refreshTimer.value = setInterval(() => {
-      if (!data.dialogVisible.value && !data.loading.value) {
+      if (!data.dialogVisible.value && !data.loading.value && data.multipleSelection.value.length === 0) {
         api.fetchTags();
       }
-    }, 3000);
+    }, 5000);
   }
 
   // 停止自动刷新
@@ -182,11 +182,99 @@ export function createTagUI(data, api) {
     });
   }
 
+  // 批量导入处理
+  const handleBatchImport = () => {
+    // 触发隐藏的文件输入点击
+    if (data.fileInput.value) {
+      data.fileInput.value.click();
+    } else {
+      console.error('File input ref is not available');
+      ElMessage.error('文件输入组件未正确初始化');
+    }
+  }
+
+  // 处理文件选择
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // 检查文件类型
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      ElMessage.error(t('tags.uploadJSONFile'));
+      event.target.value = null; // 清空选择
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        // 解析JSON内容
+        const content = JSON.parse(e.target.result);
+        
+        // 确保JSON格式正确 - 支持数组格式或对象包含数组的格式
+        let tagsData = [];
+        if (Array.isArray(content)) {
+          tagsData = content;
+        } else if (content.tags && Array.isArray(content.tags)) {
+          tagsData = content.tags;
+        } else if (content.data && Array.isArray(content.data)) {
+          tagsData = content.data;
+        } else {
+          ElMessage.error(t('tags.invalidJSONFormat'));
+          return;
+        }
+        
+        // 过滤出有效的标签数据
+        const validTags = tagsData.filter(tag => 
+          tag.name && tag.macAddress && tag.model && tag.firmwareVersion
+        );
+        
+        if (validTags.length === 0) {
+          ElMessage.error(t('tags.noValidTagData'));
+          return;
+        }
+        
+        // 确认导入
+        try {
+          await ElMessageBox.confirm(
+            t('tags.importConfirm', { count: validTags.length }),
+            t('common.warning'),
+            {
+              confirmButtonText: t('common.confirm'),
+              cancelButtonText: t('common.cancel'),
+              type: 'warning',
+            }
+          );
+          
+          // 执行批量导入
+          const success = await api.batchImportTags(validTags);
+          if (success) {
+            // 刷新标签列表
+            api.fetchTags();
+          }
+        } catch (confirmError) {
+          // 用户取消导入
+          console.log('用户取消导入');
+        }
+        
+      } catch (parseError) {
+        console.error('解析JSON文件错误:', parseError);
+        ElMessage.error(t('tags.invalidJSONFormat'));
+      }
+    };
+    
+    reader.readAsText(file);
+    // 清空文件选择
+    event.target.value = null;
+  }
+
   return {
     handleSearch,
     handleResetSearch,
     handleSelectionChange,
     handleBatchDelete,
+    handleBatchImport,
+    handleFileChange,
     handleAdd,
     handleEdit,
     handleDelete,

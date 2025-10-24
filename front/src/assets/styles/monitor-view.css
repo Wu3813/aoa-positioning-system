@@ -186,3 +186,31 @@
   overflow: hidden;
   height: calc(100% - 100px);
 }
+
+.trace-point-control {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.tag-opacity-control {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.tag-opacity-control .el-slider {
+  margin: 0 10px;
+}
+
+.tag-opacity-control .el-slider__runway {
+  background-color: #e4e7ed;
+}
+
+.tag-opacity-control .el-slider__bar {
+  background-color: #409eff;
+}
+
+.tag-opacity-control .el-slider__button {
+  border-color: #409eff;
+}

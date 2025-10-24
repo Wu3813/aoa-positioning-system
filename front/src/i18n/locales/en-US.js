@@ -60,6 +60,7 @@ export default {
     selectMap: 'Select Map:',
     selectMapPlaceholder: 'Please select a map',
     traceControl: 'Trace Limit',
+    showTracePoints: 'Show Trace Points',
     clearAllTraces: 'Clear All Traces',
     wsStatus: 'WebSocket Data Stream Status',
     wsNormal: 'Data Stream Normal',
@@ -82,7 +83,9 @@ export default {
     fetchMapListFailed: 'Failed to fetch map list',
     switchMapFailed: 'Failed to switch map',
     enterFullscreen: 'Enter Fullscreen Mode',
-    exitFullscreen: 'Exit Fullscreen Mode'
+    exitFullscreen: 'Exit Fullscreen Mode',
+    tagIconOpacity: 'Tag Icon Opacity',
+    tagIconOpacityRange: '40-100'
   },
 
   // Historical Trajectory page
@@ -615,6 +618,7 @@ export default {
     query: 'Search',
     reset: 'Reset',
     add: 'Add',
+    batchImport: 'Batch Import',
     batchDelete: 'Batch Delete',
     serialNumber: 'No.',
     tagName: 'Tag Name',
@@ -665,7 +669,17 @@ export default {
     batchDeleteSuccess: 'Batch delete successful',
     batchDeleteFailed: 'Batch delete failed',
     statusUpdateSuccess: 'Status updated successfully',
-    statusUpdateFailed: 'Status update failed'
+    statusUpdateFailed: 'Status update failed',
+    // Batch import related translations
+    importSuccess: 'Batch import successful',
+    importFailed: 'Batch import failed',
+    importedCount: 'Successfully imported {count}',
+    skippedCount: 'Skipped {count}',
+    skipReason: 'MAC address already exists',
+    uploadJSONFile: 'Please upload JSON format file',
+    invalidJSONFormat: 'Invalid JSON format',
+    noValidTagData: 'No valid tag data',
+    importConfirm: 'Are you sure to import {count} tags?'
   },
 
   // User management page
@@ -842,6 +856,7 @@ export default {
   // Admin panel page
   admin: {
     title: 'Admin Panel',
+    systemTasks: 'System Task Configuration',
     trajectoryStorageTask: 'Trajectory Storage Task',
     storageInterval: 'Interval:',
     milliseconds: 'milliseconds',

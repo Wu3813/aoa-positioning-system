@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -173,6 +174,57 @@ public class TagServiceImpl implements TagService {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    @Override
+    @Transactional
+    public List<Tag> batchImportTags(List<Tag> tags) {
+        if (tags == null || tags.isEmpty()) {
+            throw new IllegalArgumentException("标签列表不能为空");
+        }
+        
+        List<Tag> importedTags = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        
+        for (Tag tag : tags) {
+            try {
+                // 确保MAC地址统一为小写
+                if (tag.getMacAddress() != null) {
+                    tag.setMacAddress(tag.getMacAddress().toLowerCase());
+                }
+                
+                // 检查MAC地址是否已存在
+                Tag existingTag = tagMapper.selectTagByMacAddress(tag.getMacAddress());
+                if (existingTag != null) {
+                    log.warn("跳过重复的MAC地址: {}", tag.getMacAddress());
+                    continue;
+                }
+                
+                // 设置默认值
+                if (tag.getCreateTime() == null) {
+                    tag.setCreateTime(now);
+                }
+                if (tag.getLastSeen() == null) {
+                    tag.setLastSeen(now);
+                }
+                if (tag.getStatus() == null) {
+                    tag.setStatus(0); // 默认为离线
+                }
+                
+                // 插入标签
+                tagMapper.insertTag(tag);
+                importedTags.add(tag);
+                
+            } catch (Exception e) {
+                log.error("导入标签失败: MAC={}, 错误: {}", tag.getMacAddress(), e.getMessage());
+                // 继续处理下一个标签，不中断整个导入过程
+            }
+        }
+        
+        log.info("批量导入完成，成功导入 {} 个标签，跳过 {} 个标签", 
+                importedTags.size(), tags.size() - importedTags.size());
+        
+        return importedTags;
     }
     
     @Override

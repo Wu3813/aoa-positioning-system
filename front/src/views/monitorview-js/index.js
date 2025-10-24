@@ -158,6 +158,18 @@ export function useMonitorView() {
     }
   }
 
+  // 处理轨迹点显示切换
+  const handleTracePointsToggle = () => {
+    // 触发重新渲染
+    triggerRender();
+  }
+
+  // 处理透明度变化
+  const handleOpacityChange = () => {
+    // 触发重新渲染
+    triggerRender();
+  }
+
   // 组件卸载处理函数
   const onUnmountedHandler = () => {
     data.geofenceCenters.clear();
@@ -203,6 +215,8 @@ export function useMonitorView() {
       }
     },
     handleImageLoad: uiHandler.handleImageLoad,
+    handleTracePointsToggle,
+    handleOpacityChange,
     updateScaleFactor: uiHandler.updateScaleFactor,
     renderCanvas: renderHandler.renderCanvas,
     renderGeofences: renderHandler.renderGeofences,

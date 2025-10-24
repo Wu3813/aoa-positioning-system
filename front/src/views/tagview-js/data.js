@@ -12,6 +12,7 @@ export function createTagData() {
   const dialogVisible = ref(false)
   const dialogType = ref('add')
   const tagFormRef = ref(null)
+  const fileInput = ref(null)
   const tableMaxHeight = ref('calc(100vh - 320px)')
   const resizeObserver = ref(null)
   const refreshTimer = ref(null)
@@ -189,6 +190,7 @@ export function createTagData() {
     dialogVisible,
     dialogType,
     tagFormRef,
+    fileInput,
     tableMaxHeight,
     resizeObserver,
     refreshTimer,
