@@ -306,10 +306,22 @@ export const createRenderHandler = (data) => {
           return `rgba(${r}, ${g}, ${b}, ${alpha})`
         }
         
-        // 绘制标签图标（纯色圆形，无边框无阴影）
-        ctx.fillStyle = hexToRgba(sensor.color, tagIconOpacity)  // 填充色应用透明度
+        // 绘制标签图标（带阴影和白色边框）
+        ctx.shadowBlur = 3
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+        ctx.shadowOffsetX = 1
+        ctx.shadowOffsetY = 1
+        ctx.fillStyle = hexToRgba(sensor.color, tagIconOpacity)
         ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
         ctx.fill()
+        
+        // 重置阴影，绘制白色边框
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 2
+        ctx.stroke()
         
         // 绘制标签名称 - 保持完全不透明
         ctx.fillStyle = '#333'

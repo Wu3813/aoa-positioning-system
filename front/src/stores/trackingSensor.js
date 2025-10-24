@@ -31,6 +31,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   const limitTraceEnabled = ref(true) // 默认启用轨迹限制
   const traceLimit = ref(20) // 默认轨迹点数减少到20
   const showTracePoints = ref(true) // 默认显示轨迹点
+  const tagIconOpacity = ref(100) // 标签图标透明度，默认100%
   
   // 初始化轨迹控制设置
   function initTraceSettings() {
@@ -39,11 +40,13 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       limitTraceEnabled.value = storedSettings.limitTraceEnabled !== undefined ? storedSettings.limitTraceEnabled : true
       traceLimit.value = storedSettings.traceLimit || 20
       showTracePoints.value = storedSettings.showTracePoints !== undefined ? storedSettings.showTracePoints : true
+      tagIconOpacity.value = storedSettings.tagIconOpacity || 100
     } catch (e) {
       console.error('无法从sessionStorage加载轨迹设置:', e)
       limitTraceEnabled.value = true
       traceLimit.value = 20
       showTracePoints.value = true
+      tagIconOpacity.value = 100
     }
   }
   
@@ -53,7 +56,8 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
       const settings = {
         limitTraceEnabled: limitTraceEnabled.value,
         traceLimit: traceLimit.value,
-        showTracePoints: showTracePoints.value
+        showTracePoints: showTracePoints.value,
+        tagIconOpacity: tagIconOpacity.value
       }
       sessionStorage.setItem('traceSettings', JSON.stringify(settings))
     } catch (e) {
@@ -90,6 +94,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
   watch(limitTraceEnabled, saveTraceSettings)
   watch(traceLimit, saveTraceSettings)
   watch(showTracePoints, saveTraceSettings)
+  watch(tagIconOpacity, saveTraceSettings)
   
   // 监听轨迹限制变化，立即处理现有轨迹点
   watch(traceLimit, (newLimit, oldLimit) => {
@@ -604,6 +609,7 @@ export function createSensorManager(mapStore, colorUtils, geofenceManager) {
     limitTraceEnabled,
     traceLimit,
     showTracePoints,
+    tagIconOpacity,
     registeredTags,
     sensorMap,
     forceUpdateFlag,

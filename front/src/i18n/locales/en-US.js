@@ -681,7 +681,9 @@ export default {
     invalidJSONFormat: 'Invalid JSON format',
     invalidCSVFormat: 'Invalid CSV format',
     noValidTagData: 'No valid tag data',
-    importConfirm: 'Are you sure to import {count} tags?'
+    importConfirm: 'Are you sure to import {count} tags?',
+    downloadTemplate: 'Download Template',
+    templateDownloaded: 'Template downloaded successfully'
   },
 
   // User management page

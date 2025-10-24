@@ -330,12 +330,44 @@ export function createTagUI(data, api) {
     event.target.value = null;
   }
 
+  // 下载CSV模板
+  const handleDownloadTemplate = () => {
+    // 创建CSV模板内容（中文列名）
+    const csvContent = [
+      '名称,MAC地址,型号,固件版本,备注',
+      '标签示例1,84fd27eee603,Model-A,1.0.0,这是一个示例标签',
+      '标签示例2,84fd27eee604,Model-B,1.0.1,另一个示例标签',
+      '标签示例3,84fd27eee605,Model-C,1.0.2,第三个示例标签'
+    ].join('\n');
+
+    // 创建Blob对象
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // 创建下载链接
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', '标签导入模板.csv');
+    link.style.visibility = 'hidden';
+    
+    // 添加到DOM并触发下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // 释放URL对象
+    URL.revokeObjectURL(url);
+    
+    ElMessage.success(t('tags.templateDownloaded'));
+  }
+
   return {
     handleSearch,
     handleResetSearch,
     handleSelectionChange,
     handleBatchDelete,
     handleBatchImport,
+    handleDownloadTemplate,
     handleFileChange,
     handleAdd,
     handleEdit,

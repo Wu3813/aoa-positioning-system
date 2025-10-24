@@ -681,7 +681,9 @@ export default {
     invalidJSONFormat: 'JSON格式不正確',
     invalidCSVFormat: 'CSV格式不正確',
     noValidTagData: '沒有有效的標籤數據',
-    importConfirm: '確定要導入 {count} 個標籤嗎？'
+    importConfirm: '確定要導入 {count} 個標籤嗎？',
+    downloadTemplate: '下載模板',
+    templateDownloaded: '模板下載成功'
   },
 
   // 用戶管理頁面

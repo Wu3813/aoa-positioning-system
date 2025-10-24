@@ -36,6 +36,9 @@
           <el-button type="success" @click="handleBatchImport">
             <el-icon><Upload /></el-icon> {{ $t('tags.batchImport') }}
           </el-button>
+          <el-button type="info" @click="handleDownloadTemplate">
+            <el-icon><Download /></el-icon> {{ $t('tags.downloadTemplate') }}
+          </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
             <el-icon><Delete /></el-icon> {{ $t('tags.batchDelete') }}
           </el-button>
@@ -210,7 +213,7 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue'
-import { Search, Refresh, Plus, Delete, Edit, QuestionFilled, Upload } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Edit, QuestionFilled, Upload, Download } from '@element-plus/icons-vue'
 import '@/assets/styles/tag-view.css'
 import { useTagView } from './tagview-js'
 
@@ -245,6 +248,7 @@ const {
   handleSelectionChange,
   handleBatchDelete,
   handleBatchImport,
+  handleDownloadTemplate,
   handleFileChange,
   handleAdd,
   handleEdit,

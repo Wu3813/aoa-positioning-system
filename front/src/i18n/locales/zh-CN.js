@@ -681,7 +681,9 @@ export default {
     invalidJSONFormat: 'JSON格式不正确',
     invalidCSVFormat: 'CSV格式不正确',
     noValidTagData: '没有有效的标签数据',
-    importConfirm: '确定要导入 {count} 个标签吗？'
+    importConfirm: '确定要导入 {count} 个标签吗？',
+    downloadTemplate: '下载模板',
+    templateDownloaded: '模板下载成功'
   },
 
   // 用户管理页面

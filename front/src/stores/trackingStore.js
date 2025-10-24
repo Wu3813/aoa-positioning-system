@@ -33,9 +33,6 @@ export const useTrackingStore = defineStore('tracking', () => {
   // 标签图标大小配置
   const tagIconSize = ref(10)
   
-  // 标签图标透明度配置 (40-100)
-  const tagIconOpacity = ref(100)
-  
   // 初始化 store
   function init() {
     sensorManager.initSensorColors()
@@ -44,9 +41,6 @@ export const useTrackingStore = defineStore('tracking', () => {
     
     // 加载标签图标大小配置
     loadTagIconSizeConfig()
-    
-    // 加载标签图标透明度配置
-    loadTagIconOpacityConfig()
     
     // 设置配置监听器
     setupConfigListener()
@@ -70,29 +64,9 @@ export const useTrackingStore = defineStore('tracking', () => {
     }
   }
   
-  // 加载标签图标透明度配置
-  function loadTagIconOpacityConfig() {
-    try {
-      const taskConfig = localStorage.getItem('taskConfig')
-      if (taskConfig) {
-        const config = JSON.parse(taskConfig)
-        if (config.displayConfig && config.displayConfig.tagIconOpacity) {
-          tagIconOpacity.value = config.displayConfig.tagIconOpacity
-        }
-      }
-    } catch (e) {
-      console.error('加载标签图标透明度配置失败:', e)
-    }
-  }
-  
   // 更新标签图标大小
   function updateTagIconSize(size) {
     tagIconSize.value = size
-  }
-  
-  // 更新标签图标透明度
-  function updateTagIconOpacity(opacity) {
-    tagIconOpacity.value = opacity
   }
   
   // 监听配置更新事件
@@ -101,9 +75,6 @@ export const useTrackingStore = defineStore('tracking', () => {
       const { displayConfig } = event.detail
       if (displayConfig && displayConfig.tagIconSize) {
         updateTagIconSize(displayConfig.tagIconSize)
-      }
-      if (displayConfig && displayConfig.tagIconOpacity) {
-        updateTagIconOpacity(displayConfig.tagIconOpacity)
       }
     })
   }
@@ -176,6 +147,8 @@ export const useTrackingStore = defineStore('tracking', () => {
     visibleSensorsList: sensorManager.visibleSensorsList,
     limitTraceEnabled: sensorManager.limitTraceEnabled,
     traceLimit: sensorManager.traceLimit,
+    showTracePoints: sensorManager.showTracePoints,
+    tagIconOpacity: sensorManager.tagIconOpacity,
     forceUpdateFlag: sensorManager.forceUpdateFlag,
     getSensorColor: sensorManager.getSensorColor,
     changeSensorColor: sensorManager.changeSensorColor,
@@ -198,10 +171,6 @@ export const useTrackingStore = defineStore('tracking', () => {
     // 标签图标大小配置
     tagIconSize,
     updateTagIconSize,
-    
-    // 标签图标透明度配置
-    tagIconOpacity,
-    updateTagIconOpacity,
     
     // 初始化和清理
     init,

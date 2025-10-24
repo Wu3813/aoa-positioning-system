@@ -71,6 +71,7 @@ export function useTagView() {
     handleSelectionChange: ui.handleSelectionChange,
     handleBatchDelete: ui.handleBatchDelete,
     handleBatchImport: ui.handleBatchImport,
+    handleDownloadTemplate: ui.handleDownloadTemplate,
     handleFileChange: ui.handleFileChange,
     handleAdd: ui.handleAdd,
     handleEdit: ui.handleEdit,
