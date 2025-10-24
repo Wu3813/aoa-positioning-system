@@ -682,7 +682,7 @@ export default {
     invalidCSVFormat: 'Invalid CSV format',
     noValidTagData: 'No valid tag data',
     importConfirm: 'Are you sure to import {count} tags?',
-    downloadTemplate: 'Download Template',
+    downloadTemplate: 'Download Batch Import Template',
     templateDownloaded: 'Template downloaded successfully'
   },
 

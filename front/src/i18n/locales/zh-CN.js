@@ -682,7 +682,7 @@ export default {
     invalidCSVFormat: 'CSV格式不正确',
     noValidTagData: '没有有效的标签数据',
     importConfirm: '确定要导入 {count} 个标签吗？',
-    downloadTemplate: '下载模板',
+    downloadTemplate: '下载批量导入模板',
     templateDownloaded: '模板下载成功'
   },
 
