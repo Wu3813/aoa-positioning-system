@@ -9,11 +9,10 @@ public class TrajectoryRecord {
     private String deviceId;
     private Integer mapId;
     private LocalDateTime timestamp;
-    private Double x;
-    private Double y;
+    private Float x;  // 改为Float降低精度节省空间
+    private Float y;  // 改为Float降低精度节省空间
     private Integer rssi;
     private Integer battery;
-    private Integer pointCount;
     
     public TrajectoryRecord() {}
     
@@ -21,11 +20,10 @@ public class TrajectoryRecord {
         this.deviceId = deviceId;
         this.mapId = trackingData.getMapId();
         this.timestamp = parseTimestamp(trackingData.getTimestamp());
-        this.x = trackingData.getX();
-        this.y = trackingData.getY();
+        this.x = trackingData.getX() != null ? trackingData.getX().floatValue() : null;
+        this.y = trackingData.getY() != null ? trackingData.getY().floatValue() : null;
         this.rssi = trackingData.getRssi();
         this.battery = trackingData.getBattery();
-        this.pointCount = 1;
     }
     
     /**
@@ -49,16 +47,4 @@ public class TrajectoryRecord {
         }
     }
     
-    /**
-     * 合并另一个轨迹点
-     */
-    public void merge(TrackingData other) {
-        // 更新为最新的位置信息
-        this.x = other.getX();
-        this.y = other.getY();
-        this.rssi = other.getRssi();
-        this.battery = other.getBattery();
-        this.timestamp = parseTimestamp(other.getTimestamp());
-        this.pointCount++;
-    }
 } 

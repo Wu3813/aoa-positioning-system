@@ -134,6 +134,8 @@ public class MapController {
                 if (resource.exists()) {
                     return ResponseEntity.ok()
                             .contentType(MediaType.IMAGE_JPEG)
+                            // 添加缓存控制头：缓存7天，允许浏览器和代理缓存
+                            .cacheControl(org.springframework.http.CacheControl.maxAge(7, java.util.concurrent.TimeUnit.DAYS).cachePublic())
                             .body(resource);
                 }
             }

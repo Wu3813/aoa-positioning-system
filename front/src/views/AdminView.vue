@@ -51,6 +51,60 @@
                   :closable="false"
                 />
               </div>
+
+              <!-- 轨迹数据保留 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.trajectoryRetention') }}</span>
+                </div>
+                <el-form label-position="left" label-width="150px">
+                  <el-form-item :label="$t('admin.retentionDays')">
+                    <el-input-number 
+                      v-model="taskConfig.dataRetentionConfig.trajectoryRetentionDays"
+                      :min="1"
+                      :max="365"
+                      :step="1"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">{{ $t('admin.days') }}</span>
+                  </el-form-item>
+                </el-form>
+                <el-alert
+                  :title="$t('admin.retentionWarning')"
+                  type="info"
+                  show-icon
+                  :closable="false"
+                />
+              </div>
+
+              <!-- 磁盘空间管理 -->
+              <div class="task-section">
+                <div class="task-header">
+                  <span class="task-title">{{ $t('admin.diskSpaceManagement') }}</span>
+                  <el-switch 
+                    v-model="taskConfig.dataRetentionConfig.diskCleanupEnabled"
+                    :active-text="$t('admin.enabled')" 
+                    :inactive-text="$t('admin.disabled')" />
+                </div>
+                <el-form label-position="left" label-width="150px">
+                  <el-form-item :label="$t('admin.diskSpaceThreshold')">
+                    <el-input-number 
+                      v-model="taskConfig.dataRetentionConfig.diskSpaceThreshold"
+                      :min="5"
+                      :max="50"
+                      :step="1"
+                      controls-position="right"
+                      style="width: 200px" />
+                    <span style="margin-left: 8px; color: #909399;">%</span>
+                  </el-form-item>
+                </el-form>
+                <el-alert
+                  :title="$t('admin.diskCleanupWarning')"
+                  type="warning"
+                  show-icon
+                  :closable="false"
+                />
+              </div>
               
               <!-- 轨迹发送任务 -->
               <div class="task-section">
@@ -172,7 +226,6 @@
             </div>
           </el-card>
 
-
           <div class="actions">
             <el-button type="primary" @click="handleSaveWithValidation" :loading="saving">{{ $t('admin.saveConfig') }}</el-button>
             <el-button @click="handleResetTaskConfig">{{ $t('admin.resetConfig') }}</el-button>
@@ -186,7 +239,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Monitor, Position, Clock, View } from '@element-plus/icons-vue'
+import { Monitor, Position, View } from '@element-plus/icons-vue'
 import { useAdminView } from './adminview-js'
 
 // 获取国际化函数

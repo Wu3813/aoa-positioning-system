@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS task_config (
   timeout_enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT '超时管理是否启用',
   timeout_ms BIGINT NOT NULL DEFAULT 30000 COMMENT '超时时间（毫秒）',
   tag_icon_size INT NOT NULL DEFAULT 10 COMMENT '标签图标大小（像素）',
+  trajectory_retention_days INT NOT NULL DEFAULT 30 COMMENT '轨迹数据保留天数',
+  disk_cleanup_enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT '磁盘空间清理是否启用',
+  disk_space_threshold INT NOT NULL DEFAULT 20 COMMENT '磁盘空间阈值（百分比）',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务配置表';
 
@@ -27,8 +30,11 @@ INSERT INTO task_config (
   storage_enabled,
   timeout_enabled,
   timeout_ms,
-  tag_icon_size
+  tag_icon_size,
+  trajectory_retention_days,
+  disk_cleanup_enabled,
+  disk_space_threshold
 ) 
-SELECT 60000, false, false, 300, 20000, 5000, true, true, 30000, 10
+SELECT 60000, false, false, 300, 20000, 5000, true, true, 30000, 10, 30, true, 20
 FROM DUAL
 WHERE NOT EXISTS (SELECT * FROM task_config LIMIT 1); 

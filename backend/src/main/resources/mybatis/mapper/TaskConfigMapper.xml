@@ -18,6 +18,10 @@
         <result column="timeout_ms" property="timeoutTask.timeoutMs" />
         <!-- 显示配置 -->
         <result column="tag_icon_size" property="displayConfig.tagIconSize" />
+        <!-- 数据清理配置 -->
+        <result column="trajectory_retention_days" property="cleanupConfig.trajectoryRetentionDays" />
+        <result column="disk_cleanup_enabled" property="cleanupConfig.diskCleanupEnabled" />
+        <result column="disk_space_threshold" property="cleanupConfig.diskSpaceThreshold" />
     </resultMap>
     
     <select id="selectTaskConfig" resultMap="TaskConfigResultMap">
@@ -32,7 +36,10 @@
             storage_enabled,
             timeout_enabled,
             timeout_ms,
-            tag_icon_size
+            tag_icon_size,
+            trajectory_retention_days,
+            disk_cleanup_enabled,
+            disk_space_threshold
         FROM task_config
         LIMIT 1
     </select>
@@ -48,7 +55,10 @@
             storage_enabled,
             timeout_enabled,
             timeout_ms,
-            tag_icon_size
+            tag_icon_size,
+            trajectory_retention_days,
+            disk_cleanup_enabled,
+            disk_space_threshold
         ) VALUES (
             #{stationTask.intervalMs},
             #{stationTask.enabled},
@@ -59,7 +69,10 @@
             #{storageTask.enabled},
             #{timeoutTask.enabled},
             #{timeoutTask.timeoutMs},
-            #{displayConfig.tagIconSize}
+            #{displayConfig.tagIconSize},
+            #{cleanupConfig.trajectoryRetentionDays},
+            #{cleanupConfig.diskCleanupEnabled},
+            #{cleanupConfig.diskSpaceThreshold}
         )
     </insert>
     
@@ -78,7 +91,10 @@
             storage_enabled = #{storageTask.enabled},
             timeout_enabled = #{timeoutTask.enabled},
             timeout_ms = #{timeoutTask.timeoutMs},
-            tag_icon_size = #{displayConfig.tagIconSize}
+            tag_icon_size = #{displayConfig.tagIconSize},
+            trajectory_retention_days = #{cleanupConfig.trajectoryRetentionDays},
+            disk_cleanup_enabled = #{cleanupConfig.diskCleanupEnabled},
+            disk_space_threshold = #{cleanupConfig.diskSpaceThreshold}
         WHERE id = #{id}
     </update>
 </mapper> 

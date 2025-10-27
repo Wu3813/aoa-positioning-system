@@ -107,4 +107,11 @@ public class TaskConfigService {
     public TaskConfig.StorageTask getStorageTaskConfig() {
         return taskConfig.getStorageTask();
     }
+    
+    /**
+     * 获取数据清理配置
+     */
+    public TaskConfig.CleanupConfig getCleanupConfig() {
+        return taskConfig.getCleanupConfig();
+    }
 } 

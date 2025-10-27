@@ -86,17 +86,14 @@
               placement="top"
               ref="sensorListTooltip"
             >
-              <el-button 
+              <el-icon 
+                :size="18" 
                 @click="handleSensorListToggle"
-                size="small"
-                circle
                 class="collapse-btn"
+                style="cursor: pointer;"
               >
-                <el-icon :size="18">
-                  <Expand v-if="isSensorListCollapsed" />
-                  <Fold v-else />
-                </el-icon>
-              </el-button>
+                <SidebarIcon />
+              </el-icon>
             </el-tooltip>
           </div>
           <div v-show="!isSensorListCollapsed" class="sensor-list-content">
@@ -190,9 +187,10 @@
 <script setup>
 import { onMounted, watch, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Delete, Search, FullScreen, Close, ArrowLeft, ArrowRight, Expand, Fold } from '@element-plus/icons-vue'
+import { Delete, Search, FullScreen, Close, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import '@/assets/styles/monitor-view.css'
 import { useMonitorView } from './monitorview-js/index.js'
+import SidebarIcon from '@/components/icons/SidebarIcon.vue'
 
 const { t } = useI18n()
 

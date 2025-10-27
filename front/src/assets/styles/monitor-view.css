@@ -58,6 +58,10 @@
   margin-bottom: 16px;
 }
 
+.sensor-list-collapsed .sensor-list-header {
+  justify-content: center;
+}
+
 .sensor-list-header h3 {
   margin: 0;
   font-size: 16px;
@@ -67,6 +71,12 @@
 
 .collapse-btn {
   flex-shrink: 0;
+  color: #606266;
+  transition: color 0.3s;
+}
+
+.collapse-btn:hover {
+  color: #409eff;
 }
 
 .sensor-list-content {

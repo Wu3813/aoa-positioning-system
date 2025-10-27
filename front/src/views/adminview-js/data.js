@@ -25,6 +25,11 @@ export function createAdminData() {
     },
     displayConfig: {
       tagIconSize: 10
+    },
+    dataRetentionConfig: {
+      trajectoryRetentionDays: 30,
+      diskCleanupEnabled: true,
+      diskSpaceThreshold: 20
     }
   })
 
@@ -50,6 +55,11 @@ export function createAdminData() {
       },
       displayConfig: {
         tagIconSize: 10
+      },
+      dataRetentionConfig: {
+        trajectoryRetentionDays: 30,
+        diskCleanupEnabled: true,
+        diskSpaceThreshold: 20
       }
     })
   }

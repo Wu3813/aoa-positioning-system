@@ -113,11 +113,10 @@ public class TrajectoryStorageServiceImpl implements TrajectoryStorageService {
             record.setDeviceId(deviceId);
             record.setMapId(data.getMapId());
             record.setTimestamp(timestamp);
-            record.setX(data.getX());
-            record.setY(data.getY());
+            record.setX(data.getX() != null ? data.getX().floatValue() : null);
+            record.setY(data.getY() != null ? data.getY().floatValue() : null);
             record.setRssi(data.getRssi());
             record.setBattery(data.getBattery());
-            record.setPointCount(1); // 每条记录只包含一个点
             
             return record;
                 
@@ -203,16 +202,16 @@ public class TrajectoryStorageServiceImpl implements TrajectoryStorageService {
     @Override
     public void ensurePartitionExists(LocalDateTime timestamp) {
         try {
-            int year = timestamp.getYear();
-            int month = timestamp.getMonthValue();
+            java.time.LocalDate date = timestamp.toLocalDate();
             
-            String partitionName = String.format("p%d%02d", year, month);
+            String partitionName = String.format("p%d%02d%02d", 
+                date.getYear(), date.getMonthValue(), date.getDayOfMonth());
             
             // 检查分区是否存在
             int exists = trajectoryStorageMapper.checkPartitionExists(partitionName);
             if (exists == 0) {
                 // 创建分区
-                trajectoryStorageMapper.createPartition(year, month);
+                trajectoryStorageMapper.createPartition(date);
                 log.info("自动创建分区: {}", partitionName);
             }
             

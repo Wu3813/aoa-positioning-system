@@ -62,7 +62,8 @@ export function createGeofenceAPI(data, t) {
   const getMapImageUrl = (mapId) => {
     try {
       if (!mapId) return ''
-      return `/api/maps/${mapId}/image?t=${Date.now()}`
+      // 移除时间戳参数以启用浏览器缓存
+      return `/api/maps/${mapId}/image`
     } catch (error) {
       console.error('生成图片URL时出错:', error)
       return ''

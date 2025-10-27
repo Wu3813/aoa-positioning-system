@@ -7,11 +7,11 @@
     <!-- 批量插入轨迹记录 -->
     <insert id="insertBatch" parameterType="list">
         INSERT INTO trajectory_data 
-        (device_id, map_id, timestamp, x, y, rssi, battery, point_count)
+        (device_id, map_id, timestamp, x, y, rssi, battery)
         VALUES
         <foreach collection="records" item="record" separator=",">
             (#{record.deviceId}, #{record.mapId}, #{record.timestamp},
-             #{record.x}, #{record.y}, #{record.rssi}, #{record.battery}, #{record.pointCount})
+             #{record.x}, #{record.y}, #{record.rssi}, #{record.battery})
         </foreach>
     </insert>
     
@@ -25,15 +25,13 @@
             x, 
             y, 
             rssi, 
-            battery, 
-            point_count as pointCount
+            battery
         FROM trajectory_data
         WHERE device_id = #{deviceId}
         <if test="mapId != null">
             AND map_id = #{mapId}
         </if>
         <if test="startTime != null">
-            <!-- 使用CONVERT_TZ函数将时间戳转换为UTC时区，以消除时区影响 -->
             AND timestamp >= #{startTime}
         </if>
         <if test="endTime != null">
@@ -43,9 +41,26 @@
         LIMIT #{offset}, #{limit}
     </select>
     
-    <!-- 创建分区 -->
-    <select id="createPartition" statementType="CALLABLE">
-        {call CreateTrajectoryPartition(#{year}, #{month})}
+    <!-- 创建分区（按天） -->
+    <update id="createPartition" statementType="CALLABLE">
+        {call CreateTrajectoryPartition(#{date})}
+    </update>
+    
+    <!-- 删除分区（按天） -->
+    <update id="dropPartition" statementType="CALLABLE">
+        {call DropTrajectoryPartition(#{date})}
+    </update>
+    
+    <!-- 获取最旧的分区日期 -->
+    <select id="getOldestPartitionDate" resultType="java.time.LocalDate">
+        SELECT 
+            STR_TO_DATE(SUBSTRING(partition_name, 2), '%Y%m%d') as partition_date
+        FROM information_schema.partitions 
+        WHERE table_schema = DATABASE() 
+          AND table_name = 'trajectory_data'
+          AND partition_name != 'p_future'
+        ORDER BY partition_name ASC
+        LIMIT 1
     </select>
     
     <!-- 检查分区是否存在 -->
@@ -55,6 +70,15 @@
         WHERE table_schema = DATABASE() 
           AND table_name = 'trajectory_data' 
           AND partition_name = #{partitionName}
+    </select>
+    
+    <!-- 获取数据库磁盘使用信息 -->
+    <select id="getDiskSpaceInfo" resultType="map">
+        SELECT 
+            ROUND(SUM(data_length + index_length) / 1024 / 1024 / 1024, 2) as used_gb,
+            ROUND(SUM(data_free) / 1024 / 1024 / 1024, 2) as free_gb
+        FROM information_schema.TABLES
+        WHERE table_schema = DATABASE()
     </select>
     
 </mapper> 

@@ -2,96 +2,98 @@
   <el-container class="layout">
     <!-- 侧边栏 -->
     <el-aside class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
-      <div class="logo">
-        <h3 v-show="!isCollapsed">{{ $t('system.titleShort') }}</h3>
-        <h3 v-show="isCollapsed" class="logo-collapsed">AOA</h3>
+      <div class="sidebar-content">
+        <div class="logo">
+          <h3 v-show="!isCollapsed">{{ $t('system.titleShort') }}</h3>
+          <h3 v-show="isCollapsed" class="logo-collapsed">AOA</h3>
+        </div>
+        
+        <el-menu
+          :default-active="route.path"
+          class="menu"
+          router
+          background-color="#fff"
+          text-color="#333"
+          active-text-color="#409EFF"
+          :collapse="isCollapsed"
+        >
+          <el-menu-item index="/home">
+            <el-icon><Monitor /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.realtime') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item index="/home/history">
+            <el-icon><DataAnalysis /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.history') }}</span>
+          </el-menu-item>
+
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/maps">
+            <el-icon><Location /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.maps') }}</span>
+          </el-menu-item>
+
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/geofence">
+            <el-icon><Place /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.geofence') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/stations">
+            <el-icon><Odometer /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.stations') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/engines">
+            <el-icon><Connection /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.engines') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/tags">
+            <el-icon><PriceTag /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.tags') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/users">
+            <el-icon><User /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.users') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/alarms">
+            <el-icon><Bell /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.alarms') }}</span>
+          </el-menu-item>
+          
+          <el-menu-item v-if="userInfo.role === 'admin'" index="/home/admin">
+            <el-icon><Setting /></el-icon>
+            <span v-show="!isCollapsed">{{ $t('menu.admin') }}</span>
+          </el-menu-item>
+        </el-menu>
       </div>
       
-      <el-menu
-        :default-active="route.path"
-        class="menu"
-        router
-        background-color="#fff"
-        text-color="#333"
-        active-text-color="#409EFF"
-        :collapse="isCollapsed"
-      >
-        <el-menu-item index="/home">
-          <el-icon><Monitor /></el-icon>
-          <span>{{ $t('menu.realtime') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item index="/home/history">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>{{ $t('menu.history') }}</span>
-        </el-menu-item>
-
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/maps">
-          <el-icon><Location /></el-icon>
-          <span>{{ $t('menu.maps') }}</span>
-        </el-menu-item>
-
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/geofence">
-          <el-icon><Place /></el-icon>
-          <span>{{ $t('menu.geofence') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/stations">
-          <el-icon><Odometer /></el-icon>
-          <span>{{ $t('menu.stations') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/engines">
-          <el-icon><Connection /></el-icon>
-          <span>{{ $t('menu.engines') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/tags">
-          <el-icon><PriceTag /></el-icon>
-          <span>{{ $t('menu.tags') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/users">
-          <el-icon><User /></el-icon>
-          <span>{{ $t('menu.users') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/alarms">
-          <el-icon><Bell /></el-icon>
-          <span>{{ $t('menu.alarms') }}</span>
-        </el-menu-item>
-        
-        <el-menu-item v-if="userInfo.role === 'admin'" index="/home/admin">
-          <el-icon><Setting /></el-icon>
-          <span>{{ $t('menu.admin') }}</span>
-        </el-menu-item>
-      </el-menu>
+      <!-- 底部折叠按钮 -->
+      <div class="sidebar-footer">
+        <el-tooltip 
+          :content="isCollapsed ? t('common.expandSidebar') : t('common.collapseSidebar')" 
+          :placement="isCollapsed ? 'right' : 'top'"
+          ref="sidebarTooltip"
+        >
+          <el-button 
+            @click="handleSidebarToggle"
+            size="small"
+            text
+            class="sidebar-toggle-btn"
+          >
+            <el-icon :size="20">
+              <SidebarIcon />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+      </div>
     </el-aside>
     
     <!-- 主内容区 -->
     <el-container class="main">
       <!-- 顶部栏 -->
       <el-header class="header">
-        <div class="header-left">
-          <el-tooltip 
-            :content="isCollapsed ? t('common.expandSidebar') : t('common.collapseSidebar')" 
-            placement="bottom"
-            ref="sidebarTooltip"
-          >
-            <el-button 
-              @click="handleSidebarToggle"
-              size="small"
-              circle
-              class="sidebar-toggle-btn"
-            >
-              <el-icon :size="18">
-                <Expand v-if="isCollapsed" />
-                <Fold v-else />
-              </el-icon>
-            </el-button>
-          </el-tooltip>
-        </div>
-        
         <div class="header-right">
           <div class="language-switcher">
             <el-select v-model="currentLocale" @change="changeLocale" size="small" style="width: 100px;">
@@ -125,9 +127,10 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Monitor, User, Location, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell, Expand, Fold } from '@element-plus/icons-vue'
+import { Monitor, User, Location, Odometer, Connection, PriceTag, DataAnalysis, Place, Setting, Bell } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { createGeofenceTranslationFunction } from '@/utils/geofenceTranslations'
+import SidebarIcon from '@/components/icons/SidebarIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -191,10 +194,12 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
   localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed.value))
   
-  // 触发自定义事件，通知其他组件侧边栏状态变化
-  window.dispatchEvent(new CustomEvent('sidebarToggle', {
-    detail: { collapsed: isCollapsed.value }
-  }))
+  // 延迟触发自定义事件，等待CSS动画完成(300ms)后再通知
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('sidebarToggle', {
+      detail: { collapsed: isCollapsed.value }
+    }))
+  }, 350)
 }
 
 // 处理侧边栏切换，同时隐藏tooltip
@@ -229,11 +234,30 @@ const handleLogout = () => {
   min-width: 140px;
   width: auto;
   transition: width 0.3s ease;
+  will-change: width;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-collapsed {
   width: 64px !important;
   min-width: 64px;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid #e6e6e6;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #fff;
 }
 
 .logo {
@@ -265,6 +289,17 @@ const handleLogout = () => {
   text-overflow: ellipsis;
 }
 
+/* 禁用 Element Plus el-menu 的所有内部动画 */
+.menu.el-menu,
+.menu.el-menu * {
+  transition: none !important;
+}
+
+/* 菜单项文字 - 由 v-show 完全控制，无过渡 */
+.menu .el-menu-item span {
+  white-space: nowrap;
+}
+
 .main {
   background: #f5f5f5;
 }
@@ -273,25 +308,23 @@ const handleLogout = () => {
   background: #fff;
   border-bottom: 1px solid #e6e6e6;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 0 20px;
 }
 
-.header-left {
+.sidebar-toggle-btn {
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  color: #606266;
+  transition: all 0.3s ease;
   display: flex;
+  justify-content: center;
   align-items: center;
 }
 
-.sidebar-toggle-btn {
-  flex-shrink: 0;
-  border: 1px solid #dcdfe6;
-  background-color: #fff;
-  transition: all 0.3s ease;
-}
-
 .sidebar-toggle-btn:hover {
-  border-color: #409EFF;
   color: #409EFF;
   background-color: #f0f9ff;
 }

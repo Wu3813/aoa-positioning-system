@@ -4,8 +4,10 @@ import com.wu.monitor.model.TrajectoryRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface TrajectoryStorageMapper {
@@ -26,12 +28,27 @@ public interface TrajectoryStorageMapper {
                                            @Param("limit") int limit);
     
     /**
-     * 创建轨迹存储分区
+     * 创建轨迹存储分区（按天）
      */
-    void createPartition(@Param("year") int year, @Param("month") int month);
+    void createPartition(@Param("date") LocalDate date);
+    
+    /**
+     * 删除轨迹存储分区（按天）
+     */
+    void dropPartition(@Param("date") LocalDate date);
+    
+    /**
+     * 获取最旧的分区日期
+     */
+    LocalDate getOldestPartitionDate();
     
     /**
      * 检查轨迹存储分区是否存在
      */
     int checkPartitionExists(@Param("partitionName") String partitionName);
+    
+    /**
+     * 获取数据库磁盘使用信息
+     */
+    Map<String, Object> getDiskSpaceInfo();
 }

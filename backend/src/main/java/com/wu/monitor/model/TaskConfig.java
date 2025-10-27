@@ -127,11 +127,45 @@ public class TaskConfig {
         }
     }
     
+    /**
+     * 数据清理配置
+     */
+    public static class CleanupConfig {
+        private int trajectoryRetentionDays = 30;    // 轨迹数据保留天数，默认30天
+        private boolean diskCleanupEnabled = true;   // 磁盘空间清理是否启用，默认启用
+        private int diskSpaceThreshold = 20;         // 磁盘空间阈值（百分比），默认20%
+        
+        public int getTrajectoryRetentionDays() {
+            return trajectoryRetentionDays;
+        }
+        
+        public void setTrajectoryRetentionDays(int trajectoryRetentionDays) {
+            this.trajectoryRetentionDays = trajectoryRetentionDays;
+        }
+        
+        public boolean isDiskCleanupEnabled() {
+            return diskCleanupEnabled;
+        }
+        
+        public void setDiskCleanupEnabled(boolean diskCleanupEnabled) {
+            this.diskCleanupEnabled = diskCleanupEnabled;
+        }
+        
+        public int getDiskSpaceThreshold() {
+            return diskSpaceThreshold;
+        }
+        
+        public void setDiskSpaceThreshold(int diskSpaceThreshold) {
+            this.diskSpaceThreshold = diskSpaceThreshold;
+        }
+    }
+    
     private StationTask stationTask = new StationTask();
     private TrajectoryTask trajectoryTask = new TrajectoryTask();
     private StorageTask storageTask = new StorageTask();
     private TimeoutTask timeoutTask = new TimeoutTask();
     private DisplayConfig displayConfig = new DisplayConfig();
+    private CleanupConfig cleanupConfig = new CleanupConfig();
     
     public Long getId() {
         return id;
@@ -179,5 +213,13 @@ public class TaskConfig {
     
     public void setDisplayConfig(DisplayConfig displayConfig) {
         this.displayConfig = displayConfig;
+    }
+    
+    public CleanupConfig getCleanupConfig() {
+        return cleanupConfig;
+    }
+    
+    public void setCleanupConfig(CleanupConfig cleanupConfig) {
+        this.cleanupConfig = cleanupConfig;
     }
 } 

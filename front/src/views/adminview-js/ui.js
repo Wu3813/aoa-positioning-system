@@ -18,7 +18,7 @@ export function createAdminUI(data, api, t) {
 
   // 验证任务配置
   const validateTaskConfig = () => {
-    const { stationTask, trajectoryTask, storageTask, timeoutTask } = data.taskConfig
+    const { stationTask, trajectoryTask, storageTask, timeoutTask, dataRetentionConfig } = data.taskConfig
     
     // 验证基站任务配置
     if (stationTask.enabled && stationTask.intervalMs < 1000) {
@@ -48,6 +48,20 @@ export function createAdminUI(data, api, t) {
     if (timeoutTask.enabled && timeoutTask.timeoutMs < 1000) {
       ElMessage.warning(t('admin.timeoutIntervalWarning'))
       return false
+    }
+    
+    // 验证数据保留配置
+    if (dataRetentionConfig) {
+      if (dataRetentionConfig.trajectoryRetentionDays < 1 || dataRetentionConfig.trajectoryRetentionDays > 365) {
+        ElMessage.warning(t('admin.retentionDaysWarning'))
+        return false
+      }
+      if (dataRetentionConfig.diskCleanupEnabled) {
+        if (dataRetentionConfig.diskSpaceThreshold < 5 || dataRetentionConfig.diskSpaceThreshold > 50) {
+          ElMessage.warning(t('admin.diskThresholdWarning'))
+          return false
+        }
+      }
     }
     
     return true
