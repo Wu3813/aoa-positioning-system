@@ -12,7 +12,7 @@ export const useMapStore = defineStore('map', () => {
   })
   
   const mapUrl = computed(() => {
-    return selectedMap.value ? `/api/maps/${selectedMap.value.mapId}/image?t=${Date.now()}` : ''
+    return selectedMap.value ? `/api/maps/${selectedMap.value.mapId}/image` : ''
   })
 
   // 计算坐标像素转换比例
