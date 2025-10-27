@@ -302,7 +302,6 @@ export const createRenderHandler = (data) => {
       
       if (!isNaN(x) && !isNaN(y)) {
         // 绘制标签点 - 使用颜色透明度而不是globalAlpha避免毛玻璃效果
-        ctx.beginPath()
         
         // 将颜色转换为带透明度的RGBA格式
         const hexToRgba = (hex, alpha) => {
@@ -312,7 +311,29 @@ export const createRenderHandler = (data) => {
           return `rgba(${r}, ${g}, ${b}, ${alpha})`
         }
         
-        // 绘制标签图标（带阴影、白色边框和灰色描边）
+        // 绘制灰色描边（最外圈，先绘制）
+        ctx.beginPath()
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+        const whiteCircleWidth = 6 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+        const grayStrokeWidth = 2 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
+        // 灰色描边的半径要加上白色边框宽度的一半
+        const grayStrokeRadius = tagIconSize + whiteCircleWidth / 2
+        ctx.strokeStyle = `rgba(128, 128, 128, ${tagIconOpacity})` // 灰色描边，跟随透明度
+        ctx.lineWidth = grayStrokeWidth
+        ctx.arc(x, y, grayStrokeRadius, 0, Math.PI * 2)
+        ctx.stroke()
+        
+        // 绘制白色边框（中间圈）
+        ctx.beginPath()
+        ctx.strokeStyle = `rgba(255, 255, 255, ${tagIconOpacity})` // 白色边框，跟随透明度
+        ctx.lineWidth = whiteCircleWidth
+        ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
+        ctx.stroke()
+        
+        // 绘制标签图标主体（彩色圆，带阴影）
+        ctx.beginPath()
         ctx.shadowBlur = 3
         ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
         ctx.shadowOffsetX = 1
@@ -321,20 +342,10 @@ export const createRenderHandler = (data) => {
         ctx.arc(x, y, tagIconSize, 0, Math.PI * 2)
         ctx.fill()
         
-        // 重置阴影，绘制白色边框（内圈）
+        // 重置阴影
         ctx.shadowBlur = 0
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
-        ctx.strokeStyle = `rgba(255, 255, 255, ${tagIconOpacity})` // 白色边框，跟随透明度
-        // 白色边框宽度为原来的两倍
-        ctx.lineWidth = 12 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
-        ctx.stroke()
-        
-        // 绘制灰色描边（外圈，在白色边框外面）
-        ctx.strokeStyle = `rgba(64, 64, 64, ${tagIconOpacity})` // 深灰色描边，跟随透明度
-        // 灰色描边宽度
-        ctx.lineWidth = 1 * Math.min(data.imageInfo.scaleX, data.imageInfo.scaleY)
-        ctx.stroke()
         
         // 绘制标签名称 - 保持完全不透明
         ctx.fillStyle = '#333'
