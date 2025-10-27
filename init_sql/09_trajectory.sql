@@ -5,13 +5,11 @@ DROP TABLE IF EXISTS `trajectory_data`;
 
 CREATE TABLE `trajectory_data` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `device_id` varchar(50) NOT NULL COMMENT '设备ID（MAC地址）',
+  `device_id` BINARY(6) NOT NULL COMMENT '设备ID（MAC地址，6字节二进制）',
   `map_id` int(11) DEFAULT NULL COMMENT '地图ID',
   `timestamp` datetime NOT NULL COMMENT '时间戳',
   `x` float DEFAULT NULL COMMENT 'X坐标（降低精度节省空间）',
   `y` float DEFAULT NULL COMMENT 'Y坐标（降低精度节省空间）',
-  `rssi` tinyint DEFAULT NULL COMMENT 'RSSI信号强度',
-  `battery` tinyint DEFAULT NULL COMMENT '电量百分比',
   PRIMARY KEY (`id`, `timestamp`),
   KEY `idx_device_timestamp` (`device_id`, `timestamp`),
   KEY `idx_map_id` (`map_id`)

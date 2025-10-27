@@ -20,7 +20,7 @@ public interface TrajectoryStorageMapper {
     /**
      * 查询设备历史轨迹存储记录（分页）
      */
-    List<TrajectoryRecord> selectByDeviceId(@Param("deviceId") String deviceId, 
+    List<TrajectoryRecord> selectByDeviceId(@Param("deviceId") byte[] deviceId, 
                                            @Param("mapId") Integer mapId,
                                            @Param("startTime") LocalDateTime startTime,
                                            @Param("endTime") LocalDateTime endTime,

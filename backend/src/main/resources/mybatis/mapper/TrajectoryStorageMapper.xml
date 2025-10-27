@@ -7,11 +7,11 @@
     <!-- 批量插入轨迹记录 -->
     <insert id="insertBatch" parameterType="list">
         INSERT INTO trajectory_data 
-        (device_id, map_id, timestamp, x, y, rssi, battery)
+        (device_id, map_id, timestamp, x, y)
         VALUES
         <foreach collection="records" item="record" separator=",">
             (#{record.deviceId}, #{record.mapId}, #{record.timestamp},
-             #{record.x}, #{record.y}, #{record.rssi}, #{record.battery})
+             #{record.x}, #{record.y})
         </foreach>
     </insert>
     
@@ -23,9 +23,7 @@
             map_id as mapId, 
             timestamp, 
             x, 
-            y, 
-            rssi, 
-            battery
+            y
         FROM trajectory_data
         WHERE device_id = #{deviceId}
         <if test="mapId != null">

@@ -110,13 +110,11 @@ public class TrajectoryStorageServiceImpl implements TrajectoryStorageService {
         try {
             LocalDateTime timestamp = TimestampUtils.parseTimestamp(data.getTimestamp());
             TrajectoryRecord record = new TrajectoryRecord();
-            record.setDeviceId(deviceId);
+            record.setDeviceId(TrajectoryRecord.macStringToBytes(deviceId));
             record.setMapId(data.getMapId());
             record.setTimestamp(timestamp);
             record.setX(data.getX() != null ? data.getX().floatValue() : null);
             record.setY(data.getY() != null ? data.getY().floatValue() : null);
-            record.setRssi(data.getRssi());
-            record.setBattery(data.getBattery());
             
             return record;
                 
@@ -176,8 +174,11 @@ public class TrajectoryStorageServiceImpl implements TrajectoryStorageService {
         
         int offset = page * size;
         
+        // 将MAC地址字符串转换为字节数组
+        byte[] deviceIdBytes = TrajectoryRecord.macStringToBytes(deviceId);
+        
         // 直接使用传入的原始时间，不做任何转换处理
-        List<TrajectoryRecord> records = trajectoryStorageMapper.selectByDeviceId(deviceId, mapId, startTime, endTime, offset, size);
+        List<TrajectoryRecord> records = trajectoryStorageMapper.selectByDeviceId(deviceIdBytes, mapId, startTime, endTime, offset, size);
         log.info("数据库查询结果: 找到{}条记录", records.size());
         
         // 查询后输出第一条和最后一条记录的时间，便于调试
