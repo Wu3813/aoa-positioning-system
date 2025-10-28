@@ -3,6 +3,12 @@ import { useRouter } from 'vue-router'
 
 export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch, stopPlayback) {
   const router = useRouter()
+  
+  // 创建一个对象来存储后期绑定的方法
+  const handlers = {
+    apiHandleMapChange: handleMapChange,
+    apiHandleSearch: handleSearch
+  }
 
   // 前往地图管理页面
   const goToMapManagement = () => {
@@ -12,22 +18,53 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
   // 图片加载处理
   const handleImageLoad = (e) => {
     const img = e.target
-    if (img) {
-      data.imageInfo.width = img.naturalWidth
-      data.imageInfo.height = img.naturalHeight
-      
-      if (mapStore.selectedMap?.width && mapStore.selectedMap?.height) {
-        data.imageInfo.width = mapStore.selectedMap.width
-        data.imageInfo.height = mapStore.selectedMap.height
-      }
-      
-      const displayWidth = img.clientWidth
-      const displayHeight = img.clientHeight
-      data.imageInfo.scaleX = displayWidth / data.imageInfo.width
-      data.imageInfo.scaleY = displayHeight / data.imageInfo.height
-      
-      data.imageInfo.loaded = true
+    if (!img) {
+      console.error('handleImageLoad: 没有图片元素')
+      return
     }
+    
+    console.log('=== handleImageLoad 开始 ===')
+    console.log('图片自然尺寸:', img.naturalWidth, 'x', img.naturalHeight)
+    console.log('图片显示尺寸:', img.clientWidth, 'x', img.clientHeight)
+    
+    // 验证图片尺寸
+    if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+      console.error('图片尺寸无效，等待重新加载')
+      return
+    }
+    
+    data.imageInfo.width = img.naturalWidth
+    data.imageInfo.height = img.naturalHeight
+    
+    if (mapStore.selectedMap?.width && mapStore.selectedMap?.height) {
+      console.log('使用地图配置的尺寸:', mapStore.selectedMap.width, 'x', mapStore.selectedMap.height)
+      data.imageInfo.width = mapStore.selectedMap.width
+      data.imageInfo.height = mapStore.selectedMap.height
+    }
+    
+    const displayWidth = img.clientWidth || img.naturalWidth
+    const displayHeight = img.clientHeight || img.naturalHeight
+    
+    // 避免除以零
+    if (data.imageInfo.width === 0 || data.imageInfo.height === 0) {
+      console.error('图片配置尺寸无效')
+      return
+    }
+    
+    data.imageInfo.scaleX = displayWidth / data.imageInfo.width
+    data.imageInfo.scaleY = displayHeight / data.imageInfo.height
+    
+    console.log('缩放比例:', data.imageInfo.scaleX, 'x', data.imageInfo.scaleY)
+    console.log('地图配置:', {
+      originX: mapStore.selectedMap?.originX,
+      originY: mapStore.selectedMap?.originY,
+      scale: mapStore.selectedMap?.scale
+    })
+    
+    // 设置为已加载 - 这将触发 SVG 渲染
+    data.imageInfo.loaded = true
+    console.log('✓ 图片加载完成，imageInfo.loaded = true')
+    console.log('=== handleImageLoad 结束 ===')
   }
 
   // 重置搜索
@@ -86,19 +123,44 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
 
   // 获取轨迹点字符串
   const getTracePoints = (points) => {
-    if (!points || points.length === 0) return ''
+    if (!points || points.length === 0) {
+      console.log('getTracePoints: 没有点数据')
+      return ''
+    }
     
-    return points
-      .map(p => {
+    console.log('getTracePoints: 处理', points.length, '个点')
+    console.log('地图信息:', {
+      selectedMap: mapStore.selectedMap,
+      pixelsPerMeter: mapStore.pixelsPerMeter,
+      originX: mapStore.selectedMap?.originX,
+      originY: mapStore.selectedMap?.originY
+    })
+    
+    const result = points
+      .map((p, index) => {
         const pixelX = mapStore.meterToPixelX(p.x)
         const pixelY = mapStore.meterToPixelY(p.y)
         
-        if (isNaN(pixelX) || isNaN(pixelY)) return null
+        if (index === 0) {
+          console.log('第一个点:', {
+            原始: { x: p.x, y: p.y },
+            像素: { x: pixelX, y: pixelY }
+          })
+        }
+        
+        if (isNaN(pixelX) || isNaN(pixelY)) {
+          console.warn('坐标转换失败:', p, '结果:', { pixelX, pixelY })
+          return null
+        }
         
         return `${pixelX},${pixelY}`
       })
       .filter(p => p !== null)
       .join(' ')
+    
+    console.log('生成的轨迹点字符串长度:', result.length)
+    
+    return result
   }
 
   // 获取时间跨度
@@ -196,7 +258,10 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
       // 恢复地图选择
       if (state.selectedMapId) {
         data.selectedMapId.value = state.selectedMapId;
-        await handleMapChange(data.selectedMapId.value);
+        const mapChangeHandler = handlers.apiHandleMapChange || handleMapChange;
+        if (mapChangeHandler) {
+          await mapChangeHandler(data.selectedMapId.value);
+        }
       }
       
       // 恢复时间范围
@@ -219,7 +284,10 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
       
       // 如果有足够信息，自动执行查询
       if (data.searchForm.deviceId && data.searchForm.dateRange?.length === 2) {
-        await handleSearch();
+        const searchHandler = handlers.apiHandleSearch || handleSearch;
+        if (searchHandler) {
+          await searchHandler();
+        }
         
         // 恢复播放位置
         if (state.currentPlayIndex && data.trajectoryData.value.length > 0) {
@@ -231,7 +299,7 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
     }
   };
 
-  return {
+  const result = {
     goToMapManagement,
     handleImageLoad,
     handleResetSearch,
@@ -245,6 +313,21 @@ export function createUIHandler(data, mapStore, t, handleMapChange, handleSearch
     formatDuration,
     handleExportCSV,
     saveState,
-    restoreState
-  }
+    restoreState,
+    // 支持后期绑定的属性
+    get apiHandleMapChange() {
+      return handlers.apiHandleMapChange;
+    },
+    set apiHandleMapChange(value) {
+      handlers.apiHandleMapChange = value;
+    },
+    get apiHandleSearch() {
+      return handlers.apiHandleSearch;
+    },
+    set apiHandleSearch(value) {
+      handlers.apiHandleSearch = value;
+    }
+  };
+  
+  return result;
 }

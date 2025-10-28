@@ -1,7 +1,7 @@
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
-export function createHistoryAPI(data, mapStore, t) {
+export function createHistoryAPI(data, mapStore, t, uiHandlers = {}) {
   // 获取地图列表
   const fetchMapList = async () => {
     try {
@@ -135,6 +135,19 @@ export function createHistoryAPI(data, mapStore, t) {
       } else {
         ElMessage.success(t('history.foundTrajectoryPoints', { count: data.trajectoryData.value.length }))
         data.currentPlayIndex.value = 0 // 从第一个点开始
+        
+        // 在数据加载完成后，确保图片已初始化（处理缓存情况）
+        setTimeout(() => {
+          if (data.mapImage.value && mapStore.selectedMap && !data.imageInfo.loaded) {
+            const img = data.mapImage.value;
+            if (img.complete && img.naturalWidth > 0) {
+              console.log('[查询后] 检测到图片已缓存但未初始化，强制初始化');
+              if (uiHandlers.handleImageLoad) {
+                uiHandlers.handleImageLoad({ target: img });
+              }
+            }
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('查询轨迹数据失败:', error)

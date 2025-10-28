@@ -184,8 +184,14 @@
   </div>
 </template>
 
+<script>
+export default {
+  name: 'MonitorView'
+}
+</script>
+
 <script setup>
-import { onMounted, watch, onUnmounted, ref } from 'vue'
+import { onMounted, onActivated, watch, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Delete, Search, FullScreen, Close, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import '@/assets/styles/monitor-view.css'
@@ -224,6 +230,7 @@ const {
   
   // lifecycle
   onMountedHandler,
+  onActivatedHandler,
   watchMapChange,
   watchTrackingData,
   onUnmountedHandler
@@ -281,6 +288,9 @@ const toggleFullscreen = async () => {
 
 // 组件挂载
 onMounted(onMountedHandler)
+
+// 组件激活（从其他页面切换回来时）
+onActivated(onActivatedHandler)
 
 // 监听全屏变化
 onMounted(() => {

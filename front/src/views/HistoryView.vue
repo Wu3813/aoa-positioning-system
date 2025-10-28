@@ -219,8 +219,14 @@
   </div>
 </template>
 
+<script>
+export default {
+  name: 'HistoryView'
+}
+</script>
+
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onActivated, onUnmounted } from 'vue'
 import { Search, Refresh, VideoPlay, VideoPause, VideoCamera, Download } from '@element-plus/icons-vue'
 import '@/assets/styles/history-view.css'
 import { useHistoryView } from './historyview-js/index.js'
@@ -272,12 +278,18 @@ const {
   restoreState,
   
   // lifecycle
-  onMountedHandler
+  onMountedHandler,
+  onActivatedHandler
 } = useHistoryView()
 
 // 组件挂载
 onMounted(async () => {
   await onMountedHandler()
+})
+
+// 组件激活（从其他页面切换回来时）
+onActivated(() => {
+  onActivatedHandler()
 })
 
 // 组件卸载

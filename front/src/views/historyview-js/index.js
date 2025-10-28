@@ -1,4 +1,4 @@
-import { watch, onMounted } from 'vue'
+import { watch, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMapStore } from '@/stores/map'
 import { createHistoryData } from './data'
@@ -16,11 +16,15 @@ export function useHistoryView() {
   // 创建回放处理器
   const playbackHandler = createPlaybackHandler(data, t)
   
-  // 创建API操作
-  const api = createHistoryAPI(data, mapStore, t)
+  // 创建UI交互处理器（先创建，因为 API 需要用到它的方法）
+  const uiHandler = createUIHandler(data, mapStore, t, null, null, playbackHandler.stopPlayback)
   
-  // 创建UI交互处理器
-  const uiHandler = createUIHandler(data, mapStore, t, api.handleMapChange, api.handleSearch, playbackHandler.stopPlayback)
+  // 创建API操作（传入 uiHandler 以便访问 handleImageLoad）
+  const api = createHistoryAPI(data, mapStore, t, { handleImageLoad: uiHandler.handleImageLoad })
+  
+  // 将 API 的方法绑定到 uiHandler（这是一个循环依赖的解决方案）
+  uiHandler.apiHandleMapChange = api.handleMapChange
+  uiHandler.apiHandleSearch = api.handleSearch
 
   // 监听回放速度变化
   watch(data.playbackSpeed, () => {
@@ -56,6 +60,72 @@ export function useHistoryView() {
   const onMountedHandler = async () => {
     await api.fetchMapList();
     await uiHandler.restoreState();
+    
+    // 延迟检查图片缓存，确保所有数据都已加载
+    setTimeout(() => {
+      if (data.mapImage.value && mapStore.selectedMap && !data.imageInfo.loaded) {
+        const img = data.mapImage.value;
+        if (img.complete && img.naturalWidth > 0) {
+          console.log('[onMounted] 检测到缓存图片，手动初始化');
+          uiHandler.handleImageLoad({ target: img });
+        }
+      }
+    }, 100);
+  }
+
+  // 组件激活处理函数（从缓存恢复时）
+  const onActivatedHandler = () => {
+    console.log('HistoryView 激活，检查图片加载状态');
+    console.log('当前状态:', {
+      hasMapImage: !!data.mapImage.value,
+      hasSelectedMap: !!mapStore.selectedMap,
+      imageInfoLoaded: data.imageInfo.loaded,
+      trajectoryDataLength: data.trajectoryData.value.length
+    });
+    
+    // 使用 nextTick 确保 DOM 已经更新
+    nextTick(() => {
+      // 检查图片是否已经加载但 imageInfo.loaded 为 false
+      // 这种情况发生在从其他页面切换回来时，图片从缓存加载不会触发 @load 事件
+      if (data.mapImage.value && mapStore.selectedMap) {
+        const img = data.mapImage.value;
+        
+        console.log('图片状态:', {
+          complete: img.complete,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          clientWidth: img.clientWidth,
+          clientHeight: img.clientHeight
+        });
+        
+        // 检查图片是否已完成加载（complete 为 true 且有尺寸）
+        // 无论 imageInfo.loaded 的状态如何，都重新初始化以确保数据正确
+        if (img.complete && img.naturalWidth > 0) {
+          console.log('检测到图片已从缓存加载，强制重新初始化');
+          
+          // 强制重新初始化图片信息
+          data.imageInfo.loaded = false;
+          
+          // 手动调用 handleImageLoad 来初始化
+          uiHandler.handleImageLoad({ target: img });
+          
+          console.log('初始化完成后的状态:', {
+            loaded: data.imageInfo.loaded,
+            width: data.imageInfo.width,
+            height: data.imageInfo.height,
+            scaleX: data.imageInfo.scaleX,
+            scaleY: data.imageInfo.scaleY
+          });
+        } else {
+          console.warn('图片未完全加载，等待加载完成');
+        }
+      } else {
+        console.warn('缺少必要的引用:', {
+          mapImage: !!data.mapImage.value,
+          selectedMap: !!mapStore.selectedMap
+        });
+      }
+    });
   }
 
   return {
@@ -104,6 +174,7 @@ export function useHistoryView() {
     restoreState: uiHandler.restoreState,
     
     // lifecycle
-    onMountedHandler
+    onMountedHandler,
+    onActivatedHandler
   }
 }

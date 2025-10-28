@@ -117,7 +117,11 @@
       
       <!-- 页面内容 -->
       <el-main class="content">
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <keep-alive :include="['MonitorView', 'HistoryView']">
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>

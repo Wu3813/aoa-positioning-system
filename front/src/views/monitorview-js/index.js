@@ -1,4 +1,4 @@
-import { onMounted, watch, onUnmounted } from 'vue'
+import { onMounted, watch, onUnmounted, nextTick } from 'vue'
 import { createMonitorData } from './data'
 import { createMonitorAPI } from './api'
 import { createRenderHandler } from './render'
@@ -124,6 +124,60 @@ export function useMonitorView() {
     setupAutoRefresh();
   }
 
+  // 组件激活处理函数（从缓存恢复时）
+  const onActivatedHandler = () => {
+    console.log('MonitorView 激活，检查图片加载状态', {
+      hasImage: !!data.mapImage.value,
+      hasMap: !!data.mapStore.selectedMap,
+      loaded: data.imageInfo.loaded,
+      hasCanvas: !!data.mapCanvas.value
+    });
+    
+    // 使用 nextTick 确保 DOM 已经更新
+    nextTick(() => {
+      // 检查图片是否已经加载但 imageInfo.loaded 为 false
+      // 这种情况发生在从其他页面切换回来时，图片从缓存加载不会触发 @load 事件
+      if (data.mapImage.value && data.mapStore.selectedMap) {
+        const img = data.mapImage.value;
+        console.log('检查图片状态:', {
+          complete: img.complete,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          loaded: data.imageInfo.loaded
+        });
+        
+        // 检查图片是否已完成加载（complete 为 true 且有尺寸）
+        if (img.complete && img.naturalWidth > 0 && !data.imageInfo.loaded) {
+          console.log('检测到图片已从缓存加载，手动触发初始化');
+          
+          // 手动调用 handleImageLoad 来初始化
+          uiHandler.handleImageLoad({ target: img });
+        } else if (data.imageInfo.loaded && data.mapCanvas.value) {
+          // 如果已经加载，确保触发一次渲染
+          console.log('图片已加载，触发渲染');
+          triggerRender();
+        }
+      }
+      
+      // 重新加载当前地图的电子围栏数据
+      if (data.mapStore.selectedMap?.mapId) {
+        console.log('页面激活，重新加载电子围栏');
+        data.trackingStore.fetchGeofences(data.mapStore.selectedMap.mapId).then(() => {
+          // 电子围栏加载完成后触发渲染
+          if (data.imageInfo.loaded && data.mapCanvas.value) {
+            triggerRender();
+          }
+        });
+      }
+      
+      // 确保自动刷新正在运行
+      if (!autoRefreshInterval) {
+        console.log('页面激活，启动自动刷新');
+        setupAutoRefresh();
+      }
+    });
+  }
+
   // 监听地图变化处理函数
   const watchMapChange = () => {
     data.geofenceCenters.clear();
@@ -230,6 +284,7 @@ export function useMonitorView() {
     
     // lifecycle
     onMountedHandler,
+    onActivatedHandler,
     watchMapChange,
     watchTrackingData,
     onUnmountedHandler
