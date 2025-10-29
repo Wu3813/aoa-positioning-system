@@ -10,22 +10,33 @@
         (device_id, map_id, timestamp, x, y)
         VALUES
         <foreach collection="records" item="record" separator=",">
-            (#{record.deviceId}, #{record.mapId}, #{record.timestamp},
+            (#{record.deviceId, typeHandler=org.apache.ibatis.type.ByteArrayTypeHandler}, 
+             #{record.mapId}, #{record.timestamp},
              #{record.x}, #{record.y})
         </foreach>
     </insert>
     
+    <!-- ResultMap for TrajectoryRecord with proper BINARY handling -->
+    <resultMap id="TrajectoryRecordResultMap" type="com.wu.monitor.model.TrajectoryRecord">
+        <id property="id" column="id"/>
+        <result property="deviceId" column="device_id" typeHandler="org.apache.ibatis.type.ByteArrayTypeHandler"/>
+        <result property="mapId" column="map_id"/>
+        <result property="timestamp" column="timestamp"/>
+        <result property="x" column="x"/>
+        <result property="y" column="y"/>
+    </resultMap>
+    
     <!-- 查询设备历史轨迹 - 直接使用前端传入的时间，不做任何时区转换处理 -->
-    <select id="selectByDeviceId" resultType="com.wu.monitor.model.TrajectoryRecord">
+    <select id="selectByDeviceId" resultMap="TrajectoryRecordResultMap">
         SELECT 
             id, 
-            device_id as deviceId, 
-            map_id as mapId, 
+            device_id, 
+            map_id, 
             timestamp, 
             x, 
             y
         FROM trajectory_data
-        WHERE device_id = #{deviceId}
+        WHERE device_id = #{deviceId, jdbcType=BINARY, typeHandler=org.apache.ibatis.type.ByteArrayTypeHandler}
         <if test="mapId != null">
             AND map_id = #{mapId}
         </if>
